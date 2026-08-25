@@ -33,30 +33,28 @@
  *   is a single int. Do not store the pairs.
  *
  * Memory management
- *   We take std::vector<int>& and sort the existing heap allocation.
- *   Three words on the stack for the vector object in main; n ints
- *   on the heap. minPairSum adds two indices and a long long max.
- *   No new[]. No second vector. When main's vector goes out of
- *   scope, its destructor returns the n ints to the allocator.
+ *   int nums[] decays to a pointer. sort(nums, nums+n) sorts the
+ *   existing n cells. Two indices and a long long max on the stack.
+ *   We avoid vector on purpose. No second array. The caller's buffer
+ *   is permuted; there is no destructor to free it.
  *
- *   Passing by value would copy n ints before sorting the copy,
- *   preserving the original at O(n) extra heap. This API does not
- *   need the original. const T& would not compile with std::sort.
+ *   Passing a copy would preserve the original at O(n) extra memory.
+ *   This API does not need the original.
  *
  * C theory — extremes, overflow, even length, cache, UB, in-place
  *   The pair sum must be computed in long long. Two int addends at
  *   the positive extreme overflow signed 32-bit. UB is not "wrap
  *   to negative and then your max is wrong"; UB means the compiler
  *   may delete the max update. 1LL * nums[i] + nums[j] is the
- *   habit. Track best in long long. Cast to int only when you know
+ *   habit. Track best in long long. Return int only when you know
  *   the result fits, as in this sample.
  *
  *   n even: i and j land on a clean split. We loop while i < j, so
- *   we never pair an element with itself. size_t j = n-1 is valid
- *   after an n < 2 guard. Decrementing j is safe while i < j.
+ *   we never pair an element with itself. j = n-1 is valid after
+ *   an n < 2 guard. Decrementing j is safe while i < j.
  *
- *   std::sort requires operator< to be a strict weak ordering. For
- *   int it is. Do not compare ints by subtracting them in a qsort
+ *   sort requires operator< to be a strict weak ordering. For int
+ *   it is. Do not compare ints by subtracting them in a qsort
  *   comparator; that subtraction overflows. C++ operator< does not
  *   subtract.
  *
@@ -71,7 +69,7 @@
  *   people list, you already lost it. Copy-and-sort if that matters.
  *
  *   Empty array: 0. One element: not a pair, 0. Those guards also
- *   prevent the unsigned n-1 wrap.
+ *   prevent a bogus n-1.
  *
  *   Printing the int is the whole API. There is no pair list to
  *   format.
@@ -79,29 +77,30 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int minPairSum(std::vector<int>& nums) {
-    if (nums.size() < 2) {
+int minPairSum(int nums[], int n) {
+    if (n < 2) {
         return 0;
     }
-    std::sort(nums.begin(), nums.end());
-    std::size_t i = 0;
-    std::size_t j = nums.size() - 1;
+    sort(nums, nums + n);
+    int i = 0;
+    int j = n - 1;
     long long best = 0;
     while (i < j) {
-        const long long s = 1LL * nums[i] + nums[j];
+        long long s = 1LL * nums[i] + nums[j];
         if (s > best) {
             best = s;
         }
-        ++i;
-        --j;
+        i++;
+        j--;
     }
-    return static_cast<int>(best);
+    return best;
 }
 
 int main() {
-    std::vector<int> nums{7, 3, 1, 8, 6, 1, 7, 5};
-    std::cout << minPairSum(nums) << '\n';
+    int nums[] = {7, 3, 1, 8, 6, 1, 7, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << minPairSum(nums, n) << '\n';
     return 0;
 }

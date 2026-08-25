@@ -10,7 +10,7 @@
  *   the array so that the unique values occupy a prefix, in order, and
  *   return k, the number of unique values. The prefix [0, k) is the
  *   answer. Cells [k, n) are unspecified leftover; callers must not read
- *   them as part of the unique sequence. We do not shrink the vector.
+ *   them as part of the unique sequence. We do not shrink the array.
  *
  * Algorithm intuition
  *   Slow pointer k is the length of the unique prefix so far, equivalently
@@ -28,21 +28,18 @@
  * Complexity
  *   Time  O(n).
  *   Extra space O(1). The unique values occupy the front of the same
- *   heap buffer. A std::vector erase in a loop from the front would be
- *   O(n^2) moves. A new vector of uniques is O(k) extra memory and a
- *   second allocation. This algorithm needs neither.
+ *   buffer. Erasing from the front in a loop would be O(n^2) moves. A
+ *   new array of uniques is O(k) extra memory. This algorithm needs
+ *   neither.
  *
  * Memory management
- *   std::vector<int>&: we write unique values into the existing buffer.
- *   We do not call resize(k). The destructor will still free n ints of
- *   capacity, which is correct. If the caller wanted the vector shorter,
- *   they would resize after seeing k. This function's contract is the
- *   LeetCode-style one: return k, leave the tail alone.
+ *   int nums[] decays to a pointer; n is the live length. We write
+ *   unique values into the existing buffer. We do not allocate a shorter
+ *   copy. The n cells still exist; only the prefix of length k is the
+ *   answer. We avoid vector on purpose. k never exceeds n, so we never
+ *   write past the allocation. We also never read past it: i < n.
  *
- *   k never exceeds n, so we never write past the allocation. We also
- *   never read past it: i < nums.size().
- *
- * C theory — overlapping source and destination, size_t, leftover tail
+ * C theory — overlapping source and destination, leftover tail
  *   The copy nums[k] = nums[i] may have k < i (after skipping duplicates)
  *   or k == i (no duplicate yet, the unique prefix is still the whole
  *   scan). When k == i the assignment is a no-op. When k < i we write
@@ -58,38 +55,39 @@
  *   Empty array: there is no nums[k-1]. Return 0 before the loop.
  *   One element: k starts at 1, the loop does not run, return 1.
  *
- *   size_t is unsigned. k - 1 on k == 0 would wrap. We keep k >= 1
- *   after the empty check, so nums[k - 1] is valid.
+ *   k - 1 on k == 0 would be a bad index. We keep k >= 1 after the
+ *   empty check, so nums[k - 1] is valid.
  *
  *   Cache: one forward scan, mostly streaming. Writes go to the left
  *   side of the same lines. Excellent locality.
  *
  *   Overflow is not involved. In-place mutation is the whole point:
- *   the unique sequence reuses the input's heap cells.
+ *   the unique sequence reuses the input's cells.
  *
  *   Printing "ans" concatenated with the integer is the sample's
  *   convention, not a format you should use in a library.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int removeDuplicates(std::vector<int>& nums) {
-    if (nums.empty()) {
+int removeDuplicates(int nums[], int n) {
+    if (n == 0) {
         return 0;
     }
-    std::size_t k = 1;
-    for (std::size_t i = 1; i < nums.size(); ++i) {
+    int k = 1;
+    for (int i = 1; i < n; i++) {
         if (nums[i] != nums[k - 1]) {
             nums[k] = nums[i];
-            ++k;
+            k++;
         }
     }
-    return static_cast<int>(k);
+    return k;
 }
 
 int main() {
-    std::vector<int> nums{1, 1, 1, 2, 2, 3, 3, 4, 5, 5};
-    std::cout << "ans" << removeDuplicates(nums) << '\n';
+    int nums[] = {1, 1, 1, 2, 2, 3, 3, 4, 5, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << "ans" << removeDuplicates(nums, n) << '\n';
     return 0;
 }

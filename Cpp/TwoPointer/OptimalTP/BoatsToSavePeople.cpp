@@ -40,10 +40,11 @@
  *   Extra space O(1) besides sort's stack, if we sort in place.
  *
  * Memory management
- *   std::vector<int>&: we sort the caller's buffer. The original
- *   order of people is lost. If you needed it, copy first. The
- *   function allocates no second people array. Two indices and a
- *   counter on the stack.
+ *   int people[] decays to a pointer. sort(people, people+n) sorts the
+ *   caller's buffer. The original order of people is lost. If you
+ *   needed it, copy first. The function allocates no second people
+ *   array. We avoid vector on purpose. Two indices and a counter on
+ *   the stack.
  *
  * C theory — sort, overflow of the pair sum, cache, UB
  *   people[i] + people[j] as int can overflow. A weight of INT_MAX
@@ -51,26 +52,16 @@
  *     1LL * people[i] + people[j] <= limit
  *   promoting limit to long long. The sample is nowhere near that.
  *
- *   std::sort permutes the heap buffer of the vector with O(n log n)
- *   assignments of int. Afterward the two-pointer pass is sequential
- *   from both ends: good cache behavior on the sorted array. The
- *   sort itself has worse locality; it is still the right tool.
+ *   sort permutes the n ints with O(n log n) assignments. Afterward
+ *   the two-pointer pass is sequential from both ends: good cache
+ *   behavior on the sorted array. The sort itself has worse locality;
+ *   it is still the right tool.
  *
- *   i and j as size_t, loop while i <= j. When they are equal, both
- *   index a live cell. After j-- from 0, size_t wraps; we must not
- *   enter the loop again. The condition is checked at the top:
- *   if i was 0 and j was 0, we process, j becomes SIZE_MAX, i may
- *   become 1, and i <= j is 1 <= SIZE_MAX, which is true — THAT IS
- *   A BUG if we used size_t and j-- from 0.
- *
- *   Use a signed index, or loop while i < j for pairs and add one
- *   boat if i == j after, or use int i, j. This lesson uses int
- *   indices after checking n fits the loop. For n that fit in int
- *   (this course), int i = 0, j = n-1; while (i <= j) is safe
- *   because j-- at 0 happens after the last iteration and then
- *   i <= j fails if i was 0 and we also did i++ or if we only did
- *   j-- then i==0, j==-1, 0 <= -1 is false. Signed is the natural
- *   fit for a shrinking high index that can pass zero.
+ *   i and j as int, loop while i <= j. When they are equal, both
+ *   index a live cell. After j-- from 0, j becomes -1. The condition
+ *   is checked at the top: if i was 0 and j was 0, we process, j
+ *   becomes -1, and i <= j is 0 <= -1, which is false. Signed is the
+ *   natural fit for a shrinking high index that can pass zero.
  *
  *   Empty: 0 boats. We return 0 without n-1.
  *
@@ -80,29 +71,30 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int numRescueBoats(std::vector<int>& people, int limit) {
-    if (people.empty()) {
+int numRescueBoats(int people[], int n, int limit) {
+    if (n == 0) {
         return 0;
     }
-    std::sort(people.begin(), people.end());
+    sort(people, people + n);
     int i = 0;
-    int j = static_cast<int>(people.size()) - 1;
+    int j = n - 1;
     int boats = 0;
-    const long long cap = limit;
+    long long cap = limit;
     while (i <= j) {
         if (1LL * people[i] + people[j] <= cap) {
-            ++i;
+            i++;
         }
-        ++boats;
-        --j;
+        boats++;
+        j--;
     }
     return boats;
 }
 
 int main() {
-    std::vector<int> arr{4, 2, 8, 3, 1, 6, 2, 5};
-    std::cout << numRescueBoats(arr, 8) << '\n';
+    int arr[] = {4, 2, 8, 3, 1, 6, 2, 5};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    cout << numRescueBoats(arr, n, 8) << '\n';
     return 0;
 }

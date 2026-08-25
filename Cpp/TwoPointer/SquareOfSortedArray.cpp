@@ -7,7 +7,7 @@
  * middle.
  *
  * Problem
- *   nums is sorted non-decreasing and may contain negatives. Return a
+ *   nums is sorted non-decreasing and may contain negatives. Fill a
  *   new array of the squares, also sorted non-decreasing. Sample:
  *   {-8,-6,-5,1,2,3,4} -> 1,4,9,16,25,36,64 each on its own line.
  *
@@ -24,33 +24,28 @@
  *
  * Complexity
  *   Time  O(n).
- *   Extra space O(n) for the result buffer. The input is const; we do
- *   not overwrite it. You could overwrite nums from the back only if
- *   the caller allowed mutation and you were careful about clobbering
- *   unread ends — the extra array is the honest, safe design here.
+ *   Extra space O(n) for the result buffer. The input is not overwritten.
+ *   You could overwrite nums from the back only if the caller allowed
+ *   mutation and you were careful about clobbering unread ends — the
+ *   extra array is the honest, safe design here.
  *
  * Memory management
- *   const std::vector<int>& nums: no copy of the input, no mutation.
- *   std::vector<int> res(n) allocates a heap buffer of n ints, value-
- *   initialized to zero, then we fill every cell. The result is
- *   returned by value. C++17 copy elision / move makes returning a
- *   local vector cheap: you transfer the three-word object (pointer,
- *   size, capacity). You do not memcpy n ints on the return if the
- *   compiler elides, and a move only copies the three words and
- *   nulls the source. The destructor of the moved-from vector frees
- *   nothing of consequence.
+ *   int nums[] decays to a pointer; pass n. int res[] is a second
+ *   buffer of n ints, also decayed. We avoid vector on purpose. In
+ *   main both arrays are stack arrays whose sizes are known at
+ *   compile time (sizeof the initializer). The function fills res
+ *   and returns nothing: the caller already owns the output cells.
  *
- *   In C you would malloc n ints, fill them, return the pointer, and
- *   the caller would free. Ownership is explicit and easy to leak.
- *   The C++ vector destructor is the owner.
+ *   In C you would pass two pointers and a length. Ownership is
+ *   explicit. Nobody mallocs, nobody frees.
  *
  * C theory — abs(INT_MIN), square overflow, cache, UB
  *   Do not rank the ends with abs as a 32-bit int. abs(INT_MIN) cannot
  *   be represented in 32-bit two's complement: the magnitude is 2^31,
- *   and INT_MAX is 2^31-1. Calling std::abs(INT_MIN) on int is
- *   undefined behavior. labs on a long that is still 32-bit has the
- *   same trap. llabs on long long is safe for INT_MIN because 2^31
- *   fits in 64-bit signed.
+ *   and INT_MAX is 2^31-1. Calling abs(INT_MIN) on int is undefined
+ *   behavior. labs on a long that is still 32-bit has the same trap.
+ *   llabs on long long is safe for INT_MIN because 2^31 fits in
+ *   64-bit signed.
  *
  *   Prefer not to take abs at all. Compare squares in 64-bit:
  *     1LL * nums[l] * nums[l]  versus  1LL * nums[r] * nums[r]
@@ -61,50 +56,46 @@
  *   and storing it in int is a bug. Use long long for the result type
  *   when the problem allows large magnitudes. Here the sample values
  *   fit, and we still compute the comparison in long long so the
- *   ranking cannot overflow.
- *
- *   Writing res[index] = static_cast<int>(square) is only valid if
- *   square is in int's range. Know that conversion from a too-large
- *   long long to int is implementation-defined (often truncation).
+ *   ranking cannot overflow. We write nums[l] * nums[l] into res only
+ *   after that ranking, and only because the sample is in range.
  *
  *   Cache: we read nums from both ends sequentially and write res
  *   from the back sequentially. Three sequential streams. The result
- *   allocation may be cold on the first write; after that the lines
- *   fill nicely.
+ *   array may be cold on the first write; after that the lines fill
+ *   nicely.
  *
  *   Indices: a signed write index from n-1 down to 0 is simpler than
- *   size_t decrementing through zero. l and r stay in range because
+ *   walking through zero unsigned. l and r stay in range because
  *   each step consumes one of n cells. Empty input: the loop does
  *   not run.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-std::vector<int> sortedSquares(const std::vector<int>& nums) {
-    const int n = static_cast<int>(nums.size());
-    std::vector<int> res(n);
+void sortedSquares(int nums[], int n, int res[]) {
     int l = 0;
     int r = n - 1;
-    for (int index = n - 1; index >= 0; --index) {
-        const long long left_sq = 1LL * nums[l] * nums[l];
-        const long long right_sq = 1LL * nums[r] * nums[r];
+    for (int index = n - 1; index >= 0; index--) {
+        long long left_sq = 1LL * nums[l] * nums[l];
+        long long right_sq = 1LL * nums[r] * nums[r];
         if (left_sq > right_sq) {
-            res[index] = static_cast<int>(left_sq);
-            ++l;
+            res[index] = nums[l] * nums[l];
+            l++;
         } else {
-            res[index] = static_cast<int>(right_sq);
-            --r;
+            res[index] = nums[r] * nums[r];
+            r--;
         }
     }
-    return res;
 }
 
 int main() {
-    std::vector<int> arr{-8, -6, -5, 1, 2, 3, 4};
-    const std::vector<int> res = sortedSquares(arr);
-    for (int x : res) {
-        std::cout << x << '\n';
+    int nums[] = {-8, -6, -5, 1, 2, 3, 4};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int res[sizeof(nums) / sizeof(nums[0])];
+    sortedSquares(nums, n, res);
+    for (int i = 0; i < n; i++) {
+        cout << res[i] << '\n';
     }
     return 0;
 }

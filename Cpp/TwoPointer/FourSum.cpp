@@ -6,14 +6,14 @@
  * values appears once, and adding four ints without overflowing.
  *
  * Problem
- *   Return every unique non-decreasing quadruplet (a,b,c,d) of values
+ *   Print every unique non-decreasing quadruplet (a,b,c,d) of values
  *   from the array (distinct indices) that sum to target. Sample:
  *   {0,1,0,2,1,2,2}, target 3, prints the single line 0 0 1 2.
  *
  * Algorithm intuition
  *   Sort. Fix i, then j > i. On the remaining suffix, two pointers
  *   l = j+1, h = n-1 search for target - nums[i] - nums[j]. On a hit,
- *   record the four values, step both pointers, and skip equal values
+ *   print the four values, step both pointers, and skip equal values
  *   so you do not emit the same quadruplet again. On a miss, move l
  *   or h by the usual sum test.
  *
@@ -24,26 +24,15 @@
  *
  * Complexity
  *   Time  O(n^3): two nested index loops and an O(n) two-pointer scan.
- *   Extra space O(1) besides the output. The output can be O(n^3)
- *   quadruplets in the worst case; that memory is required by the
- *   answer, not by the algorithm's working set. Sort is in-place.
+ *   Extra space O(1) besides the printed output. We do not store a
+ *   table of quadruplets. Sort is in-place.
  *
  * Memory management
- *   We take std::vector<int> by value or we sort a local copy. The
- *   function below takes a mutable reference and sorts it, matching
- *   the "scratch the input" pattern of three-sum. The result is
- *   std::vector<std::vector<int>>: a heap vector of small heap
- *   vectors of four ints. Each inner vector is a separate allocation
- *   (small-object optimization does not apply to vector). If you
- *   emitted millions of quadruplets, that allocator traffic would
- *   dominate. For the sample there is one inner vector of four ints.
- *
- *   Push a quadruplet with res.push_back({a,b,c,d}). That constructs
- *   a temporary vector of four, which allocates, then moves into res.
- *
- *   In C you would realloc an array of struct {int a,b,c,d;}, one
- *   allocation, better locality. C++ vector-of-vector is the clear
- *   teaching type, not the fastest packing.
+ *   int nums[] decays to a pointer. We sort it with sort(nums, nums+n)
+ *   and print each hit as we find it. No nested arrays of answers.
+ *   We avoid vector on purpose: collecting vector-of-vector would be
+ *   a heap allocation per quadruplet. Printing streams four ints and
+ *   keeps working memory to a handful of indices.
  *
  * C theory — long long accumulation, skip, overflow, UB, cache
  *   Four int addends: 4 * INT_MAX does not fit in 32-bit signed.
@@ -54,8 +43,7 @@
  *   is UB on overflow. Do not write 1LL * a + b + c + d as
  *   1LL * (a + b + c + d) either; the parentheses force int adds.
  *
- *   Compare to target as long long: static_cast<long long>(target)
- *   or 0LL + target.
+ *   Compare to target as long long: (long long)target or 0LL + target.
  *
  *   Duplicate skip uses l > 0 logically by comparing nums[l] to
  *   nums[l-1] only when l has just been incremented and l < h.
@@ -63,77 +51,63 @@
  *   skips a valid quadruplet or emits duplicates. Trace the sample
  *   on paper: sorted 0,0,1,1,2,2,2.
  *
- *   i runs while i+3 < n so four cells exist. Write i + 3 < size()
- *   with size_t. j + 2 < size() similarly.
+ *   i runs while i+3 < n so four cells exist. j + 2 < n similarly.
  *
  *   Cache: after sort, the inner two-pointer walks are sequential.
  *   The outer loops jump j around; still the same array, likely hot.
- *   The result writes are small allocations; they miss relative to
- *   the scan, which is fine at this size.
  *
- *   std::sort mutates. Original index identity is destroyed. We
- *   return values, not indices.
+ *   sort mutates. Original index identity is destroyed. We print
+ *   values, not indices.
  *
- *   Empty / n < 4: return an empty list. No wrap of n-1.
+ *   Empty / n < 4: print nothing. No wrap of n-1.
  */
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-std::vector<std::vector<int>> fourSum(std::vector<int>& nums, int target) {
-    std::vector<std::vector<int>> res;
-    const std::size_t n = nums.size();
+void fourSum(int nums[], int n, int target) {
     if (n < 4) {
-        return res;
+        return;
     }
-    std::sort(nums.begin(), nums.end());
-    const long long need = target;
-    for (std::size_t i = 0; i + 3 < n; ++i) {
+    sort(nums, nums + n);
+    long long need = target;
+    for (int i = 0; i + 3 < n; i++) {
         if (i > 0 && nums[i] == nums[i - 1]) {
             continue;
         }
-        for (std::size_t j = i + 1; j + 2 < n; ++j) {
+        for (int j = i + 1; j + 2 < n; j++) {
             if (j > i + 1 && nums[j] == nums[j - 1]) {
                 continue;
             }
-            std::size_t l = j + 1;
-            std::size_t h = n - 1;
+            int l = j + 1;
+            int h = n - 1;
             while (l < h) {
-                const long long sum =
-                    1LL * nums[i] + nums[j] + nums[l] + nums[h];
+                long long sum = 1LL * nums[i] + nums[j] + nums[l] + nums[h];
                 if (sum == need) {
-                    res.push_back({nums[i], nums[j], nums[l], nums[h]});
-                    ++l;
-                    --h;
+                    cout << nums[i] << ' ' << nums[j] << ' ' << nums[l] << ' '
+                         << nums[h] << '\n';
+                    l++;
+                    h--;
                     while (l < h && nums[l] == nums[l - 1]) {
-                        ++l;
+                        l++;
                     }
                     while (l < h && nums[h] == nums[h + 1]) {
-                        --h;
+                        h--;
                     }
                 } else if (sum < need) {
-                    ++l;
+                    l++;
                 } else {
-                    --h;
+                    h--;
                 }
             }
         }
     }
-    return res;
 }
 
 int main() {
-    std::vector<int> arr{0, 1, 0, 2, 1, 2, 2};
-    const std::vector<std::vector<int>> ans = fourSum(arr, 3);
-    for (const std::vector<int>& quad : ans) {
-        for (std::size_t i = 0; i < quad.size(); ++i) {
-            if (i != 0) {
-                std::cout << ' ';
-            }
-            std::cout << quad[i];
-        }
-        std::cout << '\n';
-    }
+    int nums[] = {0, 1, 0, 2, 1, 2, 2};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    fourSum(nums, n, 3);
     return 0;
 }

@@ -30,16 +30,16 @@
  *   Extra space O(1): two indices and a temporary for the swap.
  *
  * Memory management
- *   std::vector<int>&, in-place stores, no reallocation. The heap buffer
- *   is reused. Stack: i, j, temp. The swap's temporary is one int; it is
- *   not an array.
+ *   int nums[] decays to a pointer. In-place stores, no second array.
+ *   The caller's n ints are reused. Stack: i, j, temp. The swap's
+ *   temporary is one int; it is not an array. We avoid vector on purpose.
  *
- *   You could allocate two vectors, push negatives then positives, and
- *   copy back. That is O(n) extra heap and two passes. The two-pointer
+ *   You could allocate two arrays, copy negatives then positives, and
+ *   copy back. That is O(n) extra memory and two passes. The two-pointer
  *   partition does the job with a handful of words.
  *
  * C theory — Hoare pointers, zeros, overflow, UB, cache
- *   The inner loops need the guard i < j (or i < n, j < n). Without it,
+ *   The inner loops need the guard i < j (or i < n, j >= 0). Without it,
  *   i can run off the right end looking for a positive that does not
  *   exist (all remaining cells negative). Reading nums[i] with i == n is
  *   undefined behavior. The same on the left for j.
@@ -65,28 +65,28 @@
  *   needs it, they must copy first. Document that.
  *
  *   C form:
- *     void partition_sign(int *a, size_t n);
- *   i and j as size_t, empty array: return before n-1.
+ *     void partition_sign(int a[], int n);
+ *   Empty array: return before n-1.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void rearrange(std::vector<int>& arr) {
-    if (arr.size() < 2) {
+void rearrange(int arr[], int n) {
+    if (n < 2) {
         return;
     }
-    std::size_t i = 0;
-    std::size_t j = arr.size() - 1;
+    int i = 0;
+    int j = n - 1;
     while (i < j) {
         while (i < j && arr[i] < 0) {
-            ++i;
+            i++;
         }
         while (i < j && arr[j] > 0) {
-            --j;
+            j--;
         }
         if (i < j) {
-            const int temp = arr[i];
+            int temp = arr[i];
             arr[i] = arr[j];
             arr[j] = temp;
         }
@@ -94,14 +94,15 @@ void rearrange(std::vector<int>& arr) {
 }
 
 int main() {
-    std::vector<int> arr{-2, 6, 3, -4, 1, 10, -5, 8, -7, -6};
-    rearrange(arr);
-    for (std::size_t i = 0; i < arr.size(); ++i) {
+    int arr[] = {-2, 6, 3, -4, 1, 10, -5, 8, -7, -6};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    rearrange(arr, n);
+    for (int i = 0; i < n; i++) {
         if (i != 0) {
-            std::cout << ' ';
+            cout << ' ';
         }
-        std::cout << arr[i];
+        cout << arr[i];
     }
-    std::cout << '\n';
+    cout << '\n';
     return 0;
 }

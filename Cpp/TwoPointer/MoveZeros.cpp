@@ -28,20 +28,20 @@
  *   Extra space O(1): two indices, no second array.
  *
  * Memory management
- *   std::vector<int>& because we mutate the caller's buffer. The vector
- *   object is not resized. size() and capacity() stay the same. We only
- *   store into existing cells. That is true in-place: the heap allocation
- *   is reused as both input and output.
+ *   int nums[] decays to a pointer. We mutate the caller's buffer. The
+ *   array does not grow. We only store into existing cells. That is
+ *   true in-place: the same n ints are both input and output. We avoid
+ *   vector on purpose.
  *
- *   The lazy alternative is allocate a new vector, push nonzeros, then
- *   pad zeros. That is O(n) extra heap, a second allocation, a copy
- *   back, and a worse cache story (write a cold buffer, then write the
- *   original). Do not do that when the API allows mutation.
+ *   The lazy alternative is allocate a new array, copy nonzeros, then
+ *   pad zeros. That is O(n) extra memory, a second buffer, a copy
+ *   back, and a worse cache story. Do not do that when the API allows
+ *   mutation.
  *
  * C theory — partition, aliasing of write and read, cache, UB
  *   This is the same skeleton as a stable partition in C:
- *     size_t w = 0;
- *     for (size_t r = 0; r < n; ++r)
+ *     int w = 0;
+ *     for (int r = 0; r < n; r++)
  *         if (a[r] != 0) { int t = a[r]; a[r] = 0; a[w++] = t; }
  *   When r == w and a[r] is nonzero, the store of zero would wipe the
  *   value before you copy it if you zeroed first. Order the assignments:
@@ -54,8 +54,7 @@
  *   correctness when the two indices alias.
  *
  *   Out-of-bounds: w never exceeds r, and r < n, so w < n. No write
- *   past the end. No reallocation, so no iterator invalidation (there
- *   are no iterators being held).
+ *   past the end.
  *
  *   Overflow does not arise: we copy ints, we do not add them.
  *
@@ -70,26 +69,27 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void moveZeroes(std::vector<int>& nums) {
-    std::size_t write = 0;
-    for (std::size_t read = 0; read < nums.size(); ++read) {
+void moveZeroes(int nums[], int n) {
+    int write = 0;
+    for (int read = 0; read < n; read++) {
         if (nums[read] != 0) {
             if (write != read) {
                 nums[write] = nums[read];
                 nums[read] = 0;
             }
-            ++write;
+            write++;
         }
     }
 }
 
 int main() {
-    std::vector<int> nums{8, 0, 0, 3, 4, 0, 6, 3, 0, 2};
-    moveZeroes(nums);
-    for (int x : nums) {
-        std::cout << x << '\n';
+    int nums[] = {8, 0, 0, 3, 4, 0, 6, 3, 0, 2};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    moveZeroes(nums, n);
+    for (int i = 0; i < n; i++) {
+        cout << nums[i] << '\n';
     }
     return 0;
 }

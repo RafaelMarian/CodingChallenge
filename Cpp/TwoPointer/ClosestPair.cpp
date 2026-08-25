@@ -7,7 +7,7 @@
  * the ends.
  *
  * Problem
- *   arr is sorted non-decreasing. Return the k elements closest to x,
+ *   arr is sorted non-decreasing. Print the k elements closest to x,
  *   in their original (sorted) order. Sample: arr =
  *   {1,3,5,7,9,11,13,15}, k = 3, x = 7, answer 5 7 9.
  *
@@ -15,7 +15,7 @@
  *   The answer is some subarray arr[l..r] of length k. Start with the
  *   full range l = 0, r = n-1. While the window is longer than k,
  *   discard the end that is farther from x. Compare |arr[l] - x| and
- *   |arr[r] - x|. If the left is strictly farther, ++l; otherwise --r
+ *   |arr[r] - x|. If the left is strictly farther, l++; otherwise r--
  *   (this tie-break keeps the smaller value, which is the usual
  *   convention when distances are equal). When the window length is k,
  *   stop. What remains is the unique closest window under that rule.
@@ -33,82 +33,78 @@
  *   Time  O(n - k): each iteration drops one index, and you drop n-k
  *   of them. For k close to n this is cheap; for k = 1 it is a full
  *   scan, which you could replace with binary search plus expansion.
- *   Extra space O(k) only if you copy the window out; the window
- *   itself is a view of the input.
+ *   Extra space O(1) if you print arr[l..r] directly. Filling a second
+ *   array of k ints is optional.
  *
  * Memory management
- *   const std::vector<int>& arr: no copy of the n-vector. We allocate
- *   a result of k ints to return a value the caller owns. That is k
- *   heap cells, not n. If you only needed to print, you could stream
- *   arr[l..r] and allocate nothing.
+ *   int arr[] decays to a pointer; pass n. We avoid vector on purpose.
+ *   We do not copy the n-array. After the window is k long we print
+ *   those cells. If you only needed to print, you allocate nothing.
  *
- *   Returning vector by value transfers ownership of that k-buffer
- *   via move/elision. The input is untouched.
- *
- * C theory — abs of differences, overflow, size_t windows, cache
- *   |a - x| for int a, x is not std::abs(a - x) in general. If a is
+ * C theory — abs of differences, overflow, windows, cache
+ *   |a - x| for int a, x is not abs(a - x) in general. If a is
  *   INT_MIN and x is 1, a - x overflows before abs. Signed overflow
  *   is UB. Compare in long long:
- *     std::llabs(1LL * arr[l] - x)  or simply compare squared
- *     distances, or compare the two 64-bit differences' magnitudes
- *     without a 32-bit subtract.
+ *     long long d = 1LL * arr[l] - x;
+ *     if (d < 0) d = -d;
  *   1LL * arr[l] - x promotes before subtracting. The range is about
- *   +/- 2^32, which fits in long long. llabs on that is defined.
+ *   +/- 2^32, which fits in long long. Negating that is defined.
  *   abs(INT_MIN) on 32-bit int remains UB; we never call that.
  *
- *   Window length: r - l + 1 > k. With size_t, r - l is well-defined
- *   unsigned subtraction as long as r >= l, which we maintain. Write
- *   r - l + 1 > k carefully: +1 on size_t is fine here because
- *   r - l + 1 <= n. Equivalent test used in many codes: r - l >= k,
- *   which is (r - l + 1) > k when all are size_t and r >= l.
+ *   Window length: r - l + 1 > k. With int indices, r >= l is
+ *   maintained so the subtraction is non-negative. Equivalent test:
+ *   r - l >= k, which is (r - l + 1) > k.
  *
- *   Empty or k == 0: return an empty vector. k > n: the problem
- *   usually guarantees k <= n. We clamp by shrinking only while
- *   r - l + 1 > k and the range is valid.
+ *   Empty or k <= 0: print nothing. k > n: the problem usually
+ *   guarantees k <= n. We shrink only while r - l + 1 > k and the
+ *   range is valid.
  *
  *   Cache: you only load the two ends until the window is small, then
- *   you copy k consecutive ints. The copy is a sequential memcpy-
- *   shaped loop. Very local.
+ *   you stream k consecutive ints. Very local.
  *
- *   No in-place mutation of arr. The result is a separate heap buffer.
+ *   No in-place mutation of arr. The window is a view of the input.
  *
  *   Binary-search alternatives find the left edge of the window in
  *   O(log n) comparisons; learn this linear shrink first. It is
  *   obviously correct and has no subtle midpoint overflow.
  */
 
-#include <cstdlib>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-std::vector<int> findClosestElements(const std::vector<int>& arr, int k, int x) {
-    if (arr.empty() || k <= 0) {
-        return {};
+void findClosestElements(int arr[], int n, int k, int x) {
+    if (n == 0 || k <= 0) {
+        return;
     }
-    std::size_t l = 0;
-    std::size_t r = arr.size() - 1;
-    const std::size_t need = static_cast<std::size_t>(k);
-    while (r - l + 1 > need) {
-        const long long dleft = std::llabs(1LL * arr[l] - x);
-        const long long dright = std::llabs(1LL * arr[r] - x);
+    int l = 0;
+    int r = n - 1;
+    while (r - l + 1 > k) {
+        long long dleft = 1LL * arr[l] - x;
+        if (dleft < 0) {
+            dleft = -dleft;
+        }
+        long long dright = 1LL * arr[r] - x;
+        if (dright < 0) {
+            dright = -dright;
+        }
         if (dleft > dright) {
-            ++l;
+            l++;
         } else {
-            --r;
+            r--;
         }
     }
-    return std::vector<int>(arr.begin() + l, arr.begin() + r + 1);
+    for (int i = l; i <= r; i++) {
+        if (i != l) {
+            cout << ' ';
+        }
+        cout << arr[i];
+    }
+    cout << '\n';
 }
 
 int main() {
-    const std::vector<int> arr{1, 3, 5, 7, 9, 11, 13, 15};
-    const std::vector<int> ans = findClosestElements(arr, 3, 7);
-    for (std::size_t i = 0; i < ans.size(); ++i) {
-        if (i != 0) {
-            std::cout << ' ';
-        }
-        std::cout << ans[i];
-    }
-    std::cout << '\n';
+    int arr[] = {1, 3, 5, 7, 9, 11, 13, 15};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    findClosestElements(arr, n, 3, 7);
     return 0;
 }

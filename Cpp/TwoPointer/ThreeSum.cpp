@@ -28,19 +28,20 @@
  * Complexity
  *   Time  O(n^2): O(n log n) sort plus n times an O(n) two-pointer
  *   scan. Brute force is O(n^3).
- *   Extra space O(1) besides the sort. std::sort on a vector is
- *   in-place (introsort / pattern-defeating sort) with O(log n)
- *   stack for recursion, which we still call O(1) extra relative to
- *   the input in casual speech, or O(log n) if we are precise about
- *   sort's stack. We mutate the caller's array by sorting it.
+ *   Extra space O(1) besides the sort. sort(nums, nums+n) is in-place
+ *   (introsort) with O(log n) stack for recursion, which we still call
+ *   O(1) extra relative to the input in casual speech, or O(log n) if
+ *   we are precise about sort's stack. We mutate the caller's array by
+ *   sorting it.
  *
  * Memory management
- *   std::vector<int>& because we sort in place. If the caller needed
- *   the original order, we would copy first: that copy is O(n) heap.
- *   This function treats the buffer as scratch. Document that.
+ *   int arr[] decays to a pointer. We sort in place with sort(arr, arr+n).
+ *   If the caller needed the original order, we would copy first: that
+ *   copy is O(n) extra. This function treats the buffer as scratch.
+ *   Document that. We avoid vector on purpose.
  *
  *   No hash set. A hash set of complements is the unsorted two-sum
- *   approach and would be O(n) extra heap per i, worse constants, and
+ *   approach and would be O(n) extra memory per i, worse constants, and
  *   worse locality.
  *
  * C theory — sort, overflow of three ints, pointers, cache, UB
@@ -51,10 +52,9 @@
  *     1LL * nums[i] + nums[l] + nums[r]
  *   which is ((1LL * nums[i]) + nums[l]) + nums[r]. Safe.
  *
- *   std::sort needs random-access iterators. vector provides them.
- *   It moves ints by assignment. For int that is copies of machine
- *   words. The comparator must be a strict weak ordering; default
- *   operator< on int is that.
+ *   sort needs random-access iterators. A C array decays to a pointer,
+ *   and pointers into an array are random-access. sort(arr, arr+n)
+ *   sorts the n ints in place. For int that is copies of machine words.
  *
  *   After sort, the two-pointer argument from TwoSumSorted applies
  *   on the suffix: the suffix is still sorted.
@@ -64,10 +64,9 @@
  *   n the quadratic scans dominate time and they are cache-friendly.
  *
  *   Bounds: l and r stay inside (i, n) with l < r. i runs only while
- *   at least two cells remain to the right: i + 2 < n, written
- *   i + 2 < nums.size() to avoid unsigned underflow.
+ *   at least two cells remain to the right: i + 2 < n.
  *
- *   Empty / n < 3: return false. No n-1 wrap.
+ *   Empty / n < 3: return false. No n-1 on a too-short array.
  *
  *   In-place mutation: the sorted permutation replaces the input.
  *   The boolean does not need the original order after the sort.
@@ -75,26 +74,26 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-bool find3Numbers(std::vector<int>& arr, int sum) {
-    if (arr.size() < 3) {
+bool find3Numbers(int arr[], int n, int sum) {
+    if (n < 3) {
         return false;
     }
-    std::sort(arr.begin(), arr.end());
-    const long long need = sum;
-    for (std::size_t i = 0; i + 2 < arr.size(); ++i) {
-        std::size_t l = i + 1;
-        std::size_t r = arr.size() - 1;
+    sort(arr, arr + n);
+    long long need = sum;
+    for (int i = 0; i + 2 < n; i++) {
+        int l = i + 1;
+        int r = n - 1;
         while (l < r) {
-            const long long cur = 1LL * arr[i] + arr[l] + arr[r];
+            long long cur = 1LL * arr[i] + arr[l] + arr[r];
             if (cur == need) {
                 return true;
             }
             if (cur < need) {
-                ++l;
+                l++;
             } else {
-                --r;
+                r--;
             }
         }
     }
@@ -102,7 +101,12 @@ bool find3Numbers(std::vector<int>& arr, int sum) {
 }
 
 int main() {
-    std::vector<int> arr{1, 4, 45, 6, 10, 8};
-    std::cout << std::boolalpha << find3Numbers(arr, 22) << '\n';
+    int arr[] = {1, 4, 45, 6, 10, 8};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    if (find3Numbers(arr, n, 22)) {
+        cout << "true\n";
+    } else {
+        cout << "false\n";
+    }
     return 0;
 }

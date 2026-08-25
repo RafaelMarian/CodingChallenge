@@ -31,18 +31,19 @@
  *   Time  O(n). Extra space O(1): two indices and the running max.
  *
  * Memory management
- *   const std::vector<int>&: read-only, no copy, no heap. The answer
- *   is one integer. Stack locals only. This is a pure load-and-compare
- *   scan of the caller's buffer.
+ *   int height[] decays to a pointer; pass n. Read-only, no copy, no
+ *   heap. We avoid vector on purpose. The answer is one integer.
+ *   Stack locals only. This is a pure load-and-compare scan of the
+ *   caller's buffer.
  *
- *   In C: int max_area(const int *h, size_t n). Same loads.
+ *   In C: int max_area(int *h, int n). Same loads.
  *
  * C theory — why not move the tall side; overflow of area; cache; UB
  *   Let h[l] < h[r]. Any container (l, k) with k < r has width
  *   smaller than (r-l) and min-height at most h[l], because the left
  *   wall is still the short one or the other wall is even shorter.
  *   So those areas are <= h[l] * (r-l), which you already considered
- *   (or will, as the current area). Discarding them by ++l is safe.
+ *   (or will, as the current area). Discarding them by l++ is safe.
  *   That is the invariant. If you moved r instead, you would throw
  *   away pairs that still use a tall right wall and a better left
  *   wall you have not met yet.
@@ -50,14 +51,9 @@
  *   Area = min(h[l], h[r]) * (r - l). Both factors can be large.
  *   2^31 * n does not fit in 32-bit int. Signed overflow of that
  *   multiply is UB. Compute
- *     1LL * std::min(height[l], height[r]) * (r - l)
+ *     1LL * min_h * (r - l)
  *   in long long, then keep ans as long long. The sample fits in
- *   int; we still accumulate in 64-bit and cast for printing if the
- *   API wants int. Here we print the int value of the sample.
- *
- *   r - l as size_t is a width. Mixing int min-height and size_t
- *   width: promote explicitly to long long rather than hoping the
- *   usual arithmetic conversions do what you think.
+ *   int; we still accumulate in 64-bit.
  *
  *   Empty or n < 2: area 0. Do not form n-1.
  *
@@ -67,38 +63,43 @@
  *   No mutation. Heights are never written. No overflow of the
  *   height values themselves; we only min and multiply in 64-bit.
  *
- *   Indices as size_t, l < r before any height[r]. After ++l or --r
+ *   Indices as int, l < r before any height[r]. After l++ or r--
  *   the loop condition rechecks.
  */
 
-#include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int maxArea(const std::vector<int>& height) {
-    if (height.size() < 2) {
+int maxArea(int height[], int n) {
+    if (n < 2) {
         return 0;
     }
-    std::size_t l = 0;
-    std::size_t r = height.size() - 1;
+    int l = 0;
+    int r = n - 1;
     long long ans = 0;
     while (l < r) {
-        const int min_h = std::min(height[l], height[r]);
-        const long long area = 1LL * min_h * (r - l);
+        int min_h;
+        if (height[l] < height[r]) {
+            min_h = height[l];
+        } else {
+            min_h = height[r];
+        }
+        long long area = 1LL * min_h * (r - l);
         if (area > ans) {
             ans = area;
         }
         if (height[l] < height[r]) {
-            ++l;
+            l++;
         } else {
-            --r;
+            r--;
         }
     }
-    return static_cast<int>(ans);
+    return ans;
 }
 
 int main() {
-    const std::vector<int> arr{1, 4, 10, 5, 2, 6, 7, 3};
-    std::cout << maxArea(arr) << '\n';
+    int arr[] = {1, 4, 10, 5, 2, 6, 7, 3};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    cout << maxArea(arr, n) << '\n';
     return 0;
 }

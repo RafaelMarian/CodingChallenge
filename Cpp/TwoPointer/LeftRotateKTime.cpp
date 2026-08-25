@@ -35,27 +35,26 @@
  *   Time  O(n): three linear reversals, each O(n).
  *   Extra space O(1): the reverse temporary. No second buffer.
  *   A new array that writes nums[(i+k)%n] into dst[i] is O(n) extra
- *   heap. The reversal method avoids that allocation.
+ *   memory. The reversal method avoids that allocation.
  *
  * Memory management
- *   In-place mutation of the caller's vector. No resize. Reverse writes
- *   pairs of existing cells. The vector object stays on the stack; the
- *   buffer stays on the heap; ownership does not change.
+ *   int nums[] decays to a pointer. In-place mutation of the caller's
+ *   n cells. Reverse writes pairs of existing cells. We avoid vector
+ *   on purpose. No resize. Ownership does not change because there is
+ *   no owner object: the array is just n ints.
  *
  *   Guard n == 0 before k %= n. Remainder with divisor 0 is undefined
- *   behavior in C and C++ (on integers). An empty vector has nothing
+ *   behavior in C and C++ (on integers). An empty array has nothing
  *   to rotate; return.
  *
  * C theory — modulo, reverse bounds, overflow, cache, memmove
  *   k %= n. If k and n are int and n is positive, the result is in
- *   [0, n). If k is size_t and n is size_t, same. Mixing a signed k
- *   with unsigned n promotes k to unsigned; a negative k would become
- *   a huge remainder. Keep the types consistent. We take k as int,
- *   n as size_t, and reduce k into a size_t r in [0, n).
+ *   [0, n). Keep both types int so a negative k does not silently
+ *   become a huge unsigned remainder.
  *
- *   reverse(0, k-1) on k == 0: do not form k-1 as size_t. A zero-length
- *   rotate is a no-op; skip the reversals or make reverse a no-op when
- *   the interval is empty. We return early on r == 0.
+ *   reverse(0, k-1) on k == 0: do not form k-1. A zero-length rotate
+ *   is a no-op; skip the reversals or make reverse a no-op when the
+ *   interval is empty. We return early on r == 0.
  *
  *   The two-pointer reverse must not read past the ends. Pass inclusive
  *   indices that are < n. Forming lo + hi as an int midpoint is not
@@ -80,24 +79,23 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void reverseRange(std::vector<int>& nums, std::size_t i, std::size_t j) {
+void reverseRange(int nums[], int i, int j) {
     while (i < j) {
-        const int temp = nums[i];
+        int temp = nums[i];
         nums[i] = nums[j];
         nums[j] = temp;
-        ++i;
-        --j;
+        i++;
+        j--;
     }
 }
 
-void rotateLeft(std::vector<int>& nums, int k) {
-    const std::size_t n = nums.size();
+void rotateLeft(int nums[], int n, int k) {
     if (n == 0) {
         return;
     }
-    const std::size_t r = static_cast<std::size_t>(k) % n;
+    int r = k % n;
     if (r == 0) {
         return;
     }
@@ -107,10 +105,11 @@ void rotateLeft(std::vector<int>& nums, int k) {
 }
 
 int main() {
-    std::vector<int> arr{1, 2, 3, 4};
-    rotateLeft(arr, 5);
-    for (int x : arr) {
-        std::cout << x << '\n';
+    int nums[] = {1, 2, 3, 4};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    rotateLeft(nums, n, 5);
+    for (int i = 0; i < n; i++) {
+        cout << nums[i] << '\n';
     }
     return 0;
 }

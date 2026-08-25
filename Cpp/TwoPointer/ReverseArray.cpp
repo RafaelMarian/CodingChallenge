@@ -23,23 +23,20 @@
  *
  * Complexity
  *   Time  O(n): each element is read and written a constant number of times.
- *   Extra space O(1): one temporary int, plus the two indices. The vector
- *   does not reallocate. Capacity is unchanged.
+ *   Extra space O(1): one temporary int, plus the two indices. The array
+ *   does not grow. We overwrite the same n cells.
  *
  * Memory management
- *   The std::vector<int> object lives on the caller's stack: typically three
- *   words (data pointer, size, capacity). The n ints live in one contiguous
- *   heap allocation owned by that vector. Passing std::vector<int>& passes
- *   the address of the stack object. We never copy the buffer. We overwrite
- *   cells. When main returns, the vector destructor frees the heap block.
- *   There is no malloc/free for you to write, and no leak if you do not
- *   call new.
+ *   The parameter is int nums[] plus int n. In C and C++, an array
+ *   parameter decays to a pointer to the first int. nums is really int*.
+ *   The pointer does not know how many cells follow, which is why we
+ *   always pass n ourselves. We avoid vector on purpose: a C array in
+ *   main is a contiguous block of ints (these samples live on the stack).
+ *   Passing nums passes one pointer. We never copy the n ints. We
+ *   overwrite cells. No heap allocation, no destructor to remember.
  *
- *   A C equivalent is:
- *     void reverse(int *a, size_t n);
- *   a points at a[0]. a[i] is *(a + i). The pointer is not an array; it
- *   does not know n. That is why C always takes a length. v.data() and
- *   v.size() are that C interface.
+ *   nums[i] is *(nums + i). That is pointer arithmetic. i must stay in
+ *   [0, n). The length lives in n, not inside the pointer.
  *
  * C theory — swap, aliasing, XOR, cache
  *   A correct swap of two ints is three assignments through a temporary:
@@ -48,10 +45,6 @@
  *     a[j]     = temp;
  *   temp is a stack local, almost certainly a register. Two loads, two
  *   stores. That is the machine code you want.
- *
- *   std::swap(a[i], a[j]) is the same algorithm for int, wrapped in a
- *   function template. Prefer it in production. We write the temporary
- *   by hand in this lesson so you see every load and store.
  *
  *   Do not XOR-swap. The folklore sequence
  *     x ^= y; y ^= x; x ^= y;
@@ -64,10 +57,10 @@
  *
  *   Signed integers are not overflowed here: we only copy bits from one
  *   cell to another. Out-of-bounds is the UB to fear. If you wrote
- *   j = nums.size() with no -1, the first read of nums[j] is past the
- *   end. The compiler owes you nothing: crash, silent corruption, or
- *   "it worked on my machine." Guard empty arrays before computing n-1,
- *   because size_t is unsigned: 0u - 1u wraps to a huge index.
+ *   j = n with no -1, the first read of nums[j] is past the end. The
+ *   compiler owes you nothing: crash, silent corruption, or "it worked
+ *   on my machine." Guard n < 2 before computing n-1 so you never form
+ *   a bogus index on an empty array.
  *
  *   The walk is sequential from both ends. Each end streams through
  *   cache lines (typically 64 bytes, 16 ints). Two sequential streams
@@ -80,28 +73,29 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void reverse(std::vector<int>& nums) {
-    if (nums.size() < 2) {
+void reverse(int nums[], int n) {
+    if (n < 2) {
         return;
     }
-    std::size_t i = 0;
-    std::size_t j = nums.size() - 1;
+    int i = 0;
+    int j = n - 1;
     while (i < j) {
-        const int temp = nums[i];
+        int temp = nums[i];
         nums[i] = nums[j];
         nums[j] = temp;
-        ++i;
-        --j;
+        i++;
+        j--;
     }
 }
 
 int main() {
-    std::vector<int> arr{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    reverse(arr);
-    for (int x : arr) {
-        std::cout << x << '\n';
+    int nums[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    reverse(nums, n);
+    for (int i = 0; i < n; i++) {
+        cout << nums[i] << '\n';
     }
     return 0;
 }

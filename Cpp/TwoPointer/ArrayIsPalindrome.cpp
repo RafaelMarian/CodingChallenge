@@ -21,22 +21,19 @@
  *   Time  O(n). Best case is O(1) if the ends already differ; we still
  *   quote the worst case.
  *   Extra space O(1). We do not build a reversed copy. A reversed copy
- *   would be O(n) heap and O(n) time before the first comparison. That
- *   is wasted work and wasted memory.
+ *   would be O(n) extra memory and O(n) time before the first comparison.
+ *   That is wasted work and wasted memory.
  *
  * Memory management
- *   The parameter is const std::vector<int>&. That is a read-only alias
- *   of the caller's vector object. The function cannot reassign elements
- *   (they are const through this reference) and cannot reseat the
- *   reference. No copy of the heap buffer occurs. The three-word vector
- *   object stays on the caller's stack; the ints stay in the caller's
- *   heap allocation. Stack usage in this function is two indices.
+ *   The parameter is int nums[] plus int n. nums decays to int*: a
+ *   pointer to the first cell. It does not store the length, so n is
+ *   required. We avoid vector on purpose. We only load. The n ints stay
+ *   where the caller put them (here, a stack array in main). Stack usage
+ *   in this function is two indices.
  *
- *   In C this is:
- *     int is_palindrome(const int *a, size_t n);
- *   const on the pointed-to ints is a contract: the callee will not
- *   write through a. The compiler enforces it. The bytes still live
- *   wherever the caller allocated them.
+ *   const on the pointed-to ints would be a contract that the callee
+ *   will not write. This lesson does not write either way. The bytes
+ *   still live wherever the caller allocated them.
  *
  * C theory — comparison, not mutation; cache; UB
  *   This algorithm does not mutate. In-place is a property of writers.
@@ -44,15 +41,15 @@
  *   to memory besides not touching it.
  *
  *   i and j are indices, not pointers, but the hardware is doing pointer
- *   arithmetic: the load of nums[i] is *(data + i) where data is the
- *   vector's heap pointer. If i is in range, that address is inside the
- *   allocation. If it is not, the load is undefined behavior. We keep
- *   i < j and j = n-1 with n >= 2, so both indices are valid.
+ *   arithmetic: the load of nums[i] is *(nums + i). If i is in range,
+ *   that address is inside the array. If it is not, the load is
+ *   undefined behavior. We keep i < j and j = n-1 with n >= 2, so both
+ *   indices are valid.
  *
- *   Empty-array trap: n = 0, then n-1 as size_t wraps. We return true
- *   before forming that index. Unsigned wrap is well-defined and wrong
- *   for indexing. Signed overflow of int, by contrast, is undefined
- *   behavior. Know which one you are dealing with.
+ *   Empty-array trap: n = 0, then n-1 is -1. We return true before
+ *   forming that index. Signed overflow of int is undefined behavior;
+ *   forming -1 as an index is simply the wrong address. Know which
+ *   mistake you are dealing with.
  *
  *   Cache: two sequential streams from the ends, same as reverse. For
  *   a palindrome check you often reject early, so you may not touch
@@ -64,26 +61,31 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-bool isPalindrome(const std::vector<int>& nums) {
-    if (nums.size() < 2) {
+bool isPalindrome(int nums[], int n) {
+    if (n < 2) {
         return true;
     }
-    std::size_t i = 0;
-    std::size_t j = nums.size() - 1;
+    int i = 0;
+    int j = n - 1;
     while (i < j) {
         if (nums[i] != nums[j]) {
             return false;
         }
-        ++i;
-        --j;
+        i++;
+        j--;
     }
     return true;
 }
 
 int main() {
-    std::vector<int> arr{1, 2, 3, 4, 3, 2, 1};
-    std::cout << std::boolalpha << isPalindrome(arr) << '\n';
+    int nums[] = {1, 2, 3, 4, 3, 2, 1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    if (isPalindrome(nums, n)) {
+        cout << "true\n";
+    } else {
+        cout << "false\n";
+    }
     return 0;
 }

@@ -5,18 +5,18 @@
  * The order is information. Use it.
  *
  * Problem
- *   The input is sorted non-decreasing. Return one pair of 1-based indices
- *   (i, j), i < j, such that numbers[i-1] + numbers[j-1] == target. The
- *   sample has a unique answer. If none exists, the implementation below
- *   returns {0, 0}, which is not a valid 1-based pair.
+ *   The input is sorted non-decreasing. Print one pair of 1-based indices
+ *   i j, i < j, such that nums[i-1] + nums[j-1] == target. The sample
+ *   has a unique answer. If none exists, print 0 0, which is not a
+ *   valid 1-based pair.
  *
  * Algorithm intuition
  *   i starts at the smallest value, j at the largest. Let s be their sum.
  *   Because the array is sorted:
  *     - if s == target, you are done;
- *     - if s < target, no larger partner for numbers[i] exists to the
- *       left of j, so the only way to increase s is ++i;
- *     - if s > target, the only way to decrease s is --j.
+ *     - if s < target, no larger partner for nums[i] exists to the
+ *       left of j, so the only way to increase s is i++;
+ *     - if s > target, the only way to decrease s is j--.
  *   Each step discards one index forever. You examine O(n) candidate
  *   pairs, not O(n^2).
  *
@@ -30,75 +30,74 @@
  *   that would be O(n log n) and would scramble the original indices;
  *   this problem gives you a sorted array and asks for indices into it,
  *   so you must not sort a copy that you then index.
- *   Extra space O(1) besides the two-integer answer.
+ *   Extra space O(1): two indices. We print them. We do not pack them
+ *   into a pair object.
  *
  * Memory management
- *   const std::vector<int>&: read-only alias, no copy, no heap traffic
- *   in this function. The answer is two ints. Returning std::pair<int,int>
- *   by value is cheap (two registers). Do not allocate a heap vector of
- *   length 2 for two integers.
- *
- *   The input buffer stays where the caller put it. We only load.
+ *   int nums[] decays to int*. Pass n because the pointer has no length.
+ *   We avoid vector on purpose. Read-only: no copy, no heap. The answer
+ *   is two ints we print. The input buffer stays where the caller put
+ *   it. We only load.
  *
  * C theory — overflow of the sum, pointers vs indices, cache
- *   The dangerous operation is numbers[i] + numbers[j]. Both are int.
+ *   The dangerous operation is nums[i] + nums[j]. Both are int.
  *   Signed addition overflow is undefined behavior. INT_MAX + 1 is not
  *   guaranteed to wrap; the compiler may delete branches that assume
  *   it cannot happen. Compute the sum in long long:
- *     1LL * numbers[i] + numbers[j]
+ *     1LL * nums[i] + nums[j]
  *   The 1LL forces the first multiplication/promotion; the rest of the
  *   addition then happens in at least 64 bits. INT_MAX + INT_MAX fits
  *   in a signed 64-bit long long.
  *
  *   Compare that long long to target after promoting target, or write
- *   sum == static_cast<long long>(target). Mixed-width comparison
- *   promotes the int.
+ *   sum == (long long)target. Mixed-width comparison promotes the int.
  *
- *   Indices versus pointers: you could walk with int *p = v.data() and
- *   int *q = v.data() + (n-1), and compare p < q. Pointer comparison
+ *   Indices versus pointers: you could walk with int *p = nums and
+ *   int *q = nums + (n-1), and compare p < q. Pointer comparison
  *   is well-defined only inside the same array object (or one-past-end).
  *   Indices are harder to get wrong when you also need 1-based output:
- *   the answer is i+1 and j+1. Adding 1 to a size_t that is SIZE_MAX
- *   would wrap; here i < n, so i+1 fits in size_t, and for n that fit
- *   in int (this course), the 1-based index fits in int after a cast.
+ *   the answer is i+1 and j+1. Here i < n, so i+1 fits in int for the
+ *   sizes in this course.
  *
  *   Cache: i walks forward, j walks backward, each sequentially. You
  *   touch every element at most once. Linear and prefetchable.
  *
  *   1-based indices are an API choice (common in "the first number is
- *   position 1" problem statements). Off-by-one lives here: returning
+ *   position 1" problem statements). Off-by-one lives here: printing
  *   i and j without +1 is a silent wrong answer, not a crash. Check
- *   the sample.
+ *   the sample: {2,3,5,7,9,12,16,23,26,29} target 30 -> 4 8
+ *   (values 7 and 23).
  */
 
 #include <iostream>
-#include <utility>
-#include <vector>
+using namespace std;
 
-std::pair<int, int> twoSum(const std::vector<int>& numbers, int target) {
-    if (numbers.size() < 2) {
-        return {0, 0};
+void twoSum(int nums[], int n, int target) {
+    if (n < 2) {
+        cout << "0 0\n";
+        return;
     }
-    std::size_t i = 0;
-    std::size_t j = numbers.size() - 1;
-    const long long need = target;
+    int i = 0;
+    int j = n - 1;
+    long long need = target;
     while (i < j) {
-        const long long sum = 1LL * numbers[i] + numbers[j];
+        long long sum = 1LL * nums[i] + nums[j];
         if (sum == need) {
-            return {static_cast<int>(i + 1), static_cast<int>(j + 1)};
+            cout << i + 1 << ' ' << j + 1 << '\n';
+            return;
         }
         if (sum < need) {
-            ++i;
+            i++;
         } else {
-            --j;
+            j--;
         }
     }
-    return {0, 0};
+    cout << "0 0\n";
 }
 
 int main() {
-    std::vector<int> nums{2, 3, 5, 7, 9, 12, 16, 23, 26, 29};
-    const std::pair<int, int> res = twoSum(nums, 30);
-    std::cout << res.first << ' ' << res.second << '\n';
+    int nums[] = {2, 3, 5, 7, 9, 12, 16, 23, 26, 29};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    twoSum(nums, n, 30);
     return 0;
 }

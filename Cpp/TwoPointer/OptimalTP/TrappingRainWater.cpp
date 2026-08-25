@@ -34,27 +34,28 @@
  *   The prefix/suffix max arrays are the O(n)-space training wheels.
  *
  * Memory management
- *   const std::vector<int>&: we only load. No extra n-vector of
- *   leftMax. Those n ints would be another heap allocation, another
- *   cold pass, then a third pass to add water. Collapsing the tables
- *   into two running values is the same collapse you saw when a DP
- *   recurrence only needs the previous cell.
+ *   int height[] decays to a pointer; pass n. We only load. No extra
+ *   n-array of leftMax. Those n ints would be another buffer, another
+ *   cold pass, then a third pass to add water. We avoid vector on
+ *   purpose. Collapsing the tables into two running values is the
+ *   same collapse you saw when a DP recurrence only needs the previous
+ *   cell.
  *
- *   water is a running int (or long long). It lives in a register /
- *   stack slot. Nothing to free.
+ *   water is a running long long. It lives in a register / stack slot.
+ *   Nothing to free.
  *
  * C theory — bounds, overflow, empty input, cache, UB
- *   height[0] and height[n-1] on an empty vector is UB. n < 1:
- *   return 0. n == 1: no interior to fill, return 0. We initialize
- *   leftMax and rightMax from the two ends only after n >= 1, and
- *   the loop is while left < right, so n == 1 never enters.
+ *   height[0] and height[n-1] on n == 0 is UB. n < 2: return 0. n == 1:
+ *   no interior to fill, return 0. We initialize leftMax and rightMax
+ *   from the two ends only after n >= 2, and the loop is while left <
+ *   right, so n == 1 never enters.
  *
  *   water += leftMax - height[left]. Both are int. If leftMax is
  *   always >= height[left] by the update order, the difference is
  *   non-negative and the add can still overflow the accumulator if
  *   the total water exceeds INT_MAX. Use long long for water in
  *   production. The sample is tiny; we keep a long long accumulator
- *   and cast to int for the printed API.
+ *   and print it as the API value 18.
  *
  *   Update order matters. Move the pointer first (or after the
  *   comparison of maxima), then raise the max or add water. If you
@@ -66,8 +67,7 @@
  *   without a reason: if your invariant is leftMax >= height[left]
  *   when you add, the subtraction is non-negative and you should
  *   not hit a negative intermediate. If you break the invariant,
- *   unsigned wrap of a size_t is the wrong "fix"; you have a logic
- *   bug.
+ *   you have a logic bug.
  *
  *   Cache: two sequential streams from the ends. Same shape as the
  *   container problem. In-place mutation is not used; the map is
@@ -79,27 +79,27 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int trap(const std::vector<int>& height) {
-    if (height.size() < 2) {
+int trap(int height[], int n) {
+    if (n < 2) {
         return 0;
     }
-    std::size_t left = 0;
-    std::size_t right = height.size() - 1;
+    int left = 0;
+    int right = n - 1;
     int leftMax = height[left];
     int rightMax = height[right];
     long long water = 0;
     while (left < right) {
         if (leftMax < rightMax) {
-            ++left;
+            left++;
             if (height[left] > leftMax) {
                 leftMax = height[left];
             } else {
                 water += leftMax - height[left];
             }
         } else {
-            --right;
+            right--;
             if (height[right] > rightMax) {
                 rightMax = height[right];
             } else {
@@ -107,11 +107,12 @@ int trap(const std::vector<int>& height) {
             }
         }
     }
-    return static_cast<int>(water);
+    return water;
 }
 
 int main() {
-    const std::vector<int> arr{4, 0, 8, 0, 1, 6, 2, 5};
-    std::cout << trap(arr) << '\n';
+    int arr[] = {4, 0, 8, 0, 1, 6, 2, 5};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    cout << trap(arr, n) << '\n';
     return 0;
 }

@@ -32,14 +32,11 @@
  *   Extra space O(1) extra besides sort, if we sort in place.
  *
  * Memory management
- *   std::vector<int>&, sorted in the existing heap buffer. No pair
- *   list is stored. We do not allocate n/2 pair objects. The output
- *   is one integer. If you materialized the pairs you would spend
- *   O(n) extra words for no gain in this API.
- *
- *   The vector object remains the caller's. We permute it. Ownership
- *   of the buffer does not change. Destructor still frees it at the
- *   end of main.
+ *   int nums[] decays to a pointer. sort(nums, nums+n) permutes the
+ *   existing n cells. No pair list is stored. We do not allocate n/2
+ *   pair objects. The output is one integer. We avoid vector on
+ *   purpose. If you materialized the pairs you would spend O(n) extra
+ *   words for no gain in this API.
  *
  * C theory — pairing extremes, overflow, even n, cache, UB
  *   nums[i] + nums[j] overflow: same rule as always. 1LL * nums[i] +
@@ -52,16 +49,15 @@
  *   have to say whether it sits as a singleton "pair." We do not
  *   guess. n < 2: return 0.
  *
- *   i < j with signed indices, or size_t with i < j and no j-- below
- *   zero: because we stop at i < j, when n is even we process n/2
- *   pairs and i meets j in the middle without a leftover cell. For
- *   size_t, start j = n-1 only if n > 0.
+ *   i < j with signed indices: because we stop at i < j, when n is
+ *   even we process n/2 pairs and i meets j in the middle without a
+ *   leftover cell. Start j = n-1 only if n > 0.
  *
- *   std::sort: in-place, introsort, O(log n) stack. Afterward the
- *   pairing reads sequentially from both ends. Two streams, like
- *   reverse, but the values are only loaded, not swapped (the array
- *   is already in the order we need). We could skip writing; we
- *   already wrote during sort.
+ *   sort: in-place, introsort, O(log n) stack. Afterward the pairing
+ *   reads sequentially from both ends. Two streams, like reverse, but
+ *   the values are only loaded, not swapped (the array is already in
+ *   the order we need). We could skip writing; we already wrote
+ *   during sort.
  *
  *   In-place mutation is the sort, not the pairing. The pairing is
  *   read-only on the sorted permutation.
@@ -71,35 +67,36 @@
  *
  *   C form: qsort the array, then the same i/j loop. qsort's
  *   comparator must not overflow in a compare-by-subtraction; use
- *   (a > b) - (a < b) or a three-way if. std::sort with operator<
- *   on int does not subtract.
+ *   (a > b) - (a < b) or a three-way if. sort with operator< on int
+ *   does not subtract.
  */
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int minPairSum(std::vector<int>& nums) {
-    if (nums.size() < 2) {
+int minPairSum(int nums[], int n) {
+    if (n < 2) {
         return 0;
     }
-    std::sort(nums.begin(), nums.end());
-    std::size_t i = 0;
-    std::size_t j = nums.size() - 1;
+    sort(nums, nums + n);
+    int i = 0;
+    int j = n - 1;
     long long best = 0;
     while (i < j) {
-        const long long s = 1LL * nums[i] + nums[j];
+        long long s = 1LL * nums[i] + nums[j];
         if (s > best) {
             best = s;
         }
-        ++i;
-        --j;
+        i++;
+        j--;
     }
-    return static_cast<int>(best);
+    return best;
 }
 
 int main() {
-    std::vector<int> nums{2, 6, 3, 4, 7, 11, 5, 8};
-    std::cout << minPairSum(nums) << '\n';
+    int nums[] = {2, 6, 3, 4, 7, 11, 5, 8};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << minPairSum(nums, n) << '\n';
     return 0;
 }

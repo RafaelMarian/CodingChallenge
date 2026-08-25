@@ -26,9 +26,7 @@
  *
  *   This is not a stable partition of both classes. A stable partition
  *   that keeps both orders needs extra memory (a buffer of n, or a
- *   list) or a more sophisticated in-place rotation algorithm. The
- *   standard-library stable_partition typically uses a buffer or a
- *   careful block rotation. Either way, you pay.
+ *   list) or a more sophisticated in-place rotation algorithm.
  *
  * Complexity
  *   Time  O(n^2) worst case. Each swap moves one negative into place,
@@ -42,9 +40,10 @@
  *   positives in order.
  *
  * Memory management
- *   In-place swaps in the caller's heap buffer. No second allocation.
- *   That is the only virtue of this quadratic scan. The extra memory
- *   you refused is often cheaper than the extra time you accepted.
+ *   int arr[] decays to a pointer; n is the length. In-place swaps in
+ *   the caller's buffer. No second allocation. We avoid vector on
+ *   purpose. That is the only virtue of this quadratic scan. The extra
+ *   memory you refused is often cheaper than the extra time you accepted.
  *   Measure before you keep an O(n^2) in-place method on large n.
  *
  * C theory — slow/fast, swap, cache, why quadratic
@@ -65,9 +64,9 @@
  *   range and a negative was found). No XOR.
  *
  *   Bounds: every while checks i < n and j < n before dereferencing.
- *   That is the difference between a defined program and a heap
- *   buffer overflow. AddressSanitizer will catch the latter; do not
- *   rely on it as a substitute for the checks.
+ *   That is the difference between a defined program and a buffer
+ *   overflow. AddressSanitizer will catch the latter; do not rely on
+ *   it as a substitute for the checks.
  *
  *   No overflow on values. In-place mutation again means the original
  *   permutation is gone.
@@ -77,21 +76,20 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void rearrange2(std::vector<int>& arr) {
-    const std::size_t n = arr.size();
-    std::size_t i = 0;
+void rearrange2(int arr[], int n) {
+    int i = 0;
     while (i < n) {
         while (i < n && arr[i] < 0) {
-            ++i;
+            i++;
         }
-        std::size_t j = i + 1;
+        int j = i + 1;
         while (j < n && arr[j] > 0) {
-            ++j;
+            j++;
         }
         if (i < n && j < n) {
-            const int temp = arr[i];
+            int temp = arr[i];
             arr[i] = arr[j];
             arr[j] = temp;
         } else {
@@ -101,14 +99,15 @@ void rearrange2(std::vector<int>& arr) {
 }
 
 int main() {
-    std::vector<int> arr{-2, 6, 3, -4, 1, 10, -5, 8, -7, -9};
-    rearrange2(arr);
-    for (std::size_t i = 0; i < arr.size(); ++i) {
+    int arr[] = {-2, 6, 3, -4, 1, 10, -5, 8, -7, -9};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    rearrange2(arr, n);
+    for (int i = 0; i < n; i++) {
         if (i != 0) {
-            std::cout << ' ';
+            cout << ' ';
         }
-        std::cout << arr[i];
+        cout << arr[i];
     }
-    std::cout << '\n';
+    cout << '\n';
     return 0;
 }
