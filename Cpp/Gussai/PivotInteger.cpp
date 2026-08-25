@@ -16,12 +16,11 @@
  *   exact.
  *
  * The function you must not write
- *   The original hardcoded n==1 -> 1, n==8 -> 6, n==49 -> 35,
- *   n==288 -> 204, else -1. That is a lookup of four textbook
- *   examples. It is not an algorithm. It returns -1 for n==50, which
- *   happens to be correct, and -1 for n==1_000_000, which you have
- *   not checked. Hardcoding is not engineering. It is shown here as
- *   a warning, then we ignore it.
+ *   A lookup of n==1 -> 1, n==8 -> 6, n==49 -> 35, n==288 -> 204,
+ *   else -1. That is four textbook examples, not an algorithm. It
+ *   returns -1 for n==50, which happens to be correct, and -1 for
+ *   n==1000000, which you have not checked. Hardcoding is not
+ *   engineering.
  *
  * The real solution — integer square test, 64-bit multiply
  *   Let total = n * (n + 1) / 2, computed in long long so the
@@ -44,10 +43,11 @@
  *   Hardcoded: O(1) and wrong as a function of n.
  *   Gauss + binary search: O(log n) multiplies. Extra memory O(1).
  *
- * Memory management
+ * Memory
  *   No arrays. A handful of integers on the stack. This problem is
  *   pure arithmetic. There is nothing to allocate and nothing to
- *   free. That is the correct amount of memory.
+ *   free. That is the correct amount of memory. No decay, no n from
+ *   sizeof: the only n is the integer argument.
  *
  * C theory — triangular numbers, overflow, integer division
  *   Gauss's formula n(n+1)/2 is exact for integers because n(n+1) is
@@ -72,30 +72,15 @@
  */
 
 #include <iostream>
+using namespace std;
 
-int pivotInteger(int n) {
-    if (n == 1) {
-        return 1;
-    }
-    if (n == 8) {
-        return 6;
-    }
-    if (n == 49) {
-        return 35;
-    }
-    if (n == 288) {
-        return 204;
-    }
-    return -1;
-}
-
-int pivotIntegerGauss(int n) {
-    const long long total = 1LL * n * (n + 1LL) / 2;
+int gauss(int n) {
+    long long total = 1LL * n * (n + 1LL) / 2;
     int lo = 1;
     int hi = n;
     while (lo <= hi) {
-        const int mid = lo + (hi - lo) / 2;
-        const long long square = 1LL * mid * mid;
+        int mid = lo + (hi - lo) / 2;
+        long long square = 1LL * mid * mid;
         if (square == total) {
             return mid;
         }
@@ -109,8 +94,8 @@ int pivotIntegerGauss(int n) {
 }
 
 int main() {
-    std::cout << pivotIntegerGauss(50) << '\n';
-    std::cout << pivotIntegerGauss(8) << '\n';
-    std::cout << pivotIntegerGauss(49) << '\n';
+    cout << gauss(50) << "\n";
+    cout << gauss(8) << "\n";
+    cout << gauss(49) << "\n";
     return 0;
 }

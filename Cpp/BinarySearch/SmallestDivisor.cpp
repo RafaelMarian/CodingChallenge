@@ -30,10 +30,10 @@
  *   Search range is 1..U with U = max(nums), O(log U) candidate
  *   tests. Each test is O(n). Total O(n log U). Extra memory O(1).
  *
- * Memory management
- *   const std::vector<int>&. Locals only. No extra buffer. The
- *   "search space" is integers in registers, not an allocated table
- *   of divisors.
+ * Memory
+ *   int nums[], int n. Locals only. No extra buffer. The "search
+ *   space" is integers in registers, not an allocated table of
+ *   divisors. We scan the caller's array; we do not copy it.
  *
  * C theory — monotone predicates, integer division, overflow, cache
  *   Binary search works on any monotone predicate over a totally
@@ -61,30 +61,27 @@
  *   (include m: it might be the smallest), l = m + 1 on failure.
  *   Return l. That is lower_bound on the predicate.
  *
- *   C: int smallest(const int *a, int n, int threshold); same two
- *   loops.
- *
  * Sample prints 4.
  */
 
 #include <climits>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int smallestDivisor(const std::vector<int>& nums, int threshold) {
-    int max = INT_MIN;
-    for (int x : nums) {
-        if (x > max) {
-            max = x;
+int smallestDivisor(int nums[], int n, int threshold) {
+    int mx = INT_MIN;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] > mx) {
+            mx = nums[i];
         }
     }
     int l = 1;
-    int h = max;
+    int h = mx;
     while (l < h) {
-        const int m = l + (h - l) / 2;
+        int m = l + (h - l) / 2;
         int sum = 0;
-        for (int data : nums) {
-            sum += (data + m - 1) / m;
+        for (int i = 0; i < n; i++) {
+            sum += (nums[i] + m - 1) / m;
         }
         if (sum <= threshold) {
             h = m;
@@ -96,7 +93,8 @@ int smallestDivisor(const std::vector<int>& nums, int threshold) {
 }
 
 int main() {
-    const std::vector<int> nums{1, 3, 6, 11};
-    std::cout << smallestDivisor(nums, 7) << '\n';
+    int nums[] = {1, 3, 6, 11};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << smallestDivisor(nums, n, 7) << "\n";
     return 0;
 }

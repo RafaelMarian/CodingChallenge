@@ -22,14 +22,30 @@
  *   buffer. Extra memory O(U). When U is O(n) this is linear. When
  *   U is 10^9 and n is 10, you have just allocated a fantasy.
  *
- * Memory management
- *   vector<int> hash(max+1, 0) is one contiguous heap allocation of
- *   (U+1) ints, value-initialized to zero. The allocator asks the OS
- *   for a block; the constructor writes zeros (or the OS may hand
- *   you already-zero pages from mmap). Destructor frees it. We never
- *   new[] / delete[].
+ * Memory — new / malloc, and why we free
+ *   U is data-dependent. A stack array int hash[U+1] is a VLA (not
+ *   portable C++) and can smash the stack if U is large. So we
+ *   allocate on the heap:
  *
- *   const std::vector<int>& for the input. The count buffer is local.
+ *       int *hash = new int[maxv + 1]();   // () zeroes every slot
+ *       ...
+ *       delete[] hash;                     // one delete[] per new[]
+ *
+ *   C is the same story with a different spelling:
+ *
+ *       int *hash = (int *)malloc((maxv + 1) * sizeof(int));
+ *       memset(hash, 0, (maxv + 1) * sizeof(int));
+ *       ...
+ *       free(hash);                        // one free per malloc
+ *
+ *   new[] returns a pointer to the first int. hash[x] is *(hash + x).
+ *   The pointer does not know maxv; we keep maxv in a local. Miss the
+ *   delete[] and you leak. Use delete (no brackets) on new[] and you
+ *   corrupt the heap. Use the array after delete[] and you have a
+ *   dangling pointer: UB.
+ *
+ *   For this sample maxv is 14, so int hash[15] on the stack would
+ *   also work. We heap-allocate on purpose so you see the lifetime.
  *
  * C theory — dense maps, sparse waste, overflow of the index
  *   This is an array used as a map from key to count. It is dense:
@@ -40,19 +56,15 @@
  *   key domain is sparse or huge. Then you want a hash table
  *   (see UsingMap.cpp) whose memory is O(distinct keys), not O(U).
  *
- *   C:
- *       int *hash = calloc(max + 1, sizeof *hash);  // zeroed
- *       hash[x]++;
- *       free(hash);
- *   hash[x] is *(hash + x). If x is negative, you index before the
- *   buffer: UB, a classic heap underflow. If x > max, heap overflow.
- *   AddressSanitizer is how you catch that in a lab. This algorithm
- *   is only correct for keys in [0, max] where max is the maximum
- *   value present (so every key is a valid index).
+ *   If x is negative, you index before the buffer: UB, a classic
+ *   heap underflow. If x > maxv, heap overflow. AddressSanitizer is
+ *   how you catch that in a lab. This algorithm is only correct for
+ *   keys in [0, maxv] where maxv is the maximum value present (so
+ *   every key is a valid index).
  *
- *   max+1 can overflow int if max == INT_MAX. Passing a huge size to
- *   the allocator can also wrap a size_t. For classroom data it does
- *   not. For untrusted data, check.
+ *   maxv+1 can overflow int if maxv == INT_MAX. Passing a huge size
+ *   to the allocator can also wrap. For classroom data it does not.
+ *   For untrusted data, check.
  *
  *   Cache: the increment pass is random access into hash[], driven
  *   by nums[i]. If nums is shuffled over a large U, you miss cache
@@ -63,34 +75,37 @@
  *   hash as a name: it is a count array, not a hash table. There is
  *   no hash function. The identity function is the "hash." We keep
  *   the name because that is how this family of lessons speaks.
+ *
+ * Sample prints 8.
  */
 
-#include <climits>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int mostOccurring(const std::vector<int>& nums) {
-    int max = INT_MIN;
-    for (int x : nums) {
-        if (x > max) {
-            max = x;
+int mostOccurring(int nums[], int n) {
+    int maxv = nums[0];
+    for (int i = 1; i < n; i++) {
+        if (nums[i] > maxv) {
+            maxv = nums[i];
         }
     }
-    std::vector<int> hash(static_cast<std::size_t>(max) + 1, 0);
-    for (int x : nums) {
-        ++hash[static_cast<std::size_t>(x)];
+    int *hash = new int[maxv + 1]();
+    for (int i = 0; i < n; i++) {
+        hash[nums[i]]++;
     }
     int best = 0;
-    for (std::size_t i = 0; i < hash.size(); ++i) {
-        if (hash[i] > hash[static_cast<std::size_t>(best)]) {
-            best = static_cast<int>(i);
+    for (int i = 0; i <= maxv; i++) {
+        if (hash[i] > hash[best]) {
+            best = i;
         }
     }
+    delete[] hash;
     return best;
 }
 
 int main() {
-    const std::vector<int> nums{8, 3, 11, 8, 7, 8, 14, 3, 9, 7};
-    std::cout << mostOccurring(nums) << '\n';
+    int nums[] = {8, 3, 11, 8, 7, 8, 14, 3, 9, 7};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << mostOccurring(nums, n) << "\n";
     return 0;
 }

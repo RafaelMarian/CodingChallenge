@@ -19,10 +19,9 @@
  *
  *   Loop while mid <= high (the unexamined closed range is non-empty):
  *     nums[mid] <  2: swap with nums[low], low++, mid++.
- *                     The value we swapped in came from [0, low) wait
- *                     no: from the ==2 band's left edge. It is a 2 we
- *                     already saw, or it is the same cell. Either way
- *                     it is examined. Advance mid.
+ *                     The value we swapped in came from the ==2 band's
+ *                     left edge. It is a 2 we already saw, or it is the
+ *                     same cell. Either way it is examined. Advance mid.
  *     nums[mid] == 2: already in the middle band. mid++.
  *     nums[mid] >  2: swap with nums[high], high--.
  *                     Do NOT increment mid. The value that just
@@ -40,18 +39,18 @@
  *   Extra memory O(1): three indices and a temporary for the swap.
  *   In-place. The caller's array is mutated.
  *
- * Memory management
- *   std::vector<int>& nums is a non-const reference: we permute in
- *   place. No extra buffer. std::swap of two ints is three moves of
- *   a register-width word; no heap. The array is contiguous, so each
- *   swap touches two cache lines at worst (low/mid/high may sit far
- *   apart). Still O(1) extra space and sequential-enough in practice.
+ * Memory
+ *   int nums[], int n: we permute in place. No extra buffer. Swap of
+ *   two ints is three moves of a register-width word; no heap. The
+ *   array is contiguous, so each swap touches two cache lines at
+ *   worst (low/mid/high may sit far apart). Still O(1) extra space.
+ *   nums decayed to int*; writes through that pointer change main's
+ *   array. That is pass-by-pointer, not a copy.
  *
  * C theory — partition, swap, aliasing, UB
  *   This is Dijkstra's three-way partition, the same idea that makes
- *   3-way quicksort fast on duplicates. In C:
- *       void flag(int *a, int n);
- *       // swap: int t = a[i]; a[i] = a[j]; a[j] = t;
+ *   3-way quicksort fast on duplicates. Swap:
+ *       int t = a[i]; a[i] = a[j]; a[j] = t;
  *
  *   Pointers: low, mid, high could be int* into the buffer instead of
  *   indices. a[mid] is *(a + mid). The invariant is about ranges of
@@ -76,35 +75,37 @@
  * printed one per line.
  */
 
-#include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void arrangeColors(std::vector<int>& nums) {
+void arrangeColors(int nums[], int n) {
     int low = 0;
     int mid = 0;
-    int high = static_cast<int>(nums.size()) - 1;
+    int high = n - 1;
     while (mid <= high) {
-        if (nums[static_cast<std::size_t>(mid)] < 2) {
-            std::swap(nums[static_cast<std::size_t>(low)],
-                      nums[static_cast<std::size_t>(mid)]);
-            ++low;
-            ++mid;
-        } else if (nums[static_cast<std::size_t>(mid)] > 2) {
-            std::swap(nums[static_cast<std::size_t>(high)],
-                      nums[static_cast<std::size_t>(mid)]);
-            --high;
+        if (nums[mid] < 2) {
+            int t = nums[low];
+            nums[low] = nums[mid];
+            nums[mid] = t;
+            low++;
+            mid++;
+        } else if (nums[mid] > 2) {
+            int t = nums[high];
+            nums[high] = nums[mid];
+            nums[mid] = t;
+            high--;
         } else {
-            ++mid;
+            mid++;
         }
     }
 }
 
 int main() {
-    std::vector<int> nums{2, 1, 3, 2, 1, 3, 3, 1, 2, 1};
-    arrangeColors(nums);
-    for (int x : nums) {
-        std::cout << x << '\n';
+    int nums[] = {2, 1, 3, 2, 1, 3, 3, 1, 2, 1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    arrangeColors(nums, n);
+    for (int i = 0; i < n; i++) {
+        cout << nums[i] << "\n";
     }
     return 0;
 }

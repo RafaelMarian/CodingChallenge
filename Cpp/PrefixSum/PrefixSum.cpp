@@ -1,7 +1,7 @@
 /*
  * LESSON — Prefix sums: pay O(n) memory once, answer range sums in O(1)
  *
- * Student, here is the contract. Given nums[0..n), build prefix so that
+ * Student, here is the contract. Given nums[0..n), write prefix so that
  *
  *     prefix[0] = nums[0]
  *     prefix[i] = prefix[i-1] + nums[i]     for i = 1 .. n-1
@@ -12,7 +12,7 @@
  *     prefix[R] - prefix[L-1]   if L > 0
  *
  * That subtraction is two loads and an add. No loop. The extra buffer is
- * the price of admission.
+ * the price of admission. Print one prefix value per line.
  *
  * Intuition
  *   A running total is a cumulative integral of the array. Differences of
@@ -29,16 +29,15 @@
  *   Naive range sums without a prefix are O(n) per query. For Q queries
  *   that is O(nQ). The prefix turns it into O(n + Q). That is the trade.
  *
- * Memory management
- *   std::vector<int> prefix(n) asks the allocator for n contiguous ints
- *   on the heap. The vector object itself (pointer, size, capacity) lives
- *   on the stack of prefixSum. The destructor frees the buffer when the
- *   returned-by-value vector is later destroyed in main — or, with NRVO
- *   and moves, there is often no extra copy, just a pointer hand-off.
- *   We take const std::vector<int>& nums so we never copy the input
- *   buffer. One word (the address of the caller's vector) comes in.
+ * Memory
+ *   int nums[], int n, int prefix[]: two pointers and a length. The
+ *   caller owns both buffers. In main, nums and prefix are stack arrays
+ *   of the same length. The function writes into prefix; it does not
+ *   allocate and it does not return a new array. Because of array-to-
+ *   pointer decay, sizeof(prefix) inside prefixSum is the size of a
+ *   pointer, not n * sizeof(int). That is why n is an argument.
  *
- *   The prefix buffer is contiguous. Walking prefix[i], prefix[i+1], ...
+ *   Both buffers are contiguous. Walking prefix[i], prefix[i+1], ...
  *   streams through cache lines (typically 64 bytes, 16 ints). A linked
  *   structure of partial sums would be the same big-O and a worse machine.
  *
@@ -55,13 +54,12 @@
  *   empty here because the sample is non-empty; you should, in production.
  *
  *   In C this is the same layout:
- *       int *prefix = malloc(n * sizeof *prefix);
+ *       int prefix[N];
  *       prefix[0] = nums[0];
- *       for (size_t i = 1; i < n; ++i) prefix[i] = prefix[i-1] + nums[i];
- *       ...
- *       free(prefix);
+ *       for (int i = 1; i < n; i++) prefix[i] = prefix[i-1] + nums[i];
  *   a[i] is *(a + i). The compiler scales i by sizeof(int). There is no
- *   hidden length on the pointer; C++'s vector carries that length for you.
+ *   hidden length on the pointer. Heap version: malloc(n * sizeof *prefix)
+ *   and free(prefix) when you are done.
  *
  *   Cache: both nums and prefix are sequential. The build pass is two
  *   streams, both hot. This is why prefix arrays are the default first
@@ -72,21 +70,22 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-std::vector<int> prefixSum(const std::vector<int>& nums) {
-    std::vector<int> prefix(nums.size());
+void prefixSum(int nums[], int n, int prefix[]) {
     prefix[0] = nums[0];
-    for (std::size_t i = 1; i < nums.size(); ++i) {
+    for (int i = 1; i < n; i++) {
         prefix[i] = prefix[i - 1] + nums[i];
     }
-    return prefix;
 }
 
 int main() {
-    const std::vector<int> nums{8, 7, 2, 1, 3, 6, 10, 4, 9, 5};
-    for (int x : prefixSum(nums)) {
-        std::cout << x << '\n';
+    int nums[] = {8, 7, 2, 1, 3, 6, 10, 4, 9, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int prefix[sizeof(nums) / sizeof(nums[0])];
+    prefixSum(nums, n, prefix);
+    for (int i = 0; i < n; i++) {
+        cout << prefix[i] << "\n";
     }
     return 0;
 }

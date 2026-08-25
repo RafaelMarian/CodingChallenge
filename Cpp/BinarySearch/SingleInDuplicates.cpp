@@ -17,17 +17,13 @@
  *     If they match, the single is to the right: l = mid + 2.
  *   When l == h, that index is the single. Return nums[h] (same cell).
  *
- *   Do not call some other function from main. This file's search is
- *   singleInDuplicate. The original driver called a missing name.
- *   That is a compile error, not a lesson.
- *
  * Complexity
  *   O(log n) time, O(1) extra memory. n is odd (2k + 1).
  *
- * Memory management
- *   const std::vector<int>&. No extra buffer. We never write. The
- *   pairing is an observation about indices, not a second array of
- *   flags.
+ * Memory
+ *   int nums[], int n. No extra buffer. We never write. The pairing
+ *   is an observation about indices, not a second array of flags.
+ *   The parameter nums is a pointer; n is the odd length.
  *
  * C theory — even indices, mid+1 bounds, overflow
  *   If mid is odd we decrement so we land on the start of a would-be
@@ -39,44 +35,37 @@
  *   must guard mid+1 < n.
  *
  *   Reading nums[mid+1] without that reasoning is how you walk off
- *   the end: UB. Draw the indices on paper once.
+ *   the end: UB. Draw the indices on paper once. nums[mid] is
+ *   *(nums + mid). Adjacent words are a pair in memory.
  *
  *   mid = l + (h - l) / 2. Same overflow rule.
- *
- *   Cache: logarithmic probes into a contiguous sorted buffer.
- *   The even/odd adjustment is arithmetic on an index, not an extra
- *   load (unless you then load nums[mid] and nums[mid+1], which are
- *   adjacent ints: one cache line).
- *
- *   C: int single(const int *a, int n); a[mid] == a[mid+1] is two
- *   adjacent words. That is the pairing, visible in memory.
  *
  * Sample prints 5.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int singleInDuplicate(const std::vector<int>& nums) {
+int singleInDuplicate(int nums[], int n) {
     int l = 0;
-    int h = static_cast<int>(nums.size()) - 1;
+    int h = n - 1;
     while (l < h) {
         int mid = l + (h - l) / 2;
         if (mid % 2 == 1) {
-            --mid;
+            mid--;
         }
-        if (nums[static_cast<std::size_t>(mid)] !=
-            nums[static_cast<std::size_t>(mid + 1)]) {
+        if (nums[mid] != nums[mid + 1]) {
             h = mid;
         } else {
             l = mid + 2;
         }
     }
-    return nums[static_cast<std::size_t>(h)];
+    return nums[h];
 }
 
 int main() {
-    const std::vector<int> nums{2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7};
-    std::cout << singleInDuplicate(nums) << '\n';
+    int nums[] = {2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 7};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << singleInDuplicate(nums, n) << "\n";
     return 0;
 }

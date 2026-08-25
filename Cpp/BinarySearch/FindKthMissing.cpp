@@ -36,9 +36,9 @@
  *   k whenever arr[i] <= k is O(n) and also correct; binary search
  *   is the lesson.
  *
- * Memory management
- *   const std::vector<int>&. A few ints. No extra buffer. We never
- *   materialize the missing numbers.
+ * Memory
+ *   int arr[], int n. A few ints. No extra buffer. We never
+ *   materialize the missing numbers. arr decayed to a pointer.
  *
  * C theory — searching a count, not a value; overflow
  *   This is binary search on an implicit monotone predicate:
@@ -61,23 +61,18 @@
  *   mid = (low + high) / 2 is the overflow hazard. We write
  *   low + (high - low) / 2.
  *
- *   Cache: logarithmic loads of a contiguous strictly increasing
- *   buffer. Fine.
- *
- *   C: int kth(const int *a, int n, int k); same formula.
- *
  * Sample prints 1.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int findKthPositive(const std::vector<int>& arr, int k) {
+int findKthPositive(int arr[], int n, int k) {
     int low = 0;
-    int high = static_cast<int>(arr.size()) - 1;
+    int high = n - 1;
     while (low <= high) {
-        const int mid = low + (high - low) / 2;
-        const int totMissing = arr[static_cast<std::size_t>(mid)] - (mid + 1);
+        int mid = low + (high - low) / 2;
+        int totMissing = arr[mid] - (mid + 1);
         if (totMissing < k) {
             low = mid + 1;
         } else {
@@ -88,7 +83,8 @@ int findKthPositive(const std::vector<int>& arr, int k) {
 }
 
 int main() {
-    const std::vector<int> nums{2, 3, 4, 7, 11};
-    std::cout << findKthPositive(nums, 1) << '\n';
+    int nums[] = {2, 3, 4, 7, 11};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << findKthPositive(nums, n, 1) << "\n";
     return 0;
 }

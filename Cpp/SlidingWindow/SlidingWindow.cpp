@@ -27,17 +27,20 @@
  *   elements" is O(n k). Same answer, wasted arithmetic.
  *   Extra memory: O(1). The window is indices, not a copy of the slice.
  *
- * Memory management
- *   const std::vector<int>& nums: we do not copy the buffer. sum and
- *   max live in registers or the stack frame. No heap allocation in
- *   the function. The CPU sees a single contiguous stream of ints.
+ * Memory
+ *   int nums[], int n, int k: we do not copy the buffer. sum and max
+ *   live in registers or the stack frame. No heap allocation in the
+ *   function. The CPU sees a single contiguous stream of ints. nums
+ *   decayed to a pointer; n is required because sizeof(nums) inside
+ *   the function is a pointer's size.
  *
  * C theory — why the slide is cache-friendly, and where overflow hides
- *   nums is a contiguous heap buffer. The seed pass reads nums[0..k).
- *   Each slide reads two ints that are k apart: nums[i] and nums[j].
- *   Sequential i and j walk forward, so both streams prefetch. The
- *   distance k means they may sit in different cache lines; that is
- *   still two sequential streams, not random pointer chasing.
+ *   nums is a contiguous buffer (stack in this main). The seed pass
+ *   reads nums[0..k). Each slide reads two ints that are k apart:
+ *   nums[i] and nums[j]. Sequential i and j walk forward, so both
+ *   streams prefetch. The distance k means they may sit in different
+ *   cache lines; that is still two sequential streams, not random
+ *   pointer chasing.
  *
  *   sum += nums[j] is a signed add. A window of large ints can overflow
  *   int. Signed overflow is undefined behavior. If the true window sums
@@ -49,46 +52,39 @@
  *   window. Out-of-bounds is UB — C will not throw. The sample has
  *   n = 10, k = 3.
  *
- *   In C the same algorithm is:
- *       int max_window(const int *a, int n, int k);
- *   Two pointers into one array. a[i] is *(a + i). No container, no
- *   iterator: just indices and a length.
- *
- *   Branch: if (sum > max) is a data-dependent branch. For random data
- *   it mispredicts often; for monotonic windows it is stable. On tiny
- *   n a recompute of each window can beat a clever slide because the
- *   whole array is already in L1. Measure when n is small; reason when
- *   n is large.
+ *   Two pointers into one array. nums[i] is *(nums + i). No container:
+ *   just indices and a length.
  *
  * Sample: {1,2,0,4,3,6,2,1,9,-1}, k = 3. Windows 3,6,7,13,11,9,12,9.
  * The maximum is 13.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int maxSubArray(const std::vector<int>& nums, int k) {
+int maxSubArray(int nums[], int n, int k) {
     int sum = 0;
-    for (int j = 0; j < k; ++j) {
+    for (int j = 0; j < k; j++) {
         sum += nums[j];
     }
-    int max = sum;
+    int mx = sum;
     int i = 0;
     int j = k - 1;
-    while (j + 1 < static_cast<int>(nums.size())) {
+    while (j + 1 < n) {
         sum -= nums[i];
-        ++i;
-        ++j;
+        i++;
+        j++;
         sum += nums[j];
-        if (sum > max) {
-            max = sum;
+        if (sum > mx) {
+            mx = sum;
         }
     }
-    return max;
+    return mx;
 }
 
 int main() {
-    const std::vector<int> nums{1, 2, 0, 4, 3, 6, 2, 1, 9, -1};
-    std::cout << maxSubArray(nums, 3) << '\n';
+    int nums[] = {1, 2, 0, 4, 3, 6, 2, 1, 9, -1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << maxSubArray(nums, n, 3) << "\n";
     return 0;
 }

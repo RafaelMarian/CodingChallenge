@@ -31,10 +31,10 @@
  *   test honest. Duplicates would force linear worst case, as in
  *   the rotated-search-with-duplicates lesson.
  *
- * Memory management
- *   const std::vector<int>&, two or three ints. No extra array. We
- *   return a value, not an index, so the caller never indexes with
- *   our internals.
+ * Memory
+ *   int nums[], int n. Two or three ints. No extra array. We return
+ *   a value, not an index, so the caller never indexes with our
+ *   internals. nums decayed to a pointer; n is the length.
  *
  * C theory — neighbor access, overflow, rotation
  *   The guard mid != 0 is a bounds check. C will not do it for you.
@@ -45,8 +45,6 @@
  *   mid = l + (h - l) / 2. Including mid on the left (h = mid) is
  *   safe with while (l < h): if you wrote h = mid - 1 you could
  *   drop the min unless the neighbor test already returned it.
- *   The neighbor test plus h = mid together cover the "including
- *   mid" rule.
  *
  *   Unrotated input: nums[h] > nums[mid] always in a strictly
  *   increasing range, h shrinks toward 0, answer nums[0]. Good.
@@ -55,35 +53,32 @@
  *   as binary search. For n = 9 this is academic; for n = 10^7 it
  *   is why you do not scan.
  *
- *   C: int find_min(const int *a, int n); a[0] is the unrotated min.
- *
  * Sample prints 3.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int findMin(const std::vector<int>& nums) {
+int findMin(int nums[], int n) {
     int l = 0;
-    int h = static_cast<int>(nums.size()) - 1;
+    int h = n - 1;
     while (l < h) {
-        const int mid = l + (h - l) / 2;
-        if (mid != 0 &&
-            nums[static_cast<std::size_t>(mid)] <
-                nums[static_cast<std::size_t>(mid - 1)]) {
-            return nums[static_cast<std::size_t>(mid)];
+        int mid = l + (h - l) / 2;
+        if (mid != 0 && nums[mid] < nums[mid - 1]) {
+            return nums[mid];
         }
-        if (nums[static_cast<std::size_t>(h)] > nums[static_cast<std::size_t>(mid)]) {
+        if (nums[h] > nums[mid]) {
             h = mid;
         } else {
             l = mid + 1;
         }
     }
-    return nums[static_cast<std::size_t>(l)];
+    return nums[l];
 }
 
 int main() {
-    const std::vector<int> nums{10, 11, 12, 13, 3, 4, 5, 6, 7};
-    std::cout << findMin(nums) << '\n';
+    int nums[] = {10, 11, 12, 13, 3, 4, 5, 6, 7};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << findMin(nums, n) << "\n";
     return 0;
 }

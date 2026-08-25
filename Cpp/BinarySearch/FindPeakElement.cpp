@@ -28,9 +28,10 @@
  *   of the exercise: the predicate "the slope here goes right"
  *   bisects the index range.
  *
- * Memory management
- *   const std::vector<int>&. Two indices. No extra buffer. We return
- *   an index into the caller's array; the caller already owns it.
+ * Memory
+ *   int nums[], int n. Two indices. No extra buffer. We return an
+ *   index into the caller's array; the caller already owns it.
+ *   nums decayed to int*. n came from sizeof in main.
  *
  * C theory — neighbors at the end, overflow, unimodal climb
  *   Loop is l < r, so m = l + (r - l) / 2 satisfies m < r, hence
@@ -48,21 +49,18 @@
  *   are neighbors: one line. Then you jump to a different m. Same
  *   random-access pattern as binary search.
  *
- *   C: int peak(const int *a, int n); same comparison of a[m] and
- *   a[m+1]. No extra memory, no copy.
- *
  * Sample prints 7. We do not print l and r along the way.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int findPeakElement(const std::vector<int>& nums) {
+int findPeakElement(int nums[], int n) {
     int l = 0;
-    int r = static_cast<int>(nums.size()) - 1;
+    int r = n - 1;
     while (l < r) {
-        const int m = l + (r - l) / 2;
-        if (nums[static_cast<std::size_t>(m)] < nums[static_cast<std::size_t>(m + 1)]) {
+        int m = l + (r - l) / 2;
+        if (nums[m] < nums[m + 1]) {
             l = m + 1;
         } else {
             r = m;
@@ -72,7 +70,8 @@ int findPeakElement(const std::vector<int>& nums) {
 }
 
 int main() {
-    const std::vector<int> nums{2, 3, 4, 7, 9, 10, 11, 12, 5, 4, 3, 1};
-    std::cout << findPeakElement(nums) << '\n';
+    int nums[] = {2, 3, 4, 7, 9, 10, 11, 12, 5, 4, 3, 1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << findPeakElement(nums, n) << "\n";
     return 0;
 }

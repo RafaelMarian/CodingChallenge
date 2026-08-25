@@ -1,10 +1,11 @@
 /*
  * LESSON — Merge overlapping intervals, in place, after a sort
  *
- * Student, you are given a list of closed intervals [start, end].
- * Overlapping or touching intervals merge into one. Return the new
- * length of the compacted list. The surviving intervals sit at the
- * front of the same array.
+ * Student, you are given a list of closed intervals [start, end]
+ * stored as a two-column C array: int nums[][2]. Overlapping or
+ * touching intervals merge into one. Return the new length of the
+ * compacted list. The surviving intervals sit at the front of the
+ * same array.
  *
  * Intuition
  *   After you sort by start, overlaps become a local question: does
@@ -21,34 +22,32 @@
  *     One interval remains: [1, 9].
  *
  * Complexity
- *   Sort O(n log n), merge pass O(n). Extra memory O(1) besides the
- *   sort's (introsort is in-place plus O(log n) stack). Output is
- *   written over the input. Return value is the new logical length;
- *   the vector's size() may still be n. Callers must use the returned
- *   length, not size().
+ *   Sort O(n log n) in general; this file uses a simple O(n^2) row
+ *   swap on n = 4. Merge pass O(n). Extra memory O(1). Output is
+ *   written over the input. Return value is the new logical length.
+ *   Callers must use the returned length, not the original n.
  *
- * Memory management
- *   std::vector<std::vector<int>>& : we mutate the caller's table.
- *   Each inner vector<int> is a tiny heap buffer of two ints (or a
- *   small-buffer, depending on the library; two ints often still
- *   heap-allocate). A stronger layout is one vector of pair<int,int>
- *   or a struct Interval { int start, end; } in a single contiguous
- *   array. We keep vector<vector<int>> to match the usual interface.
+ * Memory
+ *   int nums[][2]: a contiguous block of n pairs of ints. nums[i][0]
+ *   is start, nums[i][1] is end. In a parameter the first dimension
+ *   decays: the type is pointer-to-array-of-2-ints, int (*p)[2].
+ *   sizeof(nums) inside mergeOverlap is the size of that pointer,
+ *   not n * 2 * sizeof(int). We pass n. The second dimension [2]
+ *   stays in the type so the compiler can scale row i by 8 bytes.
  *
- *   The write-index compact does not allocate. It assigns inner
- *   vectors (pointer steal / copy of two ints). No new rows.
+ *   Why not sort(nums, nums + n)? sort needs an assignable element
+ *   type. A row int[2] is an array; arrays cannot be assigned. We
+ *   swap the two columns ourselves. That is honest C.
  *
- * C theory — comparators, overlap, in-place compact, cache
- *   std::sort with a lambda comparator:
- *       (a, b) => a[0] < b[0]
- *   The comparator must be a strict weak ordering. Returning a[0] <=
- *   b[0] is a bug: equality must be false both ways. We compare
- *   starts only; equal starts are fine in either order because the
- *   merge uses max of ends.
+ *   The write-index compact does not allocate. It copies two ints
+ *   into an earlier row. No new rows.
  *
- *   In C: qsort with a comparison function, or your own sort, on an
- *   array of struct { int s, e; }. Contiguous structs are the honest
- *   layout. Two-element heap vectors are a convenience tax.
+ * C theory — overlap, in-place compact, cache
+ *   Layout: four intervals are eight ints in a row in memory:
+ *       6, 8, 1, 9, 2, 4, 4, 7
+ *   nums[i][j] is *(*(nums + i) + j), which the compiler turns into
+ *   a single scaled offset from the base. Contiguous structs
+ *   {int s, e;} are the same bytes with names.
  *
  *   Overlap for closed intervals: prev.end >= cur.start. If the
  *   problem used half-open [s, e), touching ends would not overlap
@@ -57,50 +56,57 @@
  *
  *   In-place compact is the same pattern as removing duplicates with
  *   a slow writer: a read index i and a write index prevIdx. Slots
- *   behind prevIdx are finished. We do not shrink the vector; we
+ *   behind prevIdx are finished. We do not shrink the array; we
  *   return how many slots are live. Reading past that length is a
  *   logic error (you would see leftover unmerged rows). Out-of-bounds
- *   of the vector itself is UB; leftover rows are still in-bounds.
+ *   of the array itself is UB; leftover rows are still in-bounds.
  *
- *   Cache: sort jumps around, then the merge pass is sequential on
- *   the outer array. Prefer a struct Interval[] so start and end
- *   sit in the same cache line. vector<vector<int>> stores pointers
- *   in the outer buffer and the two ints elsewhere: an extra miss
- *   per interval. Fine for n = 4; think about it for n = 10^6.
+ *   Cache: the merge pass is sequential on a contiguous 2-column
+ *   buffer. start and end of one interval sit in the same line.
  *
  * Print: "The Merged Intervals are: " then [start, end] pairs.
+ * Sample prints: The Merged Intervals are: [1, 9]
  */
 
-#include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int mergeOverlap(std::vector<std::vector<int>>& nums) {
-    std::sort(nums.begin(), nums.end(),
-              [](const std::vector<int>& a, const std::vector<int>& b) {
-                  return a[0] < b[0];
-              });
+int mergeOverlap(int nums[][2], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (nums[j][0] < nums[i][0]) {
+                int t0 = nums[i][0];
+                int t1 = nums[i][1];
+                nums[i][0] = nums[j][0];
+                nums[i][1] = nums[j][1];
+                nums[j][0] = t0;
+                nums[j][1] = t1;
+            }
+        }
+    }
     int prevIdx = 0;
-    for (std::size_t i = 1; i < nums.size(); ++i) {
-        if (nums[static_cast<std::size_t>(prevIdx)][1] >= nums[i][0]) {
-            nums[static_cast<std::size_t>(prevIdx)][1] =
-                std::max(nums[static_cast<std::size_t>(prevIdx)][1], nums[i][1]);
+    for (int i = 1; i < n; i++) {
+        if (nums[prevIdx][1] >= nums[i][0]) {
+            if (nums[i][1] > nums[prevIdx][1]) {
+                nums[prevIdx][1] = nums[i][1];
+            }
         } else {
-            ++prevIdx;
-            nums[static_cast<std::size_t>(prevIdx)] = nums[i];
+            prevIdx++;
+            nums[prevIdx][0] = nums[i][0];
+            nums[prevIdx][1] = nums[i][1];
         }
     }
     return prevIdx + 1;
 }
 
 int main() {
-    std::vector<std::vector<int>> nums{{6, 8}, {1, 9}, {2, 4}, {4, 7}};
-    const int newSize = mergeOverlap(nums);
-    std::cout << "The Merged Intervals are: ";
-    for (int i = 0; i < newSize; ++i) {
-        std::cout << '[' << nums[static_cast<std::size_t>(i)][0] << ", "
-                  << nums[static_cast<std::size_t>(i)][1] << "] ";
+    int nums[][2] = {{6, 8}, {1, 9}, {2, 4}, {4, 7}};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int newSize = mergeOverlap(nums, n);
+    cout << "The Merged Intervals are: ";
+    for (int i = 0; i < newSize; i++) {
+        cout << "[" << nums[i][0] << ", " << nums[i][1] << "] ";
     }
-    std::cout << '\n';
+    cout << "\n";
     return 0;
 }

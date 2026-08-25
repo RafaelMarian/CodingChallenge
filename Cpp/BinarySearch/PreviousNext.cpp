@@ -27,9 +27,10 @@
  * Complexity
  *   O(log n) time, O(1) extra memory.
  *
- * Memory management
- *   const std::vector<int>&. Return two ints. No extra buffer. We
- *   do not insert the missing key; we only name its neighbors.
+ * Memory
+ *   int nums[], int n. Write two ints into out[2]. No extra buffer.
+ *   We do not insert the missing key; we only name its neighbors.
+ *   Two ints, not a pair type. nums decayed to a pointer.
  *
  * C theory — lower_bound neighbors, ends, overflow
  *   The insertion index l == n means key is larger than every
@@ -37,7 +38,7 @@
  *   smaller than every element: prev is -1, next is nums[0]. Those
  *   are the two end sentinels. Using -1 as "no neighbor" collides
  *   with a legal value of -1 in the array; the sample is positive
- *   so it is fine. A richer API would return optional<int>.
+ *   so it is fine.
  *
  *   If you read nums[mid-1] when mid == 0, that is UB. The hit
  *   branch guards mid == 0. The miss branch uses l, which may be 0
@@ -45,44 +46,37 @@
  *
  *   mid = l + (h - l) / 2. Overflow of l+h is still UB.
  *
- *   Cache: logarithmic loads, then at most two more loads for the
- *   neighbors, which are adjacent to the hit (or to the insertion
- *   slot). Local.
- *
- *   C: fill two output ints. Same lower_bound loop.
- *
  * Sample prints 13 15.
  */
 
 #include <iostream>
-#include <utility>
-#include <vector>
+using namespace std;
 
-std::pair<int, int> prevNext(const std::vector<int>& nums, int key) {
-    const int n = static_cast<int>(nums.size());
+void prevNext(int nums[], int n, int key, int out[]) {
     int l = 0;
     int h = n - 1;
     while (l <= h) {
-        const int mid = l + (h - l) / 2;
-        if (key == nums[static_cast<std::size_t>(mid)]) {
-            const int prev = (mid == 0) ? -1 : nums[static_cast<std::size_t>(mid - 1)];
-            const int next = (mid == n - 1) ? -1 : nums[static_cast<std::size_t>(mid + 1)];
-            return {prev, next};
+        int mid = l + (h - l) / 2;
+        if (key == nums[mid]) {
+            out[0] = (mid == 0) ? -1 : nums[mid - 1];
+            out[1] = (mid == n - 1) ? -1 : nums[mid + 1];
+            return;
         }
-        if (key < nums[static_cast<std::size_t>(mid)]) {
+        if (key < nums[mid]) {
             h = mid - 1;
         } else {
             l = mid + 1;
         }
     }
-    const int prev = (l == 0) ? -1 : nums[static_cast<std::size_t>(l - 1)];
-    const int next = (l == n) ? -1 : nums[static_cast<std::size_t>(l)];
-    return {prev, next};
+    out[0] = (l == 0) ? -1 : nums[l - 1];
+    out[1] = (l == n) ? -1 : nums[l];
 }
 
 int main() {
-    const std::vector<int> nums{3, 4, 6, 7, 10, 11, 13, 15};
-    const std::pair<int, int> res = prevNext(nums, 14);
-    std::cout << res.first << ' ' << res.second << '\n';
+    int nums[] = {3, 4, 6, 7, 10, 11, 13, 15};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int out[2];
+    prevNext(nums, n, 14, out);
+    cout << out[0] << " " << out[1] << "\n";
     return 0;
 }

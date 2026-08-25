@@ -2,9 +2,15 @@
  * LESSON — The same frequency problem, now with a hash table
  *
  * Student, return the most common lowercase letter in a string. This
- * time the store is std::unordered_map<char, int>, not int[26]. The
+ * time the store is unordered_map<char, int>, not int[26]. The
  * answer for "mkbqsqjbyq" is still 'q'. The point is the machine
  * model underneath the map, and when you would actually pay for it.
+ *
+ *   using namespace std;
+ *   typedef unordered_map<char, int> Freq;
+ *
+ *   Write Freq, not std::unordered_map. The using-directive puts
+ *   unordered_map in the global namespace for this file.
  *
  * Intuition
  *   A hash table maps an arbitrary key to a slot in an array of
@@ -14,11 +20,11 @@
  *   case of O(n) when every key collides into one bucket, and it
  *   hides a much larger constant than a dense array.
  *
- *   We still lowercase, then for each character: look up, increment,
- *   and if the new count beats the champion, record the character.
- *   Ties keep the first winner (strict greater), which matches a
- *   left-to-right scan of the string rather than alphabetical order.
- *   For this sample there is no tie.
+ *   We still fold A-Z to a-z, then for each character: look up,
+ *   increment, and if the new count beats the champion, record the
+ *   character. Ties keep the first winner (strict greater), which
+ *   matches a left-to-right scan of the string rather than
+ *   alphabetical order. For this sample there is no tie.
  *
  * Complexity
  *   Average time O(n). Worst time O(n^2) if the hash collapses (or
@@ -26,7 +32,7 @@
  *   chains, which some do). Extra memory O(A) heap nodes where A is
  *   the number of distinct keys actually seen, plus the bucket array.
  *
- * Memory management
+ * Memory
  *   unordered_map nodes live on the heap. Each insertion of a new
  *   key allocates a node: key, value, next-pointer (and more). That
  *   is not a contiguous count array. Walking the table later would
@@ -34,9 +40,10 @@
  *   so we never pay a full-table scan.
  *
  *   The map object sits on the stack; its buckets and nodes sit on
- *   the heap. Destructor walks and frees them. RAII, no manual free.
+ *   the heap. Destructor walks and frees them. No manual delete.
  *
- *   const std::string&: no copy of the text.
+ *   The text is char str[], a C string. It decays to char*. We walk
+ *   until '\0'.
  *
  * C theory — hash tables vs count arrays, collisions, cache
  *   In C you would roll your own: a bucket array of struct nodes,
@@ -63,23 +70,28 @@
  *   operator[] on unordered_map default-inserts 0 if the key is
  *   missing, then you increment. That is convenient and it allocates
  *   a node on first sight of a key. Fine here.
+ *
+ * Sample prints q.
  */
 
-#include <cctype>
 #include <iostream>
-#include <string>
 #include <unordered_map>
+using namespace std;
 
-char mostOccurringLetter(const std::string& str) {
-    std::unordered_map<char, int> map;
-    int max = 0;
+typedef unordered_map<char, int> Freq;
+
+char mostOccurringLetter(char str[]) {
+    Freq map;
+    int mx = 0;
     char maxLetter = 0;
-    for (char ch : str) {
-        const unsigned char uc = static_cast<unsigned char>(ch);
-        const char c = static_cast<char>(std::tolower(uc));
-        const int count = ++map[c];
-        if (count > max) {
-            max = count;
+    for (int i = 0; str[i] != '\0'; i++) {
+        char c = str[i];
+        if (c >= 'A' && c <= 'Z') {
+            c = c - 'A' + 'a';
+        }
+        map[c]++;
+        if (map[c] > mx) {
+            mx = map[c];
             maxLetter = c;
         }
     }
@@ -87,7 +99,7 @@ char mostOccurringLetter(const std::string& str) {
 }
 
 int main() {
-    const std::string str = "mkbqsqjbyq";
-    std::cout << mostOccurringLetter(str) << '\n';
+    char str[] = "mkbqsqjbyq";
+    cout << mostOccurringLetter(str) << "\n";
     return 0;
 }

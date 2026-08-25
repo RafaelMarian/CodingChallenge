@@ -20,9 +20,9 @@
  *
  * Production Boyer–Moore (the one you must remember)
  *     candidate undefined, count = 0
- *     for x in nums:
- *         if count == 0: candidate = x
- *         count += (x == candidate) ? 1 : -1
+ *     for i in 0 .. n-1:
+ *         if count == 0: candidate = nums[i]
+ *         count += (nums[i] == candidate) ? 1 : -1
  *     then a second pass: count how many times candidate actually
  *     occurs. If that is <= n/2, there is no majority. Return it
  *     only after verification.
@@ -41,16 +41,16 @@
  *   Extra memory O(1): two ints. That is the point. You do not need
  *   a hash table of counts, which would be O(U) or O(distinct).
  *
- * Memory management
- *   const std::vector<int>&. Two automatic ints. No heap. The input
- *   is a contiguous buffer; we load it once sequentially.
+ * Memory
+ *   int nums[], int n. Two automatic ints. No heap. The input is a
+ *   contiguous buffer; we load it once sequentially. nums decayed
+ *   to a pointer; n is the length from sizeof in main.
  *
  * C theory — constant extra memory, INT_MIN as a sentinel, cache
  *   O(1) extra memory means the auxiliary state is a few registers.
- *   The array stays where the caller put it. In C:
- *       int majority(const int *a, int n);
- *   same two locals. This is what you want in a tight inner loop or
- *   on a microcontroller: no allocator in the hot path.
+ *   The array stays where the caller put it. This is what you want
+ *   in a tight inner loop or on a microcontroller: no allocator in
+ *   the hot path.
  *
  *   lastElement = INT_MIN is a sentinel meaning "no candidate yet."
  *   INT_MIN is also a legal array value. If the array's majority
@@ -66,32 +66,34 @@
  *   decrement. Almost no extra traffic. A hash table of frequencies
  *   would allocate, hash, and chase nodes to solve the same job.
  *
- *   Unsigned vs signed: n/2 for the verify pass should be
- *   n / 2 with integer division; "more than n/2" is count > n/2,
- *   not >=, unless the problem says so. Majority is strict.
+ *   Majority is strict: more than n/2, not >=, unless the problem
+ *   says so.
+ *
+ * Sample prints 9.
  */
 
 #include <climits>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int majority(const std::vector<int>& nums) {
+int majority(int nums[], int n) {
     int count = 1;
     int lastElement = INT_MIN;
-    for (int x : nums) {
-        if (x == lastElement) {
-            ++count;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] == lastElement) {
+            count++;
         } else if (count > 1) {
-            --count;
+            count--;
         } else {
-            lastElement = x;
+            lastElement = nums[i];
         }
     }
     return lastElement;
 }
 
 int main() {
-    const std::vector<int> nums{9, 13, 9, 16, 9, 11, 9, 20, 9, 9};
-    std::cout << majority(nums) << '\n';
+    int nums[] = {9, 13, 9, 16, 9, 11, 9, 20, 9, 9};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << majority(nums, n) << "\n";
     return 0;
 }

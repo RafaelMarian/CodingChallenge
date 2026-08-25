@@ -47,10 +47,11 @@
  *   O(n^2) "every pair of endpoints" is the same problem with a table
  *   you do not need.
  *
- * Memory management
- *   const std::vector<int>&: no copy. sum and maxSum are automatic
- *   storage (stack / registers). Nothing is allocated. The input buffer
- *   is a contiguous heap array owned by the caller.
+ * Memory
+ *   int nums[], int n: no copy. sum and maxSum are automatic storage
+ *   (stack / registers). Nothing is allocated. The input buffer is a
+ *   contiguous array owned by the caller. Decay: nums is int*; n is
+ *   the length computed in main with sizeof.
  *
  * C theory — DP, INT_MIN, overflow, sequential access
  *   The recurrence is
@@ -61,9 +62,10 @@
  *   best_ending_here never exists except as the variable sum.
  *
  *   maxSum is initialized to INT_MIN (the smallest 32-bit two's
- *   complement value, -2^31). That is a sentinel meaning "no candidate
- *   yet." It is a valid int, so an empty array would be indistinguishable
- *   from "the max really is INT_MIN." We require a non-empty input.
+ *   complement value, -2^31, from <climits>). That is a sentinel
+ *   meaning "no candidate yet." It is a valid int, so an empty array
+ *   would be indistinguishable from "the max really is INT_MIN." We
+ *   require a non-empty input.
  *
  *   sum += nums[i] can overflow int. Signed overflow is UB. Kadane on
  *   32-bit data whose partial sums leave [-2^31, 2^31) must use
@@ -73,20 +75,17 @@
  *   The scan is sequential: one load per element, perfect prefetch,
  *   one cache line at a time. There is no random index and no extra
  *   buffer to pollute L1.
- *
- *   C interface: int kadane(const int *a, size_t n). Same loop. The
- *   pointer does not carry n; you pass both.
  */
 
 #include <climits>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int maxSubArray(const std::vector<int>& nums) {
+int maxSubArray(int nums[], int n) {
     int maxSum = INT_MIN;
     int sum = 0;
-    for (int x : nums) {
-        sum += x;
+    for (int i = 0; i < n; i++) {
+        sum += nums[i];
         if (sum > maxSum) {
             maxSum = sum;
         }
@@ -98,7 +97,8 @@ int maxSubArray(const std::vector<int>& nums) {
 }
 
 int main() {
-    const std::vector<int> nums{-2, 1, -3, 4, -1, 2, 1, -5, 4, -1};
-    std::cout << maxSubArray(nums) << '\n';
+    int nums[] = {-2, 1, -3, 4, -1, 2, 1, -5, 4, -1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << maxSubArray(nums, n) << "\n";
     return 0;
 }

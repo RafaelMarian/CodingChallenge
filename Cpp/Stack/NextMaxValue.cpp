@@ -21,7 +21,7 @@
  *
  *   We store values, not indices, because the API asks for the next
  *   greater *value*. If you later need the index, push indices instead
- *   and read nums[stack.back()].
+ *   and read nums[stk[top]].
  *
  *   Why pop equal values? "Next greater" is strict. An equal is not
  *   greater, and a later left-hand element that wanted something
@@ -36,69 +36,67 @@
  *   as well; that is output, not auxiliary, depending on how you
  *   count.
  *
- * Memory management
- *   std::vector<int> used as a stack: push_back, pop_back, back.
- *   That is the C++ default stack. Do not reach for a node-based
- *   std::stack adapter unless you have a reason; the adapter still
- *   sits on a deque or vector, and you want the contiguous buffer.
- *   The stack vector owns a heap buffer. Worst case it holds n ints
- *   plus the answer vector of n ints. Two heap allocations, both
- *   contiguous. Destructors free them.
+ * Memory
+ *   The stack is a C array plus an index:
  *
- *   const std::vector<int>& for the input. The answer is returned by
- *   value (move/NRVO).
+ *       int stk[100];
+ *       int top = -1;          // empty: nothing at stk[top]
+ *       stk[++top] = value;    // push
+ *       value = stk[top--];    // pop
  *
- * C theory — LIFO, pointers, cache, overflow of the stack buffer
+ *   100 is a fixed capacity. The sample has 10 elements, so it fits.
+ *   Pushing past 99 is a buffer overflow: UB. Production code would
+ *   allocate n ints (malloc / new int[n]) so capacity equals length.
+ *   nmv[] is the output array, same length as arr, owned by main.
+ *   arr decayed to a pointer; n is the length.
+ *
+ * C theory — LIFO, pointers, cache, empty-stack UB
  *   A stack is last-in, first-out. The "nearest to the right" we have
- *   already seen is the last thing we pushed, so it sits at the back.
- *   pop_back is O(1): decrement size. No shift of other elements.
+ *   already seen is the last thing we pushed, so it sits at stk[top].
+ *   Pop is O(1): decrement top. No shift of other elements.
  *
- *   C analogue:
- *       int *stk = malloc(n * sizeof *stk);
- *       int top = 0;          // next free slot
- *       stk[top++] = value;   // push
- *       value = stk[--top];   // pop
- *   top is an index, not a pointer, but a pointer into the same buffer
- *   is the same idea: a stack pointer. Do not confuse this with the
- *   CPU call stack. This is an explicit heap array we use as a stack.
- *   The call stack is the frame of nextMaxValue; overflowing *that*
- *   is a different bug (deep recursion). Here recursion depth is 1.
+ *   Do not confuse this with the CPU call stack. This is an explicit
+ *   array we use as a stack. The call stack is the frame of
+ *   nextMaxValue; overflowing *that* is a different bug (deep
+ *   recursion). Here recursion depth is 1.
  *
  *   Cache: we scan nums right to left (still sequential, prefetch
  *   works in reverse on most CPUs well enough) and touch the tail of
- *   the stack vector. The tail is hot. A linked-list stack would
- *   chase heap nodes and miss.
+ *   stk. The tail is hot. A linked-list stack would chase heap nodes
+ *   and miss.
  *
  *   The values themselves are ints; we do not add them, so overflow
- *   is not the issue. Out-of-bounds on an empty stack is: calling
- *   back() or pop_back() when empty is UB. The while condition
- *   !stk.empty() is the guard. Never skip it.
+ *   is not the issue. Out-of-bounds on an empty stack is: reading
+ *   stk[top] when top == -1 is UB. The guard top >= 0 is the check.
+ *   Never skip it.
  *
  * Sample {2,1,3,2,6,3,5,9,1,7} -> 3 3 6 6 9 5 9 -1 7 -1
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-std::vector<int> nextMaxValue(const std::vector<int>& arr) {
-    std::vector<int> stk;
-    std::vector<int> nmv(arr.size());
-    for (int i = static_cast<int>(arr.size()) - 1; i >= 0; --i) {
-        while (!stk.empty() && arr[static_cast<std::size_t>(i)] >= stk.back()) {
-            stk.pop_back();
+void nextMaxValue(int arr[], int n, int nmv[]) {
+    int stk[100];
+    int top = -1;
+    for (int i = n - 1; i >= 0; i--) {
+        while (top >= 0 && arr[i] >= stk[top]) {
+            top--;
         }
-        nmv[static_cast<std::size_t>(i)] = stk.empty() ? -1 : stk.back();
-        stk.push_back(arr[static_cast<std::size_t>(i)]);
+        nmv[i] = (top < 0) ? -1 : stk[top];
+        top++;
+        stk[top] = arr[i];
     }
-    return nmv;
 }
 
 int main() {
-    const std::vector<int> arr{2, 1, 3, 2, 6, 3, 5, 9, 1, 7};
-    const std::vector<int> nmv = nextMaxValue(arr);
-    for (int x : nmv) {
-        std::cout << x << ' ';
+    int arr[] = {2, 1, 3, 2, 6, 3, 5, 9, 1, 7};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    int nmv[sizeof(arr) / sizeof(arr[0])];
+    nextMaxValue(arr, n, nmv);
+    for (int i = 0; i < n; i++) {
+        cout << nmv[i] << " ";
     }
-    std::cout << '\n';
+    cout << "\n";
     return 0;
 }

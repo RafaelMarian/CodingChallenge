@@ -31,10 +31,11 @@
  *   honestly quote O(log n) as a worst-case bound once equals are
  *   allowed. Extra memory still O(1).
  *
- * Memory management
- *   const std::vector<int>&, three indices. No extra buffer. The
- *   worst-case linear scan is still sequential-ish (the ends creep
- *   inward) plus occasional mids. No allocation.
+ * Memory
+ *   int nums[], int n, three indices. No extra buffer. The worst-case
+ *   linear scan is still sequential-ish (the ends creep inward) plus
+ *   occasional mids. No allocation. The pointer does not know n;
+ *   we pass both.
  *
  * C theory — why equals break binary search, overflow, UB
  *   Binary search's power is an invariant: a predicate true on a
@@ -54,41 +55,32 @@
  *   Returning bool, not an index: with duplicates, "the" index is
  *   not unique. Existence is the well-posed question.
  *
- *   Cache: shrinking both ends on a huge equal array is a linear
- *   scan from both sides. Fine. The painful case is mixed data that
- *   still hits the three-way equal often enough to degrade.
- *
- *   C: bool search(const int *a, int n, int target); same loop.
- *
  * Sample prints true.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-bool search(const std::vector<int>& nums, int target) {
+bool search(int nums[], int n, int target) {
     int low = 0;
-    int high = static_cast<int>(nums.size()) - 1;
+    int high = n - 1;
     while (low <= high) {
-        const int mid = low + (high - low) / 2;
-        if (nums[static_cast<std::size_t>(mid)] == target) {
+        int mid = low + (high - low) / 2;
+        if (nums[mid] == target) {
             return true;
         }
-        if (nums[static_cast<std::size_t>(low)] == nums[static_cast<std::size_t>(mid)] &&
-            nums[static_cast<std::size_t>(mid)] == nums[static_cast<std::size_t>(high)]) {
-            ++low;
-            --high;
+        if (nums[low] == nums[mid] && nums[mid] == nums[high]) {
+            low++;
+            high--;
             continue;
         }
-        if (nums[static_cast<std::size_t>(low)] <= nums[static_cast<std::size_t>(mid)]) {
-            if (nums[static_cast<std::size_t>(low)] <= target &&
-                nums[static_cast<std::size_t>(mid)] > target) {
+        if (nums[low] <= nums[mid]) {
+            if (nums[low] <= target && nums[mid] > target) {
                 high = mid - 1;
             } else {
                 low = mid + 1;
             }
-        } else if (nums[static_cast<std::size_t>(mid)] < target &&
-                   nums[static_cast<std::size_t>(high)] >= target) {
+        } else if (nums[mid] < target && nums[high] >= target) {
             low = mid + 1;
         } else {
             high = mid - 1;
@@ -98,7 +90,8 @@ bool search(const std::vector<int>& nums, int target) {
 }
 
 int main() {
-    const std::vector<int> nums{6, 6, 6, 6, 7, 3, 3, 3, 4, 4, 5, 5, 6, 6, 6};
-    std::cout << std::boolalpha << search(nums, 6) << '\n';
+    int nums[] = {6, 6, 6, 6, 7, 3, 3, 3, 4, 4, 5, 5, 6, 6, 6};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << (search(nums, n, 6) ? "true" : "false") << "\n";
     return 0;
 }

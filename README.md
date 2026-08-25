@@ -27,12 +27,12 @@ make -C Cpp
 |------|--------|------------------------|
 | 1 | `Cpp/00_FOUNDATIONS.md` | Compilation, process memory, pointers, RAII, UB |
 | 2 | `Cpp/SinglePointer/` | Contiguous arrays, overflow, one-pass scans |
-| 3 | `Cpp/TwoPointer/` | In-place mutation, swaps, C strings vs `std::string` |
+| 3 | `Cpp/TwoPointer/` | In-place mutation, swaps, C strings `char s[]` |
 | 4 | `Cpp/ThreePointers/` | Partitioning a range in one pass |
 | 5 | `Cpp/PrefixSum/` | Extra memory as a time trade |
 | 6 | `Cpp/SlidingWindow/` | Amortized O(n) windows |
 | 7 | `Cpp/Kadanes/` | Local decisions that keep a global optimum |
-| 8 | `Cpp/Stack/` | Monotonic stacks, LIFO, `std::vector` as a stack |
+| 8 | `Cpp/Stack/` | Monotonic stacks, LIFO, C array + `top` index |
 | 9 | `Cpp/Hashing/` | Counting arrays vs hash tables, collisions |
 | 10 | `Cpp/BoyerMooreMajority/` | Constant extra memory algorithms |
 | 11 | `Cpp/BinarySearch/` | Search on indices *and* on the answer |

@@ -37,11 +37,12 @@
  *   Time O(n): one combined pass (or two sequential passes). Extra
  *   memory O(1): a handful of long long scalars. No extra array.
  *
- * Memory management
- *   const std::vector<int>&: no copy of the input. leftToRight,
- *   rightToLeft, and maxProd are automatic storage. The two running
- *   products are just integers; we do not store the product arrays.
- *   Collapsing those arrays to scalars is the same lesson as Kadane.
+ * Memory
+ *   int arr[], int n: no copy of the input. leftToRight, rightToLeft,
+ *   and maxProd are automatic storage. The two running products are
+ *   just integers; we do not store the product arrays. Collapsing
+ *   those arrays to scalars is the same lesson as Kadane. arr decayed
+ *   to a pointer; n is the length.
  *
  * C theory — long long, overflow, zeros, and cache
  *   Products overflow int almost immediately. 10 modest factors can
@@ -66,22 +67,18 @@
  *   multiply into long long, so promote first. arr[i] converts to
  *   long long on *= with a long long left operand.
  *
- *   C: long long max_product(const int *a, size_t n); same loop.
- *
  * Sample prints 180.
  */
 
-#include <algorithm>
 #include <climits>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-long long maxProduct(const std::vector<int>& arr) {
-    const int n = static_cast<int>(arr.size());
+long long maxProduct(int arr[], int n) {
     long long maxProd = LLONG_MIN;
     long long leftToRight = 1;
     long long rightToLeft = 1;
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; i++) {
         if (leftToRight == 0) {
             leftToRight = 1;
         }
@@ -89,15 +86,21 @@ long long maxProduct(const std::vector<int>& arr) {
             rightToLeft = 1;
         }
         leftToRight *= arr[i];
-        const int j = n - i - 1;
+        int j = n - i - 1;
         rightToLeft *= arr[j];
-        maxProd = std::max(leftToRight, std::max(rightToLeft, maxProd));
+        if (leftToRight > maxProd) {
+            maxProd = leftToRight;
+        }
+        if (rightToLeft > maxProd) {
+            maxProd = rightToLeft;
+        }
     }
     return maxProd;
 }
 
 int main() {
-    const std::vector<int> arr{-2, 6, -3, -10, 0, 2};
-    std::cout << maxProduct(arr) << '\n';
+    int arr[] = {-2, 6, -3, -10, 0, 2};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    cout << maxProduct(arr, n) << "\n";
     return 0;
 }

@@ -32,11 +32,13 @@
  *   Worst O(n^2) if the table degenerates. Extra memory O(n) prefixes
  *   in the map in the worst case (all prefix sums distinct).
  *
- * Memory management
+ * Memory
  *   The map holds up to n+1 keys (the seed plus one per index). Each
  *   is a heap node. The running sum is a scalar. We do not store the
  *   prefix array explicitly: the map *is* the compressed prefix
- *   history. const std::vector<int>& for the input.
+ *   history. int arr[], int n: the input decayed to a pointer plus
+ *   a length. typedef unordered_map<int, int> Freq so the type has
+ *   no std:: prefix.
  *
  * C theory — why the map, overflow, and the empty prefix
  *   If you stored prefix in an array you could, for each j, scan all
@@ -46,7 +48,7 @@
  *   so a dense count array would need a slot per possible sum. Sums
  *   can be negative and large: U is not a small alphabet. Hash table.
  *
- *   curr += nums[i] can overflow int. Signed overflow is UB. A
+ *   curr += arr[i] can overflow int. Signed overflow is UB. A
  *   production version accumulates curr as long long and uses
  *   unordered_map<long long, int>. We keep int to match the original
  *   arithmetic on this sample; the idea is identical.
@@ -61,36 +63,38 @@
  *   array is contiguous. Reason about n, then measure if it matters.
  *
  *   The seed (0, 1) is not a hack. It is the prefix of the empty
- *   head. In C you would insert that pair before the loop the same
- *   way. Forgetting it undercounts every subarray that starts at 0.
+ *   head. Forgetting it undercounts every subarray that starts at 0.
  *
  * Print only the count. No debug dump of the map.
+ * Sample prints 3.
  */
 
 #include <iostream>
 #include <unordered_map>
-#include <vector>
+using namespace std;
 
-int findSubarraySum(const std::vector<int>& arr, int sum) {
-    std::unordered_map<int, int> prevSum;
+typedef unordered_map<int, int> Freq;
+
+int findSubarraySum(int arr[], int n, int sum) {
+    Freq prevSum;
     prevSum[0] = 1;
     int res = 0;
     int currSum = 0;
-    for (int x : arr) {
-        currSum += x;
-        const int removeSum = currSum - sum;
-        const auto it = prevSum.find(removeSum);
-        if (it != prevSum.end()) {
-            res += it->second;
+    for (int i = 0; i < n; i++) {
+        currSum += arr[i];
+        int removeSum = currSum - sum;
+        if (prevSum.count(removeSum)) {
+            res += prevSum[removeSum];
         }
-        ++prevSum[currSum];
+        prevSum[currSum]++;
     }
     return res;
 }
 
 int main() {
-    const std::vector<int> arr{10, 2, -2, -20, 10};
-    const int k = -10;
-    std::cout << findSubarraySum(arr, k) << '\n';
+    int arr[] = {10, 2, -2, -20, 10};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    int k = -10;
+    cout << findSubarraySum(arr, n, k) << "\n";
     return 0;
 }

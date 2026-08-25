@@ -28,10 +28,11 @@
  *   Distinctness is required for the "one half is sorted" test to be
  *   decisive. Duplicates need a different lesson (SearchRotatedDuplicate.cpp).
  *
- * Memory management
- *   const std::vector<int>&, three ints. No allocation. Random access
- *   into a contiguous buffer, same cache story as classic binary
- *   search: logarithmic loads, not a linear scan.
+ * Memory
+ *   int nums[], int n, three ints. No allocation. Random access into
+ *   a contiguous buffer, same cache story as classic binary search:
+ *   logarithmic loads, not a linear scan. Array-to-pointer decay
+ *   means n is required.
  *
  * C theory — rotation, invariants, overflow, distinctness
  *   Rotation does not shuffle. It is a cut: concatenate nums[k..n)
@@ -48,36 +49,30 @@
  *   Distinct values: if nums[l] == nums[mid] you cannot tell which
  *   half is sorted. The sample has no duplicates, so <= is enough.
  *
- *   C: same indices into const int *a. a[mid] is *(a + mid). The
- *   rotation is a property of the sequence, not of the pointer.
- *
- *   Branching is heavier than classic binary search (nested
- *   conditions). On small n a linear scan still wins. On large n
- *   the log n bound dominates.
+ *   nums[mid] is *(nums + mid). The rotation is a property of the
+ *   sequence, not of the pointer.
  *
  * Sample prints 8.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int modBinarySearch(const std::vector<int>& nums, int key) {
+int modBinarySearch(int nums[], int n, int key) {
     int l = 0;
-    int h = static_cast<int>(nums.size()) - 1;
+    int h = n - 1;
     while (l <= h) {
-        const int mid = l + (h - l) / 2;
-        if (key == nums[static_cast<std::size_t>(mid)]) {
+        int mid = l + (h - l) / 2;
+        if (key == nums[mid]) {
             return mid;
         }
-        if (nums[static_cast<std::size_t>(l)] <= nums[static_cast<std::size_t>(mid)]) {
-            if (key >= nums[static_cast<std::size_t>(l)] &&
-                key < nums[static_cast<std::size_t>(mid)]) {
+        if (nums[l] <= nums[mid]) {
+            if (key >= nums[l] && key < nums[mid]) {
                 h = mid - 1;
             } else {
                 l = mid + 1;
             }
-        } else if (key > nums[static_cast<std::size_t>(mid)] &&
-                   key <= nums[static_cast<std::size_t>(h)]) {
+        } else if (key > nums[mid] && key <= nums[h]) {
             l = mid + 1;
         } else {
             h = mid - 1;
@@ -87,7 +82,8 @@ int modBinarySearch(const std::vector<int>& nums, int key) {
 }
 
 int main() {
-    const std::vector<int> nums{6, 7, 8, 9, 11, 13, 14, 2, 3, 5};
-    std::cout << modBinarySearch(nums, 3) << '\n';
+    int nums[] = {6, 7, 8, 9, 11, 13, 14, 2, 3, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << modBinarySearch(nums, n, 3) << "\n";
     return 0;
 }

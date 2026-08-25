@@ -21,9 +21,10 @@
  * Complexity
  *   O(log n) multiplies. Extra memory O(1). No heap.
  *
- * Memory management
+ * Memory
  *   A handful of integers on the stack. Nothing to allocate. The
  *   "data structure" is the integers 1..n, which you do not store.
+ *   No buffer, no decay, no length to pass.
  *
  * C theory — overflow of m*m, triangular overflow, no float
  *   total = n*(n+1)/2 in int overflows for n around 2^16. Compute
@@ -47,20 +48,19 @@
  *   There is no cache lesson beyond "there is no buffer." Arithmetic
  *   lives in registers. That is the cheapest memory you have.
  *
- *   C: long long total = (long long)n * (n + 1LL) / 2; same loop.
- *
  * Sample prints -1.
  */
 
 #include <iostream>
+using namespace std;
 
 int pivotInteger(int n) {
-    const long long total = 1LL * n * (n + 1LL) / 2;
+    long long total = 1LL * n * (n + 1LL) / 2;
     int l = 1;
     int h = n;
     while (l <= h) {
-        const int m = l + (h - l) / 2;
-        const long long square = 1LL * m * m;
+        int m = l + (h - l) / 2;
+        long long square = 1LL * m * m;
         if (square == total) {
             return m;
         }
@@ -74,6 +74,6 @@ int pivotInteger(int n) {
 }
 
 int main() {
-    std::cout << pivotInteger(50) << '\n';
+    cout << pivotInteger(50) << "\n";
     return 0;
 }

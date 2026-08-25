@@ -6,8 +6,11 @@ and *what the language promises* (and does not promise).
 
 C is the portable assembly of UNIX: types, pointers, and a thin runtime.
 C++ is C's model plus types that can own resources. These lessons are C++
-source. Underneath every `std::vector` is the same C story: a pointer, a
-length, and a heap buffer you are responsible for.
+source. The type we use for a list of ints is a C array: `int nums[]`
+plus a length `int n`. That is a pointer, a length, and a buffer you can
+see. C++ also has `vector<int>` (a heap buffer plus a length object).
+These lessons do not use it. We want the parameter to look like
+`int nums[]`.
 
 ---
 
@@ -93,24 +96,24 @@ low addresses
 - Globals and `static` locals live for the whole program.
 - `.data` holds explicit initializers; `.bss` is zeroed by the loader.
 
-C equivalent of a vector:
-
-```c
-int *a = malloc(n * sizeof *a);
-if (!a) abort();
-/* use a[0..n) */
-free(a);
-```
-
-C++ equivalent you will actually write:
+A stack array (this course, when n is known):
 
 ```cpp
-std::vector<int> a(n);  // constructor mallocs, destructor frees
+int nums[] = {8, 3, 10, 5};
+int n = sizeof(nums) / sizeof(nums[0]);
 ```
 
-The vector *object* is a few words on the stack (pointer, size, capacity).
-The *elements* are on the heap. Passing `const std::vector<int>&` passes the
-address of that stack object: no copy of the buffer.
+A heap array (when the length is data-dependent, see HashingIntro):
+
+```cpp
+int *a = new int[n];
+/* use a[0..n) */
+delete[] a;
+```
+
+C is the same heap story with `malloc` / `free`. C++ also has `vector<int>`;
+these lessons do not use it. Passing `int nums[], int n` passes a pointer
+and a length: no copy of the buffer.
 
 ---
 
@@ -136,25 +139,43 @@ compiler multiplies by `sizeof(int)`.
 **Array-to-pointer decay** is the C rule you must never forget:
 
 ```c
-void f(int a[10]);   /* lie: this is still int *a */
-void f(int *a, size_t n);  /* honest C interface */
+void f(int a[10]);      /* lie: this is still int *a */
+void f(int a[], int n); /* the interface this course uses */
 ```
 
 A parameter declared as an array **decays** to a pointer. `sizeof(a)` inside
-`f` is the size of a pointer (8 bytes on LP64), not the array. That is why C
-functions take a length, and why C++ prefers `std::vector` or `std::span`.
+`f` is the size of a pointer (8 bytes on LP64), not the array. That is why
+every function in this course takes a length: `int nums[], int n`.
 
-**Pass by value vs pass by reference**
+In `main` the array still has a known size. Compute `n` *there*, while
+`nums` is a real array, then pass both:
 
 ```cpp
-void by_value(std::vector<int> v);        // copies the vector (heap alloc + memcpy)
-void by_ref  (std::vector<int>& v);       // alias; callee can mutate
-void by_cref (const std::vector<int>& v); // alias, read-only — default for input
-void by_ptr  (const int *a, std::size_t n); // C interface; no ownership
+int nums[] = {8, 3, 10, 5};
+int n = sizeof(nums) / sizeof(nums[0]);  // 4 — only valid HERE
+foo(nums, n);                            // nums decays to &nums[0]
 ```
 
-Prefer `const T&` for large inputs. Prefer `T` (by value) for small types
-(`int`, `double`, pointers). Prefer `T*` when you mean "optional" or "C array."
+Inside `foo`, `sizeof(nums)` is 8 on LP64, not 16. The length traveled as
+`n`. This is the whole point of decay.
+
+C++ also has `vector<int>` in the standard library. These lessons do not
+use it. We pass a pointer and a length on purpose so the type looks like
+`int nums[]`.
+
+**Pass by value vs pass by pointer (arrays) vs pass by reference**
+
+```cpp
+void by_value(int x);           // copies the int
+void by_ref  (int& x);          // alias; callee can mutate
+void by_cref (const int& x);    // alias, read-only
+void by_arr  (int a[], int n);  // this course: pointer + length. No copy of the buffer.
+void by_ptr  (int *a, int n);   // same as by_arr: a[] decays to int*
+```
+
+Prefer `int` (by value) for small types. Prefer `int a[], int n` for arrays
+in this course. Writes through `a[i]` change the caller's buffer: that is
+not a copy. Prefer `T*` when you mean "optional" or a C string.
 
 ---
 
@@ -258,25 +279,54 @@ it matters.
 
 ---
 
-## 8. C library vs C++ STL you will use
+## 8. C library vs what this course actually writes
 
-| Need | C | C++ |
-|------|---|-----|
-| Dynamic array | `malloc` + length | `std::vector<T>` |
-| Bytes of text | `char *` + `strlen` | `std::string` |
-| Sort | `qsort` | `std::sort` |
-| Min / max | ternary | `std::min` / `std::max` |
-| Hash table | roll your own | `std::unordered_map` |
-| Ordered map | roll your own | `std::map` |
-| Stack | array + `top` index | `std::vector` used as a stack |
-| Limits | `INT_MIN` in `<limits.h>` | `std::numeric_limits<int>::min()` |
-| Print | `printf` | `std::cout` (`'\n'` not `std::endl`) |
+Every lesson starts with `using namespace std;` so names are `cout`,
+`sort`, `unordered_map` — not `std::cout`. Do not write `std::` prefixes.
+Do not write `vector`. Do not write `size_t` or `static_cast`.
 
-`std::endl` flushes the stream. Prefer `'\n'` unless you need a flush.
+The array type of this course is a C array plus a length:
 
-`std::vector::size()` returns `size_t` (unsigned). `i < v.size() - 1` is
-wrong on an empty vector: unsigned 0 - 1 wraps to a huge number. Write
-`i + 1 < v.size()` instead.
+```cpp
+#include <iostream>
+using namespace std;
+
+int foo(int nums[], int n) {
+    for (int i = 0; i < n; i++) {
+        /* nums[i] is *(nums + i) */
+    }
+    return 0;
+}
+
+int main() {
+    int nums[] = {8, 3, 10, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << foo(nums, n) << "\n";
+    return 0;
+}
+```
+
+`vector<int>` exists in C++. We do not use it here. `int nums[]` is the
+type on purpose.
+
+| Need | C | This course |
+|------|---|-------------|
+| Array of ints | `int a[n]` or `malloc` | `int nums[]` + `int n` |
+| Heap buffer (unknown U) | `malloc` + `free` | `int *p = new int[U];` … `delete[] p` |
+| Bytes of text | `char *` + `strlen` | `char str[]`, walk until `'\0'` |
+| Sort | `qsort` | `sort(nums, nums + n)` from `<algorithm>` |
+| Min / max | ternary | `min` / `max`, or an `if` |
+| Hash table | roll your own | `unordered_map<K,V>` (or `typedef` it) |
+| Counting alphabet | `int hash[26]` | `int hash[26]` |
+| Stack | array + `top` index | `int stk[100]; int top = -1;` |
+| Limits | `INT_MIN` in `<climits>` | `INT_MIN` / `INT_MAX` |
+| Print | `printf` | `cout << x << "\n"` (not `endl`) |
+
+`endl` flushes the stream. Prefer `"\n"` unless you need a flush.
+
+`sizeof` on a *parameter* that looks like an array is the size of a
+pointer. Always pass `n` separately. Compute `n` in `main` with
+`sizeof(nums) / sizeof(nums[0])` while `nums` is still a real array.
 
 ---
 
