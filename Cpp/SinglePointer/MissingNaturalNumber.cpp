@@ -11,7 +11,8 @@
  *
  * Memory
  *   One integer accumulator. Contrast with a boolean[n+2] mark array
- *   (O(n) heap) or a hash set (O(n) heap + worse constants).
+ *   (O(n) extra) or a hash set. `int nums[]` decays to a pointer, so you
+ *   MUST pass n. We are not using vector here; this is a C array.
  *
  * C theory — THIS is the overflow lesson
  *   Signed overflow of `int` is undefined behavior. For n around 50_000,
@@ -33,19 +34,19 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int missingNumber(const std::vector<int>& nums) {
-    const long long n = static_cast<long long>(nums.size());
-    long long sum = (n + 1) * (n + 2) / 2;
-    for (int x : nums) {
-        sum -= x;
+int missingNumber(int nums[], int n) {
+    long long sum = 1LL * (n + 1) * (n + 2) / 2;
+    for (int i = 0; i < n; i++) {
+        sum -= nums[i];
     }
-    return static_cast<int>(sum);
+    return sum;
 }
 
 int main() {
-    std::vector<int> nums{8, 5, 3, 1, 9, 4, 7, 10, 2};  // missing 6
-    std::cout << missingNumber(nums) << '\n';
+    int nums[] = {8, 5, 3, 1, 9, 4, 7, 10, 2};  // missing 6
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << missingNumber(nums, n) << "\n";
     return 0;
 }

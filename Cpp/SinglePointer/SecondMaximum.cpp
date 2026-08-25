@@ -15,36 +15,38 @@
  * Memory
  *   Two ints. That is the whole extra state. Compare this to sorting
  *   (O(n log n) time, maybe O(n) space) just to read the last two cells.
+ *   `int nums[]` decays to a pointer, so you MUST pass n.
  *
  * C theory
- *   Updating two variables has an *order*. You must shift third <- second
- *   <- first before overwriting first, or you lose information. Registers
- *   are cheap; lost values are not recoverable. Think of it as a tiny
- *   insertion into a sorted 2-slot window.
+ *   Updating two variables has an *order*. You must shift second <- first
+ *   before overwriting first, or you lose information. Registers are cheap;
+ *   lost values are not recoverable. Think of it as a tiny insertion into
+ *   a sorted 2-slot window. INT_MIN from <climits> seeds both slots.
  *
  * Complexity: O(n) time, O(1) extra space.
  */
 
+#include <climits>
 #include <iostream>
-#include <limits>
-#include <vector>
+using namespace std;
 
-int secMax(const std::vector<int>& nums) {
-    int firstMax = std::numeric_limits<int>::min();
-    int secondMax = std::numeric_limits<int>::min();
-    for (int x : nums) {
-        if (x > firstMax) {
+int secMax(int nums[], int n) {
+    int firstMax = INT_MIN;
+    int secondMax = INT_MIN;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] > firstMax) {
             secondMax = firstMax;
-            firstMax = x;
-        } else if (x > secondMax) {
-            secondMax = x;
+            firstMax = nums[i];
+        } else if (nums[i] > secondMax) {
+            secondMax = nums[i];
         }
     }
     return secondMax;
 }
 
 int main() {
-    std::vector<int> nums{5, 9, 4, 7, 3, 11, 8, 16, 13, 12};
-    std::cout << secMax(nums) << '\n';  // 13
+    int nums[] = {5, 9, 4, 7, 3, 11, 8, 16, 13, 12};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << secMax(nums, n) << "\n";  // 13
     return 0;
 }

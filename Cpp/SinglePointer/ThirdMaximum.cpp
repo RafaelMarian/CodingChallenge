@@ -23,34 +23,37 @@
  *   three elements, you will return INT_MIN, which may or may not be what
  *   the caller wanted. Production code would check n >= 3.
  *
+ *   `int nums[]` decays to a pointer, so you MUST pass n.
+ *
  * Complexity: O(n) time, O(1) extra space.
  */
 
+#include <climits>
 #include <iostream>
-#include <limits>
-#include <vector>
+using namespace std;
 
-int thirdMaximum(const std::vector<int>& nums) {
-    int firstMax = std::numeric_limits<int>::min();
-    int secondMax = std::numeric_limits<int>::min();
-    int thirdMax = std::numeric_limits<int>::min();
-    for (int x : nums) {
-        if (x > firstMax) {
+int thirdMaximum(int nums[], int n) {
+    int firstMax = INT_MIN;
+    int secondMax = INT_MIN;
+    int thirdMax = INT_MIN;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] > firstMax) {
             thirdMax = secondMax;
             secondMax = firstMax;
-            firstMax = x;
-        } else if (x > secondMax) {
+            firstMax = nums[i];
+        } else if (nums[i] > secondMax) {
             thirdMax = secondMax;
-            secondMax = x;
-        } else if (x > thirdMax) {
-            thirdMax = x;
+            secondMax = nums[i];
+        } else if (nums[i] > thirdMax) {
+            thirdMax = nums[i];
         }
     }
     return thirdMax;
 }
 
 int main() {
-    std::vector<int> nums{8, 5, 3, 11, 9, 4, 16, 7, 12, 13};
-    std::cout << thirdMaximum(nums) << '\n';  // 13
+    int nums[] = {8, 5, 3, 11, 9, 4, 16, 7, 12, 13};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << thirdMaximum(nums, n) << "\n";  // 12
     return 0;
 }

@@ -9,15 +9,16 @@
  *
  * Memory
  *   Three machine words besides the input: the index, the current value
- *   (often in a register), and `max`. No heap.
+ *   (often in a register), and the champion. No heap. `int nums[]` decays
+ *   to a pointer, so you MUST pass n.
  *
  * C theory — sentinels
- *   std::numeric_limits<int>::min() (or INT_MIN from <climits>) is -2^31
- *   on this machine. Using that as the initial champion is correct
- *   *only if* every element is >= INT_MIN, which is always true for int.
- *   It is *wrong* if you later want "no element seen yet" as a distinct
- *   state (an empty array): INT_MIN is a valid value, so you cannot tell
- *   "empty" from "the max really is INT_MIN".
+ *   INT_MIN from <climits> is -2^31 on this machine. Using that as the
+ *   initial champion is correct *only if* every element is >= INT_MIN,
+ *   which is always true for int. It is *wrong* if you later want
+ *   "no element seen yet" as a distinct state (an empty array): INT_MIN
+ *   is a valid value, so you cannot tell "empty" from "the max really
+ *   is INT_MIN".
  *
  *   Professional pattern for a non-empty array: initialize max to nums[0]
  *   and start the loop at 1. Then empty arrays are an explicit error, not a
@@ -26,22 +27,22 @@
  * Complexity: O(n) time, O(1) extra space.
  */
 
+#include <climits>
 #include <iostream>
-#include <limits>
-#include <vector>
+using namespace std;
 
-int getMax(const std::vector<int>& nums) {
-    int max = std::numeric_limits<int>::min();
-    for (int x : nums) {
-        if (x > max) {
-            max = x;
-        }
+int getMax(int nums[], int n) {
+    int maxVal = INT_MIN;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] > maxVal)
+            maxVal = nums[i];
     }
-    return max;
+    return maxVal;
 }
 
 int main() {
-    std::vector<int> nums{7, 5, 4, 16, 3, 9, 11, 13, 12, 8};
-    std::cout << getMax(nums) << '\n';  // 16
+    int nums[] = {7, 5, 4, 16, 3, 9, 11, 13, 12, 8};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << getMax(nums, n) << "\n";  // 16
     return 0;
 }

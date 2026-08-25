@@ -14,38 +14,40 @@
  *   Two ints. You do not store the runs. You only keep the best length
  *   seen so far. That is the sliding-window idea in miniature: the
  *   "window" is the current run, and it only ever grows or resets.
+ *   `int nums[]` decays to a pointer, so you MUST pass n.
  *
  * C theory
- *   `std::max(a, b)` is a template in <algorithm>. Prefer it over a
- *   handwritten if when the intent is "keep the larger." The compiler
- *   will inline it.
- *
- *   Do not forget the final max. Forgetting it is a classic off-by-one
- *   in state machines: the accepting state is never flushed.
+ *   A handwritten `if (count > best) best = count;` is the whole "keep
+ *   the larger" idea. Do not forget the final harvest. Forgetting it is
+ *   a classic off-by-one in state machines: the accepting state is never
+ *   flushed.
  *
  * Complexity: O(n) time, O(1) extra space.
  */
 
-#include <algorithm>
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int maxOnes(const std::vector<int>& nums) {
+int maxOnes(int nums[], int n) {
     int best = 0;
     int count = 0;
-    for (int x : nums) {
-        if (x == 1) {
-            ++count;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] == 1) {
+            count++;
         } else {
-            best = std::max(best, count);
+            if (count > best)
+                best = count;
             count = 0;
         }
     }
-    return std::max(best, count);
+    if (count > best)
+        best = count;
+    return best;
 }
 
 int main() {
-    std::vector<int> nums{1, 0, 1, 1, 1, 0, 1, 1, 1, 1};
-    std::cout << "ans" << maxOnes(nums) << '\n';  // 4
+    int nums[] = {1, 0, 1, 1, 1, 0, 1, 1, 1, 1};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << "ans" << maxOnes(nums, n) << "\n";  // ans4
     return 0;
 }

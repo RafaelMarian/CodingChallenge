@@ -14,6 +14,7 @@
  *   Two ints. Contrast: the naive "for each buy, for each later sell"
  *   is O(n^2) and still O(1) space — same memory, terrible time. The
  *   running-min is the algorithm, not a trick.
+ *   `int prices[]` decays to a pointer, so you MUST pass n.
  *
  * C theory — greed that is actually optimal
  *   This is a dynamic-programming recurrence in disguise:
@@ -27,26 +28,25 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int maxProfit(const std::vector<int>& prices) {
-    if (prices.empty()) {
+int maxProfit(int prices[], int n) {
+    if (n == 0)
         return 0;
-    }
     int buy = prices[0];
     int profit = 0;
-    for (std::size_t i = 1; i < prices.size(); ++i) {
-        if (prices[i] < buy) {
+    for (int i = 1; i < n; i++) {
+        if (prices[i] < buy)
             buy = prices[i];
-        } else if (prices[i] - buy > profit) {
+        else if (prices[i] - buy > profit)
             profit = prices[i] - buy;
-        }
     }
     return profit;
 }
 
 int main() {
-    std::vector<int> prices{5, 2, 3, 8, 1, 9};
-    std::cout << maxProfit(prices) << '\n';  // 8  (buy 1, sell 9)
+    int prices[] = {5, 2, 3, 8, 1, 9};
+    int n = sizeof(prices) / sizeof(prices[0]);
+    cout << maxProfit(prices, n) << "\n";  // 8  (buy 1, sell 9)
     return 0;
 }

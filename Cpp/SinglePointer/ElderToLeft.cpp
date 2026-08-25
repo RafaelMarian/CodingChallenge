@@ -7,49 +7,49 @@
  *   [7,5,4,11,3,8,13,2,16,9] -> 7 11 13 16
  *
  * Intuition
- *   One running max. If nums[i] > max, it is a leader; update max.
+ *   One running max. If nums[i] > maxSoFar, it is a leader; update maxSoFar.
  *
  * Memory
  *   The answer size is between 1 and n (strictly increasing unique
- *   prefixes). We store it in a std::vector that grows. Growth is
- *   geometric (capacity doubles), so appends are amortized O(1).
+ *   prefixes). We write leaders into a caller-provided output array
+ *   `int out[]` and return how many we wrote. The caller sizes `out` to
+ *   n (worst case: a strictly increasing array). We are not using vector
+ *   here; this is a C array.
  *
- *   std::vector<int> stores raw ints in one contiguous buffer. That is
- *   why a scan of the leaders is cache-friendly: no per-element heap
- *   object, no extra pointer chase.
+ * C theory
+ *   `int nums[]` decays to a pointer, so you MUST pass n. The same is
+ *   true of `out[]`: it is just a pointer to storage the caller owns.
+ *   Returning a count (not a new buffer) is the C way to hand back a
+ *   variable-length result without allocating.
  *
- * C theory — amortized growth
- *   vector::push_back: if size == capacity, allocate 2*capacity, copy
- *   (or move) old elements, free old buffer. Sum of copies over n
- *   appends is < 2n, hence amortized O(1). Never reserve-and-hope unless
- *   you know n; here n is known, so we could v.reserve(nums.size()) to
- *   avoid realloc entirely. We skip it because the output is usually
- *   much smaller than n.
- *
- * Complexity: O(n) time, O(k) extra space for k leaders.
+ * Complexity: O(n) time, O(k) extra space for k leaders (here, out[0..k)).
  */
 
+#include <climits>
 #include <iostream>
-#include <limits>
-#include <vector>
+using namespace std;
 
-std::vector<int> leftElder(const std::vector<int>& nums) {
-    int max = std::numeric_limits<int>::min();
-    std::vector<int> leaders;
-    for (int x : nums) {
-        if (x > max) {
-            max = x;
-            leaders.push_back(x);
+int leftElder(int nums[], int n, int out[]) {
+    int maxSoFar = INT_MIN;
+    int count = 0;
+    for (int i = 0; i < n; i++) {
+        if (nums[i] > maxSoFar) {
+            maxSoFar = nums[i];
+            out[count] = nums[i];
+            count++;
         }
     }
-    return leaders;  // NRVO / move: no deep copy of the buffer in practice
+    return count;
 }
 
 int main() {
-    std::vector<int> nums{7, 5, 4, 11, 3, 8, 13, 2, 16, 9};
-    for (int x : leftElder(nums)) {
-        std::cout << x << ' ';
+    int nums[] = {7, 5, 4, 11, 3, 8, 13, 2, 16, 9};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int out[10];
+    int k = leftElder(nums, n, out);
+    for (int i = 0; i < k; i++) {
+        cout << out[i] << " ";
     }
-    std::cout << '\n';
+    cout << "\n";
     return 0;
 }

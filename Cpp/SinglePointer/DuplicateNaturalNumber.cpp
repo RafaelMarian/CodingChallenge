@@ -16,28 +16,28 @@
  *   multiple duplicates). Learn the sum first; then learn Floyd.
  *
  * C theory
- *   Multiply in long long. Computing `actual - expected` makes the sign
- *   obvious. Subtracting from expected and negating is the same arithmetic
- *   with a harder-to-read sign.
+ *   `int nums[]` decays to a pointer, so you MUST pass n. Multiply in
+ *   long long (`1LL * n * (n - 1) / 2`) so the product cannot overflow
+ *   a 32-bit int. Computing `actual - expected` makes the sign obvious.
  *
  * Complexity: O(n) time, O(1) extra space.
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-int duplicateNumber(const std::vector<int>& nums) {
-    const long long n = static_cast<long long>(nums.size());
-    long long expected = n * (n - 1) / 2;  // 1 + 2 + ... + (n-1)
+int duplicateNumber(int nums[], int n) {
+    long long expected = 1LL * n * (n - 1) / 2;  // 1 + 2 + ... + (n-1)
     long long actual = 0;
-    for (int x : nums) {
-        actual += x;
+    for (int i = 0; i < n; i++) {
+        actual += nums[i];
     }
-    return static_cast<int>(actual - expected);
+    return actual - expected;
 }
 
 int main() {
-    std::vector<int> nums{8, 5, 7, 3, 6, 1, 9, 4, 7, 10, 2};
-    std::cout << duplicateNumber(nums) << '\n';  // 7
+    int nums[] = {8, 5, 7, 3, 6, 1, 9, 4, 7, 10, 2};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    cout << duplicateNumber(nums, n) << "\n";  // 7
     return 0;
 }

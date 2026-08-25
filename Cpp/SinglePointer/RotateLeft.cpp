@@ -10,12 +10,12 @@
  *   value in the last slot. One temporary int.
  *
  * Memory
- *   This is in-place. The vector object does not reallocate. We overwrite
- *   contiguous `int` cells. The buffer address does not change.
+ *   This is in-place. We overwrite contiguous `int` cells. The buffer
+ *   address does not change. `int arr[]` decays to a pointer, so you
+ *   MUST pass n.
  *
  *   Cost: O(n) assignments. There is no cheaper in-place rotate-by-one;
- *   every value must move. (A deque would make this O(1) at the ends, at
- *   the cost of worse locality for random access.)
+ *   every value must move.
  *
  * C theory — memmove
  *   The loop is exactly what memmove(dst, src, bytes) does for overlapping
@@ -30,24 +30,24 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-void rotateLeft(std::vector<int>& nums) {
-    if (nums.empty()) {
+void rotateLeft(int arr[], int n) {
+    if (n == 0)
         return;
+    int temp = arr[0];
+    for (int i = 0; i < n - 1; i++) {
+        arr[i] = arr[i + 1];
     }
-    const int temp = nums[0];
-    for (std::size_t i = 0; i + 1 < nums.size(); ++i) {
-        nums[i] = nums[i + 1];
-    }
-    nums.back() = temp;
+    arr[n - 1] = temp;
 }
 
 int main() {
-    std::vector<int> arr{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    rotateLeft(arr);
-    for (int x : arr) {
-        std::cout << x << '\n';
+    int arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    rotateLeft(arr, n);
+    for (int i = 0; i < n; i++) {
+        cout << arr[i] << "\n";
     }
     return 0;
 }

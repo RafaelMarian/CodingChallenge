@@ -13,6 +13,7 @@
  *
  * Memory
  *   One counter. You do not copy or rotate the array to test it.
+ *   `int nums[]` decays to a pointer, so you MUST pass n.
  *
  * C theory
  *   This is a finite-state scan: you are verifying a *shape*, not
@@ -24,26 +25,26 @@
  */
 
 #include <iostream>
-#include <vector>
+using namespace std;
 
-bool isSortedRotated(const std::vector<int>& nums) {
+bool isSortedRotated(int nums[], int n) {
     int count = 0;
-    for (std::size_t i = 0; i + 1 < nums.size(); ++i) {
+    for (int i = 0; i < n - 1; i++) {
         if (nums[i] > nums[i + 1]) {
-            ++count;
-            if (count > 1) {
+            count++;
+            if (count > 1)
                 return false;
-            }
         }
     }
-    if (count == 0) {
+    if (count == 0)
         return true;
-    }
-    return nums.back() <= nums.front();
+    return nums[n - 1] <= nums[0];
 }
 
 int main() {
-    std::vector<int> nums{5, 6, 7, 8, 9, 12, 15, 2, 3, 5};
-    std::cout << "ans" << std::boolalpha << isSortedRotated(nums) << '\n';
+    int nums[] = {5, 6, 7, 8, 9, 12, 15, 2, 3, 5};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    bool ok = isSortedRotated(nums, n);
+    cout << "ans" << (ok ? "true" : "false") << "\n";
     return 0;
 }

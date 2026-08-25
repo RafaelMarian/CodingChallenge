@@ -10,45 +10,54 @@
  * every element), O(k^2) total.
  *
  * The engineer version:
- *   push_back while scanning right-to-left (O(1) amortized), then
- *   std::reverse the result (O(k)). Same order, O(n) time.
+ *   Append while scanning right-to-left (O(1) per write into `out[]`),
+ *   then reverse the first `count` cells (O(k)). Same order, O(n) time.
  *
  * Memory
- *   Same as left-elders: a growing vector of ints. reverse() swaps in
- *   place; no second buffer.
+ *   Caller provides `int out[]` sized to n. We return how many leaders
+ *   we wrote. reverse is a swap loop in place; no second buffer.
+ *   We are not using vector here; this is a C array.
  *
  * C theory — why add(0, x) hurts
  *   Contiguous arrays make append cheap and front-insert expensive.
  *   Linked lists make front-insert cheap and sequential scan expensive
  *   (no cache). Pick the structure that matches the hot operation.
  *   Here the hot operation is "append, then reverse once."
+ *   `int nums[]` decays to a pointer, so you MUST pass n.
  *
  * Complexity: O(n) time, O(k) extra space.
  */
 
-#include <algorithm>
+#include <climits>
 #include <iostream>
-#include <limits>
-#include <vector>
+using namespace std;
 
-std::vector<int> rightElder(const std::vector<int>& nums) {
-    int max = std::numeric_limits<int>::min();
-    std::vector<int> leaders;
-    for (int i = static_cast<int>(nums.size()) - 1; i >= 0; --i) {
-        if (nums[static_cast<std::size_t>(i)] > max) {
-            max = nums[static_cast<std::size_t>(i)];
-            leaders.push_back(max);
+int rightElder(int nums[], int n, int out[]) {
+    int maxSoFar = INT_MIN;
+    int count = 0;
+    for (int i = n - 1; i >= 0; i--) {
+        if (nums[i] > maxSoFar) {
+            maxSoFar = nums[i];
+            out[count] = maxSoFar;
+            count++;
         }
     }
-    std::reverse(leaders.begin(), leaders.end());
-    return leaders;
+    for (int i = 0; i < count / 2; i++) {
+        int tmp = out[i];
+        out[i] = out[count - 1 - i];
+        out[count - 1 - i] = tmp;
+    }
+    return count;
 }
 
 int main() {
-    std::vector<int> nums{7, 5, 4, 17, 3, 8, 13, 2, 6, 9};
-    for (int x : rightElder(nums)) {
-        std::cout << x << ' ';
+    int nums[] = {7, 5, 4, 17, 3, 8, 13, 2, 6, 9};
+    int n = sizeof(nums) / sizeof(nums[0]);
+    int out[10];
+    int k = rightElder(nums, n, out);
+    for (int i = 0; i < k; i++) {
+        cout << out[i] << " ";
     }
-    std::cout << '\n';
+    cout << "\n";
     return 0;
 }
