@@ -1,72 +1,73 @@
 /*
- * LESSON — Two-sum on a sorted array, 1-based indices
+ * LECȚIE — Two-sum pe un tablou sortat, indici 1-based
  *
- * Student, unsorted two-sum wants a hash table. Sorted two-sum does not.
- * The order is information. Use it.
+ * Studentule, two-sum nesortat vrea o tabelă hash. Two-sum sortat nu.
+ * Ordinea e informație. Folosește-o.
  *
- * Problem
- *   The input is sorted non-decreasing. Print one pair of 1-based indices
- *   i j, i < j, such that nums[i-1] + nums[j-1] == target. The sample
- *   has a unique answer. If none exists, print 0 0, which is not a
- *   valid 1-based pair.
+ * Problemă
+ *   Intrarea e sortată nedescrescător. Tipărește o pereche de indici
+ *   1-based i j, i < j, astfel încât nums[i-1] + nums[j-1] == target.
+ *   Exemplul are un răspuns unic. Dacă nu există niciunul, tipărește
+ *   0 0, care nu e o pereche 1-based validă.
  *
- * Algorithm intuition
- *   i starts at the smallest value, j at the largest. Let s be their sum.
- *   Because the array is sorted:
- *     - if s == target, you are done;
- *     - if s < target, no larger partner for nums[i] exists to the
- *       left of j, so the only way to increase s is i++;
- *     - if s > target, the only way to decrease s is j--.
- *   Each step discards one index forever. You examine O(n) candidate
- *   pairs, not O(n^2).
+ * Intuiție / Algoritm
+ *   i pornește de la cea mai mică valoare, j de la cea mai mare. Fie
+ *   s suma lor. Pentru că tabloul e sortat:
+ *     - dacă s == target, ai terminat;
+ *     - dacă s < target, nu există un partener mai mare pentru nums[i]
+ *       la stânga lui j, deci singura cale să crești s e i++;
+ *     - dacă s > target, singura cale să scazi s e j--.
+ *   Fiecare pas aruncă un indice pentru totdeauna. Examinezi O(n)
+ *   perechi candidate, nu O(n^2).
  *
- *   Why moving the other pointer cannot help: if s is too small, every
- *   pair (i, k) for k < j is even smaller, so those pairs are dead.
- *   The sorted order makes that statement true. Unsorted, it is false,
- *   and this algorithm is incorrect.
+ *   De ce mutarea celuilalt pointer nu ajută: dacă s e prea mică,
+ *   fiecare pereche (i, k) pentru k < j e și mai mică, deci perechile
+ *   alea sunt moarte. Ordinea sortată face afirmația asta adevărată.
+ *   Nesortat, e falsă, și algoritmul ăsta e incorect.
  *
- * Complexity
- *   Time  O(n) after the array is already sorted. If you had to sort,
- *   that would be O(n log n) and would scramble the original indices;
- *   this problem gives you a sorted array and asks for indices into it,
- *   so you must not sort a copy that you then index.
- *   Extra space O(1): two indices. We print them. We do not pack them
- *   into a pair object.
+ * Complexitate
+ *   Timp  O(n) după ce tabloul e deja sortat. Dacă ar trebui să sortezi,
+ *   ar fi O(n log n) și ar amesteca indicii originali; problema îți
+ *   dă un tablou sortat și cere indici în el, deci nu trebuie să
+ *   sortezi o copie pe care apoi o indexezi.
+ *   Memorie extra O(1): doi indici. Îi tipărim. Nu-i împachetăm într-un
+ *   obiect pair.
  *
- * Memory management
- *   int nums[] decays to int*. Pass n because the pointer has no length.
- *   We avoid vector on purpose. Read-only: no copy, no heap. The answer
- *   is two ints we print. The input buffer stays where the caller put
- *   it. We only load.
+ * Memorie
+ *   int nums[] decade la int*. Transmite n pentru că pointerul n-are
+ *   lungime. Evităm vector dinadins. Doar citire: fără copie, fără heap.
+ *   Răspunsul sunt două int-uri pe care le tipărim. Buffer-ul de intrare
+ *   rămâne unde l-a pus apelantul. Doar încărcăm.
  *
- * C theory — overflow of the sum, pointers vs indices, cache
- *   The dangerous operation is nums[i] + nums[j]. Both are int.
- *   Signed addition overflow is undefined behavior. INT_MAX + 1 is not
- *   guaranteed to wrap; the compiler may delete branches that assume
- *   it cannot happen. Compute the sum in long long:
+ * Teorie C — overflow-ul sumei, pointeri vs indici, cache
+ *   Operația periculoasă e nums[i] + nums[j]. Ambele sunt int.
+ *   Overflow-ul adunării signed e comportament nedefinit. INT_MAX + 1
+ *   nu e garantat să se înfășoare; compilatorul poate șterge ramuri
+ *   care presupun că nu se poate întâmpla. Calculează suma în long long:
  *     1LL * nums[i] + nums[j]
- *   The 1LL forces the first multiplication/promotion; the rest of the
- *   addition then happens in at least 64 bits. INT_MAX + INT_MAX fits
- *   in a signed 64-bit long long.
+ *   1LL forțează prima înmulțire/promovare; restul adunării se
+ *   întâmplă apoi pe cel puțin 64 de biți. INT_MAX + INT_MAX încape
+ *   într-un long long signed pe 64 de biți.
  *
- *   Compare that long long to target after promoting target, or write
- *   sum == (long long)target. Mixed-width comparison promotes the int.
+ *   Compară long long-ul ăla cu target după ce promovezi target, sau
+ *   scrie sum == (long long)target. Comparația de lățimi mixte promovează
+ *   int-ul.
  *
- *   Indices versus pointers: you could walk with int *p = nums and
- *   int *q = nums + (n-1), and compare p < q. Pointer comparison
- *   is well-defined only inside the same array object (or one-past-end).
- *   Indices are harder to get wrong when you also need 1-based output:
- *   the answer is i+1 and j+1. Here i < n, so i+1 fits in int for the
- *   sizes in this course.
+ *   Indici versus pointeri: ai putea umbla cu int *p = nums și
+ *   int *q = nums + (n-1), și compara p < q. Comparația de pointeri
+ *   e bine definită doar în interiorul aceluiași obiect tablou (sau
+ *   one-past-end). Indicii sunt mai greu de greșit când ai nevoie și
+ *   de output 1-based: răspunsul e i+1 și j+1. Aici i < n, deci i+1
+ *   încape în int pentru dimensiunile din cursul ăsta.
  *
- *   Cache: i walks forward, j walks backward, each sequentially. You
- *   touch every element at most once. Linear and prefetchable.
+ *   Cache: i merge înainte, j merge înapoi, fiecare secvențial. Atingi
+ *   fiecare element cel mult o dată. Liniar și bun pentru prefetch.
  *
- *   1-based indices are an API choice (common in "the first number is
- *   position 1" problem statements). Off-by-one lives here: printing
- *   i and j without +1 is a silent wrong answer, not a crash. Check
- *   the sample: {2,3,5,7,9,12,16,23,26,29} target 30 -> 4 8
- *   (values 7 and 23).
+ *   Indicii 1-based sunt o alegere de API (comună în enunțuri de tip
+ *   „primul număr e pe poziția 1”). Off-by-one trăiește aici: să tipărești
+ *   i și j fără +1 e un răspuns greșit tăcut, nu un crash. Verifică
+ *   exemplul: {2,3,5,7,9,12,16,23,26,29} target 30 -> 4 8
+ *   (valorile 7 și 23).
  */
 
 #include <iostream>

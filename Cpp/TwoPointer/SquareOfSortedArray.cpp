@@ -1,73 +1,73 @@
 /*
- * LESSON — Squares of a sorted array, including negatives
+ * LECȚIE — Pătratele unui tablou sortat, inclusiv negative
  *
- * Student, squaring a sorted array of only non-negative values is a
- * single forward pass: squares are already ordered. Negatives break
- * that. The largest magnitude sits at one of the two ends, not in the
- * middle.
+ * Studentule, să ridici la pătrat un tablou sortat doar cu valori
+ * nenegative e o singură trecere înainte: pătratele sunt deja ordonate.
+ * Negativele strică asta. Magnitudinea cea mai mare stă la unul din
+ * cele două capete, nu la mijloc.
  *
- * Problem
- *   nums is sorted non-decreasing and may contain negatives. Fill a
- *   new array of the squares, also sorted non-decreasing. Sample:
- *   {-8,-6,-5,1,2,3,4} -> 1,4,9,16,25,36,64 each on its own line.
+ * Problemă
+ *   nums e sortat nedescrescător și poate conține negative. Umple un
+ *   tablou nou cu pătratele, tot sortat nedescrescător. Exemplu:
+ *   {-8,-6,-5,1,2,3,4} -> 1,4,9,16,25,36,64 fiecare pe linia lui.
  *
- * Algorithm intuition
- *   Compare the squares (or the magnitudes) of nums[l] and nums[r].
- *   The larger square is the next value to place at the back of the
- *   result. Fill res from index n-1 down to 0. Advance the end that
- *   donated the larger square. Because each step takes the current
- *   maximum remaining square, the result is filled in sorted order
- *   from the right.
+ * Intuiție / Algoritm
+ *   Compară pătratele (sau magnitudinile) lui nums[l] și nums[r].
+ *   Pătratul mai mare e următoarea valoare de pus la spatele
+ *   rezultatului. Umple res de la indicele n-1 în jos până la 0.
+ *   Avansează capătul care a donat pătratul mai mare. Pentru că fiecare
+ *   pas ia pătratul maxim rămas, rezultatul e umplut în ordine sortată
+ *   de la dreapta.
  *
- *   The middle of nums has the values closest to zero, hence the
- *   smallest squares. They land at the front of res last.
+ *   Mijlocul lui nums are valorile cele mai apropiate de zero, deci
+ *   cele mai mici pătrate. Ele aterizează în fața lui res la urmă.
  *
- * Complexity
- *   Time  O(n).
- *   Extra space O(n) for the result buffer. The input is not overwritten.
- *   You could overwrite nums from the back only if the caller allowed
- *   mutation and you were careful about clobbering unread ends — the
- *   extra array is the honest, safe design here.
+ * Complexitate
+ *   Timp  O(n).
+ *   Memorie extra O(n) pentru buffer-ul rezultat. Input-ul nu e
+ *   suprascris. Ai putea suprascrie nums de la spate doar dacă apelantul
+ *   ar permite mutația și ai fi atent să nu calci capetele necitite —
+ *   tabloul extra e proiectul cinstit și sigur aici.
  *
- * Memory management
- *   int nums[] decays to a pointer; pass n. int res[] is a second
- *   buffer of n ints, also decayed. We avoid vector on purpose. In
- *   main both arrays are stack arrays whose sizes are known at
- *   compile time (sizeof the initializer). The function fills res
- *   and returns nothing: the caller already owns the output cells.
+ * Memorie
+ *   int nums[] decade la un pointer; transmite n. int res[] e un al
+ *   doilea buffer de n int-uri, și el decade. Evităm vector dinadins.
+ *   În main ambele tablouri sunt tablouri pe stivă ale căror dimensiuni
+ *   se cunosc la compilare (sizeof initializer-ului). Funcția umple
+ *   res și nu întoarce nimic: apelantul deține deja celulele de output.
  *
- *   In C you would pass two pointers and a length. Ownership is
- *   explicit. Nobody mallocs, nobody frees.
+ *   În C ai transmite doi pointeri și o lungime. Proprietatea e
+ *   explicită. Nimeni nu face malloc, nimeni nu face free.
  *
- * C theory — abs(INT_MIN), square overflow, cache, UB
- *   Do not rank the ends with abs as a 32-bit int. abs(INT_MIN) cannot
- *   be represented in 32-bit two's complement: the magnitude is 2^31,
- *   and INT_MAX is 2^31-1. Calling abs(INT_MIN) on int is undefined
- *   behavior. labs on a long that is still 32-bit has the same trap.
- *   llabs on long long is safe for INT_MIN because 2^31 fits in
- *   64-bit signed.
+ * Teorie C — abs(INT_MIN), overflow la pătrat, cache, UB
+ *   Nu clasa capetele cu abs ca int pe 32 de biți. abs(INT_MIN) nu
+ *   poate fi reprezentat în complement față de doi pe 32 de biți:
+ *   magnitudinea e 2^31, iar INT_MAX e 2^31-1. Apelezi abs(INT_MIN)
+ *   pe int e comportament nedefinit. labs pe un long care tot e pe
+ *   32 de biți are aceeași capcană. llabs pe long long e sigur pentru
+ *   INT_MIN pentru că 2^31 încape pe signed pe 64 de biți.
  *
- *   Prefer not to take abs at all. Compare squares in 64-bit:
+ *   Preferă să nu iei abs deloc. Compară pătratele pe 64 de biți:
  *     1LL * nums[l] * nums[l]  versus  1LL * nums[r] * nums[r]
- *   Left-associative: (1LL * nums[l]) * nums[l] promotes first, then
- *   multiplies. INT_MIN * INT_MIN = 2^62, which fits in signed 64-bit
- *   (up to 2^63-1). The square stored in res is still an int in this
- *   lesson's sample; if |x| > 46340, x*x does not fit in 32-bit int
- *   and storing it in int is a bug. Use long long for the result type
- *   when the problem allows large magnitudes. Here the sample values
- *   fit, and we still compute the comparison in long long so the
- *   ranking cannot overflow. We write nums[l] * nums[l] into res only
- *   after that ranking, and only because the sample is in range.
+ *   Asociativ la stânga: (1LL * nums[l]) * nums[l] promovează mai întâi,
+ *   apoi înmulțește. INT_MIN * INT_MIN = 2^62, care încape pe signed
+ *   pe 64 de biți (până la 2^63-1). Pătratul stocat în res tot e un
+ *   int în exemplul lecției; dacă |x| > 46340, x*x nu încape pe int
+ *   pe 32 de biți și să-l stochezi în int e un bug. Folosește long long
+ *   pentru tipul rezultat când problema permite magnitudini mari.
+ *   Aici valorile din exemplu încap, și tot calculăm comparația în
+ *   long long ca ranking-ul să nu dea overflow. Scriem nums[l] * nums[l]
+ *   în res doar după ranking-ul ăla, și doar pentru că exemplul e în
+ *   interval.
  *
- *   Cache: we read nums from both ends sequentially and write res
- *   from the back sequentially. Three sequential streams. The result
- *   array may be cold on the first write; after that the lines fill
- *   nicely.
+ *   Cache: citim nums de la ambele capete secvențial și scriem res
+ *   de la spate secvențial. Trei fluxuri secvențiale. Tabloul rezultat
+ *   poate fi rece la prima scriere; după aia liniile se umplu frumos.
  *
- *   Indices: a signed write index from n-1 down to 0 is simpler than
- *   walking through zero unsigned. l and r stay in range because
- *   each step consumes one of n cells. Empty input: the loop does
- *   not run.
+ *   Indici: un indice de scriere signed de la n-1 în jos până la 0 e
+ *   mai simplu decât să treci prin zero unsigned. l și r rămân în
+ *   interval pentru că fiecare pas consumă una din n celule. Input gol:
+ *   bucla nu rulează.
  */
 
 #include <iostream>

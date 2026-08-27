@@ -1,65 +1,70 @@
 /*
- * LESSON — All unique quadruplets that sum to a target
+ * LECȚIE — Toate cvadrupletele unice care se adună la un target
  *
- * Student, four-sum is two nested loops plus the sorted two-pointer
- * pair. The new work is skipping duplicates so each quadruplet of
- * values appears once, and adding four ints without overflowing.
+ * Studentule, four-sum e două bucle imbricate plus perechea sortată
+ * cu doi pointeri. Munca nouă e să sari duplicatele ca fiecare
+ * cvadruplet de valori să apară o dată, și să aduni patru int-uri
+ * fără overflow.
  *
- * Problem
- *   Print every unique non-decreasing quadruplet (a,b,c,d) of values
- *   from the array (distinct indices) that sum to target. Sample:
- *   {0,1,0,2,1,2,2}, target 3, prints the single line 0 0 1 2.
+ * Problemă
+ *   Tipărește fiecare cvadruplet unic nedescrescător (a,b,c,d) de
+ *   valori din tablou (indici distincți) care se adună la target.
+ *   Exemplu: {0,1,0,2,1,2,2}, target 3, tipărește linia unică 0 0 1 2.
  *
- * Algorithm intuition
- *   Sort. Fix i, then j > i. On the remaining suffix, two pointers
- *   l = j+1, h = n-1 search for target - nums[i] - nums[j]. On a hit,
- *   print the four values, step both pointers, and skip equal values
- *   so you do not emit the same quadruplet again. On a miss, move l
- *   or h by the usual sum test.
+ * Intuiție / Algoritm
+ *   Sortează. Fixează i, apoi j > i. Pe sufixul rămas, doi pointeri
+ *   l = j+1, h = n-1 caută target - nums[i] - nums[j]. La o lovitură,
+ *   tipărește cele patru valori, mută ambii pointeri, și sari valorile
+ *   egale ca să nu emiți același cvadruplet din nou. La o rată, mută
+ *   l sau h după testul obișnuit de sumă.
  *
- *   Skip duplicate i: if i > 0 and nums[i] == nums[i-1], continue.
- *   Skip duplicate j: if j > i+1 and nums[j] == nums[j-1], continue.
- *   After a hit, skip duplicate l and h similarly. Sorting made
- *   duplicates adjacent; skipping them is O(1) amortized per step.
+ *   Sari i duplicat: dacă i > 0 și nums[i] == nums[i-1], continue.
+ *   Sari j duplicat: dacă j > i+1 și nums[j] == nums[j-1], continue.
+ *   După o lovitură, sari l și h duplicate la fel. Sortarea a făcut
+ *   duplicatele alăturate; să le sari e O(1) amortizat per pas.
  *
- * Complexity
- *   Time  O(n^3): two nested index loops and an O(n) two-pointer scan.
- *   Extra space O(1) besides the printed output. We do not store a
- *   table of quadruplets. Sort is in-place.
+ * Complexitate
+ *   Timp  O(n^3): două bucle de indici imbricate și o scanare cu doi
+ *   pointeri O(n).
+ *   Memorie extra O(1) în afară de output-ul tipărit. Nu stocăm un
+ *   tabel de cvadruplete. sort e pe loc.
  *
- * Memory management
- *   int nums[] decays to a pointer. We sort it with sort(nums, nums+n)
- *   and print each hit as we find it. No nested arrays of answers.
- *   We avoid vector on purpose: collecting vector-of-vector would be
- *   a heap allocation per quadruplet. Printing streams four ints and
- *   keeps working memory to a handful of indices.
+ * Memorie
+ *   int nums[] decade la un pointer. Îl sortăm cu sort(nums, nums+n)
+ *   și tipărim fiecare lovitură pe măsură ce o găsim. Fără tablouri
+ *   imbricate de răspunsuri. Evităm vector dinadins: să aduni
+ *   un vector de vector ar fi o alocare pe heap per cvadruplet. Tipărirea
+ *   curge patru int-uri și ține memoria de lucru la o mână de indici.
  *
- * C theory — long long accumulation, skip, overflow, UB, cache
- *   Four int addends: 4 * INT_MAX does not fit in 32-bit signed.
- *   Build the sum as long long, left-associative from a 1LL term:
+ * Teorie C — acumulare long long, skip, overflow, UB, cache
+ *   Patru adunări de int: 4 * INT_MAX nu încape pe signed pe 32 de biți.
+ *   Construiește suma ca long long, asociativ la stânga de la un termen
+ *   1LL:
  *     1LL * nums[i] + nums[j] + nums[l] + nums[h]
- *   Do not write nums[i] + nums[j] + nums[l] + nums[h] and then
- *   assign to long long; the additions happen in int first, which
- *   is UB on overflow. Do not write 1LL * a + b + c + d as
- *   1LL * (a + b + c + d) either; the parentheses force int adds.
+ *   Nu scrie nums[i] + nums[j] + nums[l] + nums[h] și apoi atribuie
+ *   la long long; adunările se întâmplă mai întâi pe int, ceea ce e
+ *   UB la overflow. Nu scrie nici 1LL * a + b + c + d ca
+ *   1LL * (a + b + c + d); parantezele forțează adunări pe int.
  *
- *   Compare to target as long long: (long long)target or 0LL + target.
+ *   Compară cu target ca long long: (long long)target sau 0LL + target.
  *
- *   Duplicate skip uses l > 0 logically by comparing nums[l] to
- *   nums[l-1] only when l has just been incremented and l < h.
- *   Reading nums[l-1] is in range then. Off-by-one here either
- *   skips a valid quadruplet or emits duplicates. Trace the sample
- *   on paper: sorted 0,0,1,1,2,2,2.
+ *   Skip-ul de duplicate folosește l > 0 logic comparând nums[l] cu
+ *   nums[l-1] doar când l tocmai a fost incrementat și l < h.
+ *   Citirea lui nums[l-1] e atunci în interval. Off-by-one aici fie
+ *   sare un cvadruplet valid, fie emite duplicate. Urmărește exemplul
+ *   pe hârtie: sortat 0,0,1,1,2,2,2.
  *
- *   i runs while i+3 < n so four cells exist. j + 2 < n similarly.
+ *   i rulează cât timp i+3 < n ca să existe patru celule. j + 2 < n
+ *   la fel.
  *
- *   Cache: after sort, the inner two-pointer walks are sequential.
- *   The outer loops jump j around; still the same array, likely hot.
+ *   Cache: după sort, plimbările interioare cu doi pointeri sunt
+ *   secvențiale. Buclele exterioare sar j în jur; tot același tablou,
+ *   probabil fierbinte.
  *
- *   sort mutates. Original index identity is destroyed. We print
- *   values, not indices.
+ *   sort mutează. Identitatea originală a indicilor e distrusă.
+ *   Tipărim valori, nu indici.
  *
- *   Empty / n < 4: print nothing. No wrap of n-1.
+ *   Gol / n < 4: nu tipări nimic. Fără wrap al lui n-1.
  */
 
 #include <algorithm>

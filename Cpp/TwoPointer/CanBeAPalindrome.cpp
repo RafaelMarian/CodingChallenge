@@ -1,71 +1,75 @@
 /*
- * LESSON — Can the string become a palindrome by deleting at most one?
+ * LECȚIE — Poate șirul deveni palindrom ștergând cel mult unul?
  *
- * Student, this is the same decision procedure as ValidPalindrome2.
- * The framing is the question you should ask out loud: not "is it a
- * palindrome," but "is it at most one edit away from being one," where
- * the only edit is deletion. Write it as its own function so the
- * specification stays in the name.
+ * Studentule, asta e aceeași procedură de decizie ca ValidPalindrome2.
+ * Încadrarea e întrebarea pe care trebuie s-o spui cu voce tare: nu
+ * „e palindrom,” ci „e la cel mult o editare distanță de a fi unul,”
+ * unde singura editare e ștergerea. Scrie-o ca o funcție a ei, ca
+ * specificația să rămână în nume.
  *
- * Problem
- *   Given a string of characters that all count (no punctuation filter),
- *   return true if you can delete at most one character and obtain a
- *   palindrome. Deleting zero characters is allowed. Sample: "aebbeba"
- *   is true (delete the extra 'e' or the extra 'b' on the mismatched
- *   pair, depending on which skip works).
+ * Problemă
+ *   Dat un șir de caractere care toate contează (fără filtru de
+ *   punctuație), întoarce true dacă poți șterge cel mult un caracter
+ *   și obține un palindrom. Ștergerea a zero caractere e permisă.
+ *   Exemplu: "aebbeba" e true (șterge 'e'-ul în plus sau 'b'-ul în
+ *   plus de pe perechea nepotrivită, după care skip merge).
  *
- * Algorithm intuition
- *   Two pointers from the ends. Equal characters are already doing
- *   their palindrome job; move inward. The first mismatch is the only
- *   place you spend the deletion. Try skipping the left character:
- *   the remainder must be a strict palindrome. Or skip the right
- *   character. If either try succeeds, the string can be a palindrome.
- *   If the pointers meet with no mismatch, it already is one.
+ * Intuiție / Algoritm
+ *   Doi pointeri de la capete. Caracterele egale își fac deja treaba
+ *   de palindrom; mută-te spre interior. Prima nepotrivire e singurul
+ *   loc unde cheltuiești ștergerea. Încearcă să sari caracterul din
+ *   stânga: restul trebuie să fie un palindrom strict. Sau sari
+ *   caracterul din dreapta. Dacă oricare încercare reușește, șirul
+ *   poate fi palindrom. Dacă pointerii se întâlnesc fără nepotrivire,
+ *   deja e unul.
  *
- *   Why not try every deletion: there are n candidates, each check is
- *   O(n), total O(n^2). The first mismatch pins the deletion to one of
- *   two indices. That is the greedy structure of the problem.
+ *   De ce să nu încerci fiecare ștergere: sunt n candidați, fiecare
+ *   verificare e O(n), total O(n^2). Prima nepotrivire fixează
+ *   ștergerea la unul din doi indici. Asta e structura greedy a
+ *   problemei.
  *
- *   Trace "aebbeba":
- *     a ... a match
- *     e ... b mismatch
- *     skip left  (bbeba from the remaining range): b vs b, b vs e fail
- *     skip right (skip j, compare i..j-1 which is "ebbe"):
- *       e vs e, b vs b. Success.
+ *   Urmărește "aebbeba":
+ *     a ... a se potrivesc
+ *     e ... b nepotrivire
+ *     sari stânga  (bbeba din intervalul rămas): b vs b, b vs e eșuează
+ *     sari dreapta (sari j, compară i..j-1 care e "ebbe"):
+ *       e vs e, b vs b. Succes.
  *
- * Complexity
- *   Time  O(n). Extra space O(1). Same bounds as ValidPalindrome2.
+ * Complexitate
+ *   Timp  O(n). Memorie extra O(1). Aceleași limite ca ValidPalindrome2.
  *
- * Memory management
- *   char s[] decays to char*. Indices into the existing contiguous
- *   buffer. Pass n. No extra string. No heap traffic. We avoid vector
- *   on purpose. The helper borrows the same pointer. Ownership stays
- *   with the caller. Stack frames are constant size: a few ints.
+ * Memorie
+ *   char s[] decade la char*. Indici în buffer-ul contig existent.
+ *   Transmite n. Fără șir extra. Fără trafic pe heap. Evităm vector
+ *   dinadins. Helper-ul împrumută același pointer. Proprietatea rămâne
+ *   la apelant. Cadrele de stivă au dimensiune constantă: câțiva int.
  *
- *   You would not copy the string. You would not write a temporary
- *   without the skipped byte. Skipping is an index bump.
+ *   N-ai copia șirul. N-ai scrie un temporar fără octetul sărit.
+ *   Skip-ul e o incrementare de indice.
  *
- * C theory — two views of the same bytes, UB, cache
- *   The outer walk and the helper both read the same array. There is
- *   no aliasing hazard because nobody writes. Concurrent mutation
- *   would be a data race (UB); this program is single-threaded.
+ * Teorie C — două priviri pe aceiași octeți, UB, cache
+ *   Plimbarea exterioară și helper-ul citesc amândouă același tablou.
+ *   Nu există pericol de aliasing pentru că nimeni nu scrie. Mutația
+ *   concurentă ar fi o cursă pe date (UB); programul ăsta e pe un
+ *   singur fir.
  *
- *   int indices, i < j before s[j] and before j-1. On mismatch we
- *   evaluate i+1 and j-1. Because i < j, j >= 1, so j-1 is in range,
- *   and i+1 <= j, so i+1 is <= the last valid index. The helper may
- *   receive i == j (empty or one-char range after skip), which is a
- *   palindrome and the loop does not run.
+ *   Indici int, i < j înainte de s[j] și înainte de j-1. La nepotrivire
+ *   evaluăm i+1 și j-1. Pentru că i < j, j >= 1, deci j-1 e în interval,
+ *   iar i+1 <= j, deci i+1 e <= ultimul indice valid. Helper-ul poate
+ *   primi i == j (interval gol sau de un caracter după skip), care e
+ *   palindrom și bucla nu rulează.
  *
- *   Cache: still sequential. The second helper scan may re-read bytes
- *   the first helper already touched; they remain hot in L1.
+ *   Cache: tot secvențial. A doua scanare a helper-ului poate reciti
+ *   octeți pe care primul helper i-a atins deja; rămân fierbinți în L1.
  *
- *   No overflow, no ctype. No in-place mutation: deletion is virtual.
- *   A physical delete in a contiguous string is memmove of the tail
- *   and a length decrement. Doing that once is O(n). Doing that for
- *   each candidate is the O(n^2) time and the O(n) writes you avoided.
+ *   Fără overflow, fără ctype. Fără mutație pe loc: ștergerea e virtuală.
+ *   O ștergere fizică într-un șir contig e memmove al cozii și un
+ *   decrement de lungime. Făcând asta o dată e O(n). Făcând-o pentru
+ *   fiecare candidat e timpul O(n^2) și scrierile O(n) pe care le-ai
+ *   evitat.
  *
- *   Returning bool is a byte in a register in practice. We print the
- *   text true or false.
+ *   Întoarcerea unui bool e un octet într-un registru, în practică.
+ *   Tipărim textul true sau false.
  */
 
 #include <iostream>

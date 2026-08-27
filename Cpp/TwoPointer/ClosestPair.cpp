@@ -1,72 +1,75 @@
 /*
- * LESSON — k closest elements to x in a sorted array
+ * LECȚIE — k elemente cele mai apropiate de x într-un tablou sortat
  *
- * Student, "closest k" sounds like a heap of size k. When the array is
- * already sorted, a heap is extra machinery. The k closest form a
- * contiguous window, and you can find that window by shrinking from
- * the ends.
+ * Studentule, „cele mai apropiate k” sună a un heap de mărime k. Când
+ * tabloul e deja sortat, un heap e utilaj extra. Cele k cele mai
+ * apropiate formează o fereastră contiguă, și poți găsi fereastra aia
+ * micșorând de la capete.
  *
- * Problem
- *   arr is sorted non-decreasing. Print the k elements closest to x,
- *   in their original (sorted) order. Sample: arr =
- *   {1,3,5,7,9,11,13,15}, k = 3, x = 7, answer 5 7 9.
+ * Problemă
+ *   arr e sortat nedescrescător. Tipărește cele k elemente cele mai
+ *   apropiate de x, în ordinea lor originală (sortată). Exemplu: arr =
+ *   {1,3,5,7,9,11,13,15}, k = 3, x = 7, răspuns 5 7 9.
  *
- * Algorithm intuition
- *   The answer is some subarray arr[l..r] of length k. Start with the
- *   full range l = 0, r = n-1. While the window is longer than k,
- *   discard the end that is farther from x. Compare |arr[l] - x| and
- *   |arr[r] - x|. If the left is strictly farther, l++; otherwise r--
- *   (this tie-break keeps the smaller value, which is the usual
- *   convention when distances are equal). When the window length is k,
- *   stop. What remains is the unique closest window under that rule.
+ * Intuiție / Algoritm
+ *   Răspunsul e un subtablou arr[l..r] de lungime k. Pornește cu tot
+ *   intervalul l = 0, r = n-1. Cât timp fereastra e mai lungă decât k,
+ *   aruncă capătul care e mai departe de x. Compară |arr[l] - x| și
+ *   |arr[r] - x|. Dacă stânga e strict mai departe, l++; altfel r--
+ *   (departajarea asta păstrează valoarea mai mică, care e convenția
+ *   obișnuită când distanțele sunt egale). Când lungimea ferestrei e k,
+ *   oprește-te. Ce rămâne e fereastra unică cea mai apropiată sub
+ *   regula aia.
  *
- *   Why a contiguous window: in a sorted array, the distance to x is
- *   unimodal enough that the k nearest values occupy consecutive
- *   indices. You would not skip a middle element while keeping both
- *   a far-left and a far-right one.
+ *   De ce o fereastră contiguă: într-un tablou sortat, distanța la x e
+ *   destul de unimodală încât cele k valori cele mai apropiate ocupă
+ *   indici consecutivi. N-ai sări un element din mijloc ținând și unul
+ *   departe la stânga, și unul departe la dreapta.
  *
- *   Greedy shrink is correct because the element you drop is worse
- *   than the one you keep at the other end, so it cannot belong to
- *   any closest-k set (with the documented tie-break).
+ *   Micșorarea greedy e corectă pentru că elementul pe care-l arunci
+ *   e mai rău decât cel pe care-l ții la celălalt capăt, deci nu poate
+ *   aparține niciunui set de k cele mai apropiate (cu departajarea documentată).
  *
- * Complexity
- *   Time  O(n - k): each iteration drops one index, and you drop n-k
- *   of them. For k close to n this is cheap; for k = 1 it is a full
- *   scan, which you could replace with binary search plus expansion.
- *   Extra space O(1) if you print arr[l..r] directly. Filling a second
- *   array of k ints is optional.
+ * Complexitate
+ *   Timp  O(n - k): fiecare iterație aruncă un indice, și arunci n-k
+ *   dintre ei. Pentru k aproape de n e ieftin; pentru k = 1 e o
+ *   scanare completă, pe care ai putea-o înlocui cu binary search plus
+ *   expansiune.
+ *   Memorie extra O(1) dacă tipărești arr[l..r] direct. Umplerea unui
+ *   al doilea tablou de k int-uri e opțională.
  *
- * Memory management
- *   int arr[] decays to a pointer; pass n. We avoid vector on purpose.
- *   We do not copy the n-array. After the window is k long we print
- *   those cells. If you only needed to print, you allocate nothing.
+ * Memorie
+ *   int arr[] decade la un pointer; transmite n. Evităm vector dinadins.
+ *   Nu copiem tabloul de n. După ce fereastra e de lungime k, tipărim
+ *   celulele alea. Dacă trebuia doar să tipărești, nu aloci nimic.
  *
- * C theory — abs of differences, overflow, windows, cache
- *   |a - x| for int a, x is not abs(a - x) in general. If a is
- *   INT_MIN and x is 1, a - x overflows before abs. Signed overflow
- *   is UB. Compare in long long:
+ * Teorie C — abs al diferențelor, overflow, ferestre, cache
+ *   |a - x| pentru int a, x nu e abs(a - x) în general. Dacă a e
+ *   INT_MIN și x e 1, a - x dă overflow înainte de abs. Overflow-ul
+ *   signed e UB. Compară în long long:
  *     long long d = 1LL * arr[l] - x;
  *     if (d < 0) d = -d;
- *   1LL * arr[l] - x promotes before subtracting. The range is about
- *   +/- 2^32, which fits in long long. Negating that is defined.
- *   abs(INT_MIN) on 32-bit int remains UB; we never call that.
+ *   1LL * arr[l] - x promovează înainte de scădere. Intervalul e cam
+ *   +/- 2^32, care încape în long long. Negarea aia e definită.
+ *   abs(INT_MIN) pe int pe 32 de biți rămâne UB; nu apelăm asta niciodată.
  *
- *   Window length: r - l + 1 > k. With int indices, r >= l is
- *   maintained so the subtraction is non-negative. Equivalent test:
- *   r - l >= k, which is (r - l + 1) > k.
+ *   Lungimea ferestrei: r - l + 1 > k. Cu indici int, r >= l e
+ *   menținut, deci scăderea e nenegativă. Test echivalent: r - l >= k,
+ *   care e (r - l + 1) > k.
  *
- *   Empty or k <= 0: print nothing. k > n: the problem usually
- *   guarantees k <= n. We shrink only while r - l + 1 > k and the
- *   range is valid.
+ *   Gol sau k <= 0: nu tipări nimic. k > n: problema de obicei
+ *   garantează k <= n. Micșorăm doar cât timp r - l + 1 > k și
+ *   intervalul e valid.
  *
- *   Cache: you only load the two ends until the window is small, then
- *   you stream k consecutive ints. Very local.
+ *   Cache: încarci doar cele două capete până fereastra e mică, apoi
+ *   streamezi k int-uri consecutive. Foarte local.
  *
- *   No in-place mutation of arr. The window is a view of the input.
+ *   Fără mutație pe loc a lui arr. Fereastra e o privire asupra
+ *   input-ului.
  *
- *   Binary-search alternatives find the left edge of the window in
- *   O(log n) comparisons; learn this linear shrink first. It is
- *   obviously correct and has no subtle midpoint overflow.
+ *   Alternativele cu binary-search găsesc muchia stângă a ferestrei în
+ *   O(log n) comparații; învață mai întâi micșorarea liniară. E evident
+ *   corectă și n-are overflow subtil de mijloc.
  */
 
 #include <iostream>

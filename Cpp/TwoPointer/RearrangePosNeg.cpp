@@ -1,72 +1,76 @@
 /*
- * LESSON — Partition negatives to the left, positives to the right
+ * LECȚIE — Partiționează negativele la stânga, pozitivele la dreapta
  *
- * Student, this is Hoare's partition idea applied to sign. It is not a
- * stable sort. Relative order inside each side is not preserved. If you
- * need order, this is the wrong algorithm; see RearrangePosNeg2 and then
- * a true stable partition.
+ * Studentule, asta e ideea de partiție a lui Hoare aplicată la semn.
+ * Nu e un sort stabil. Ordinea relativă din interiorul fiecărei părți
+ * nu e păstrată. Dacă ai nevoie de ordine, ăsta e algoritmul greșit;
+ * vezi RearrangePosNeg2 și apoi o partiție stabilă adevărată.
  *
- * Problem
- *   Given an array of nonzero integers, rearrange so every negative value
- *   occupies some prefix and every positive value occupies the remaining
- *   suffix. In-place. Order within a side does not matter.
+ * Problemă
+ *   Dat un tablou de întregi nenuli, rearanjează astfel încât fiecare
+ *   valoare negativă să ocupe un prefix, iar fiecare valoare pozitivă
+ *   să ocupe sufixul rămas. Pe loc. Ordinea într-o parte nu contează.
  *
- * Algorithm intuition
- *   i starts at 0 and advances while the cell is already negative (it
- *   belongs on the left). j starts at n-1 and retreats while the cell is
- *   already positive (it belongs on the right). When both stop, nums[i]
- *   is a positive on the left side of the unpartitioned region and
- *   nums[j] is a negative on the right side. Swap them. Repeat until
- *   i >= j. The two pointers have crossed, so the whole array is
- *   partitioned.
+ * Intuiție / Algoritm
+ *   i pornește de la 0 și avansează cât timp celula e deja negativă
+ *   (îi aparține stânga). j pornește de la n-1 și se retrage cât timp
+ *   celula e deja pozitivă (îi aparține dreapta). Când amândoi se opresc,
+ *   nums[i] e un pozitiv pe partea stângă a regiunii nepartiționate, iar
+ *   nums[j] e un negativ pe partea dreaptă. Fă-le swap. Repetă până
+ *   i >= j. Cei doi pointeri s-au încrucișat, deci tot tabloul e
+ *   partiționat.
  *
- *   This is the Hoare scheme: grow a "good left" from the left, a "good
- *   right" from the right, and exchange misplaced pairs. Quicksort's
- *   original partition is the same skeleton with a pivot comparison
- *   instead of a sign test.
+ *   Ăsta e schema Hoare: crești un „stânga bun” din stânga, un „dreapta
+ *   bun” din dreapta, și schimbi perechile puse greșit. Partiția originală
+ *   din quicksort e același schelet, cu o comparație față de pivot în
+ *   loc de un test de semn.
  *
- * Complexity
- *   Time  O(n): each index is scanned at most a constant number of times.
- *   Extra space O(1): two indices and a temporary for the swap.
+ * Complexitate
+ *   Timp  O(n): fiecare indice e scanat de cel mult un număr constant
+ *   de ori.
+ *   Memorie extra O(1): doi indici și un temporar pentru swap.
  *
- * Memory management
- *   int nums[] decays to a pointer. In-place stores, no second array.
- *   The caller's n ints are reused. Stack: i, j, temp. The swap's
- *   temporary is one int; it is not an array. We avoid vector on purpose.
+ * Memorie
+ *   int nums[] decade la un pointer. Store-uri pe loc, fără al doilea
+ *   tablou. Cele n int-uri ale apelantului sunt reutilizate. Stivă: i,
+ *   j, temp. Temporarul din swap e un int; nu e un tablou. Evităm
+ *   vector dinadins.
  *
- *   You could allocate two arrays, copy negatives then positives, and
- *   copy back. That is O(n) extra memory and two passes. The two-pointer
- *   partition does the job with a handful of words.
+ *   Ai putea aloca două tablouri, copia negativele apoi pozitivele, și
+ *   copia înapoi. Asta e O(n) memorie extra și două treceri. Partiția
+ *   cu doi pointeri face treaba cu o mână de cuvinte.
  *
- * C theory — Hoare pointers, zeros, overflow, UB, cache
- *   The inner loops need the guard i < j (or i < n, j >= 0). Without it,
- *   i can run off the right end looking for a positive that does not
- *   exist (all remaining cells negative). Reading nums[i] with i == n is
- *   undefined behavior. The same on the left for j.
+ * Teorie C — pointeri Hoare, zerouri, overflow, UB, cache
+ *   Buclele interioare au nevoie de garda i < j (sau i < n, j >= 0).
+ *   Fără ea, i poate fugi de capătul din dreapta căutând un pozitiv
+ *   care nu există (toate celulele rămase negative). Citirea lui
+ *   nums[i] cu i == n e comportament nedefinit. La fel pe stânga pentru j.
  *
- *   Zero: this sample has no zeros. A strict < 0 / > 0 test treats 0 as
- *   "not negative" and "not positive," so both inner loops stop on zero.
- *   The algorithm would then swap zeros around without a defined side.
- *   Decide a policy (zeros with positives, or a three-way partition)
- *   before you ship this. Dutch-national-flag is the three-way version.
+ *   Zero: exemplul ăsta n-are zerouri. Un test strict < 0 / > 0 tratează
+ *   0 ca „nu negativ” și „nu pozitiv,” deci ambele bucle interioare se
+ *   opresc pe zero. Algoritmul ar face apoi swap pe zerouri fără o parte
+ *   definită. Decide o politică (zerourile cu pozitivele, sau o partiție
+ *   pe trei căi) înainte să trimiți asta. Dutch-national-flag e versiunea
+ *   pe trei căi.
  *
- *   Swap by temporary, not XOR. Two indices can alias if you swapped
- *   without i < j; we only swap when i < j, so the cells are distinct,
- *   but XOR is still the wrong habit.
+ *   Swap prin temporar, nu XOR. Doi indici pot fi alias dacă ai face
+ *   swap fără i < j; facem swap doar când i < j, deci celulele sunt
+ *   distincte, dar XOR tot e obiceiul greșit.
  *
- *   No arithmetic on the element values except the sign test. No overflow.
- *   The values are copied bitwise.
+ *   Nicio aritmetică pe valorile elementelor în afară de testul de semn.
+ *   Fără overflow. Valorile sunt copiate pe biți.
  *
- *   Cache: two streams from the ends, like reverse. Swaps write two
- *   hot lines. After a swap, i and j continue, so the next inner-loop
- *   loads are the next sequential cells. Good locality.
+ *   Cache: două fluxuri de la capete, ca la reverse. Swap-urile scriu
+ *   două linii fierbinți. După un swap, i și j continuă, deci următoarele
+ *   load-uri din bucla interioară sunt următoarele celule secvențiale.
+ *   Localitate bună.
  *
- *   In-place mutation discards the original order. If the caller still
- *   needs it, they must copy first. Document that.
+ *   Mutația pe loc aruncă ordinea originală. Dacă apelantul încă are
+ *   nevoie de ea, trebuie să copieze mai întâi. Documentează asta.
  *
- *   C form:
+ *   Formă C:
  *     void partition_sign(int a[], int n);
- *   Empty array: return before n-1.
+ *   Tablou gol: return înainte de n-1.
  */
 
 #include <iostream>

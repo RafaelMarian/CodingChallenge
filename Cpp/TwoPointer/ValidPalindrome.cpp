@@ -1,64 +1,66 @@
 /*
- * LESSON — Palindrome string, ignoring case and non-alphanumerics
+ * LECȚIE — Șir palindrom, ignorând majusculele și non-alfanumericele
  *
- * Student, this is the array palindrome test applied to a sentence.
- * The data is characters, not ints, and most of the work is deciding
- * which characters count.
+ * Studentule, ăsta e testul de palindrom pe tablou aplicat unei fraze.
+ * Datele sunt caractere, nu int-uri, și cea mai mare parte a muncii
+ * e să decizi care caractere contează.
  *
- * Problem
- *   A string is a valid palindrome if its alphanumeric characters, read
- *   case-insensitively, form a palindrome. Spaces, commas, and other
- *   punctuation are skipped. Sample: "No, it is open on one position"
- *   should print true.
+ * Problemă
+ *   Un șir e un palindrom valid dacă caracterele lui alfanumerice,
+ *   citite fără distincție de majuscule, formează un palindrom.
+ *   Spațiile, virgulele și restul punctuației se sar. Exemplu:
+ *   "No, it is open on one position" ar trebui să tipărească true.
  *
- * Algorithm intuition
- *   Two indices on the string: l from the left, r from the right.
- *   Advance l while the character is not alphanumeric. Retreat r while
- *   the character is not alphanumeric. Compare the two remaining
- *   characters case-insensitively. If they differ, reject. Otherwise
- *   step inward and repeat. The helper isAlphaNumeric defines the
- *   alphabet: ASCII letters and digits.
+ * Intuiție / Algoritm
+ *   Doi indici pe șir: l din stânga, r din dreapta. Avansează l cât
+ *   timp caracterul nu e alfanumeric. Retrage r cât timp caracterul
+ *   nu e alfanumeric. Compară cele două caractere rămase fără
+ *   distincție de majuscule. Dacă diferă, respinge. Altfel fă un pas
+ *   spre interior și repetă. Helper-ul isAlphaNumeric definește
+ *   alfabetul: litere și cifre ASCII.
  *
- * Complexity
- *   Time  O(n): each character is classified a constant number of times
- *   and compared at most once.
- *   Extra space O(1). Do not allocate a filtered copy of the letters.
- *   A second array of only alphanumerics would be correct and O(n)
- *   extra memory; the two-pointer walk makes that allocation unnecessary.
+ * Complexitate
+ *   Timp  O(n): fiecare caracter e clasificat de un număr constant de
+ *   ori și comparat cel mult o dată.
+ *   Memorie extra O(1). Nu aloca o copie filtrată a literelor. Un al
+ *   doilea tablou doar cu alfanumerice ar fi corect și O(n) memorie
+ *   extra; plimbarea cu doi pointeri face alocarea aia inutilă.
  *
- * Memory management
- *   char s[] decays to char*: a pointer to the first character. Pass n
- *   (the count of characters, not including the terminating '\0').
- *   We avoid vector on purpose. A C string is a contiguous array of
- *   char ending in 0. s[i] is *(s + i). No heap allocation in this
- *   function. l and r are indices, not owning pointers.
+ * Memorie
+ *   char s[] decade la char*: un pointer către primul caracter.
+ *   Transmite n (numărul de caractere, fără '\0'-ul terminator).
+ *   Evităm vector dinadins. Un șir C e un tablou contig de char care
+ *   se termină în 0. s[i] e *(s + i). Fără alocare pe heap în funcția
+ *   asta. l și r sunt indici, nu pointeri care dețin ceva.
  *
- *   In main, sizeof(s) includes the trailing '\0', so the live length
- *   is sizeof(s) - 1. That is the n we pass.
+ *   În main, sizeof(s) include '\0'-ul de la capăt, deci lungimea vie
+ *   e sizeof(s) - 1. Ăsta e n-ul pe care-l transmitem.
  *
- * C theory — char, ASCII case fold, ctype, UB
- *   We classify bytes with range tests on ASCII: 'A'..'Z', 'a'..'z',
- *   '0'..'9'. For this lesson's English sample, all interesting bytes
- *   are ASCII and fit in positive signed char.
+ * Teorie C — char, case fold ASCII, ctype, UB
+ *   Clasificăm octeții cu teste de interval pe ASCII: 'A'..'Z',
+ *   'a'..'z', '0'..'9'. Pentru exemplul în engleză al lecției, toți
+ *   octeții interesanți sunt ASCII și încap într-un signed char
+ *   pozitiv.
  *
- *   Case folding is a register operation: if c is 'A'..'Z', add
- *   ('a' - 'A'). We do not write the string. The caller's buffer is
- *   unchanged. Locale-dependent classification of bytes is a different
- *   course. If you call tolower from <cctype>, pass the byte as
- *   unsigned char (or an equivalent non-negative int): a signed char
- *   with the high bit set is UB for the C ctype functions.
+ *   Case folding-ul e o operație de registru: dacă c e 'A'..'Z',
+ *   adună ('a' - 'A'). Nu scriem șirul. Buffer-ul apelantului rămâne
+ *   neschimbat. Clasificarea de octeți dependentă de locale e un alt
+ *   curs. Dacă apelezi tolower din <cctype>, transmite octetul ca
+ *   unsigned char (sau un int nenegativ echivalent): un signed char
+ *   cu bitul înalt setat e UB pentru funcțiile ctype din C.
  *
- *   Contiguous chars mean s[i] is pointer arithmetic. Out of range is
- *   UB, same as any array. Keep l <= r and both in [0, n) while
- *   comparing. After a match we do l++ and r--; if they cross, the
- *   loop ends. For n == 0, skip forming n-1.
+ *   char-urile contigue înseamnă că s[i] e aritmetică de pointer.
+ *   În afara intervalului e UB, la fel ca la orice tablou. Ține l <= r
+ *   și amândoi în [0, n) cât timp compari. După o potrivire facem
+ *   l++ și r--; dacă se încrucișează, bucla se oprește. Pentru n == 0,
+ *   sari formarea lui n-1.
  *
- *   Cache: two streams from the ends of a contiguous byte array.
- *   Characters are one byte; a cache line holds 64 of them. Skipping
- *   punctuation is still sequential.
+ *   Cache: două fluxuri de la capetele unui tablou contig de octeți.
+ *   Caracterele sunt un octet; o linie de cache ține 64 dintre ele.
+ *   Să sari punctuația tot e secvențial.
  *
- *   No integer overflow. Mutation: we do not write the string. Case
- *   folding happens in registers for the comparison only.
+ *   Fără overflow pe întregi. Mutație: nu scriem șirul. Case folding-ul
+ *   se întâmplă în registre, doar pentru comparație.
  */
 
 #include <iostream>

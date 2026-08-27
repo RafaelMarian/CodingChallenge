@@ -1,72 +1,75 @@
 /*
- * LESSON — Boats to save people
+ * LECȚIE — Bărci ca să salvezi oamenii
  *
- * Student, each boat carries at most two people and at most `limit`
- * total weight. Greedy pairing of the lightest remaining person with
- * the heaviest remaining person is optimal, and two pointers after a
- * sort implement that greedy in linear extra time.
+ * Studentule, fiecare barcă duce cel mult două persoane și cel mult
+ * `limit` greutate totală. Împerecherea greedy a celei mai ușoare
+ * persoane rămase cu cea mai grea persoană rămasă e optimală, iar
+ * doi pointeri după un sort implementează greedy-ul ăla în timp extra
+ * liniar.
  *
- * Problem
- *   people[i] is a weight. Count the minimum number of boats. Sample:
- *   {4,2,8,3,1,6,2,5}, limit 8, answer 5.
+ * Problemă
+ *   people[i] e o greutate. Numără numărul minim de bărci. Exemplu:
+ *   {4,2,8,3,1,6,2,5}, limit 8, răspuns 5.
  *
- * Algorithm intuition
- *   Sort non-decreasing. i is the lightest unused, j the heaviest
- *   unused. The heaviest person always needs a boat. If the lightest
- *   can share that boat (people[i] + people[j] <= limit), take both;
- *   otherwise the heaviest goes alone. In both cases consume j. Only
- *   the share case consumes i. Repeat until i > j.
+ * Intuiție / Algoritm
+ *   Sortează nedescrescător. i e cel mai ușor nefolosit, j cel mai
+ *   greu nefolosit. Cea mai grea persoană are întotdeauna nevoie de
+ *   o barcă. Dacă cea mai ușoară poate împărți barca aia
+ *   (people[i] + people[j] <= limit), ia-i pe amândoi; altfel cea mai
+ *   grea merge singură. În ambele cazuri consumă j. Doar cazul de
+ *   împărțire consumă i. Repetă până i > j.
  *
- *   Why this is optimal: the heaviest person cannot share with anyone
- *   heavier (there is no one heavier). If they cannot share with the
- *   current lightest, they cannot share with anyone. If they can, you
- *   should pair them with someone, and pairing with the lightest
- *   leaves the medium weights for other pairings. Sending the
- *   heaviest alone when a pair was possible wastes a seat that the
- *   lightest might not need later — actually the proof is: giving
- *   the heaviest the lightest partner (when feasible) never hurts
- *   because that lightest was the most likely to fit.
+ *   De ce e optimal: cea mai grea persoană nu poate împărți cu nimeni
+ *   mai greu (nu există nimeni mai greu). Dacă nu poate împărți cu cea
+ *   mai ușoară curentă, nu poate împărți cu nimeni. Dacă poate, ar
+ *   trebui s-o împerechezi cu cineva, iar împerecherea cu cea mai
+ *   ușoară lasă greutățile medii pentru alte împerecheri. Să trimiți
+ *   cea mai grea singură când o pereche era posibilă irosește un loc
+ *   de care cea mai ușoară s-ar putea să n-aibă nevoie mai târziu —
+ *   de fapt demonstrația e: să-i dai celei mai grele pe cea mai ușoară
+ *   ca partener (când e fezabil) nu strică niciodată, pentru că cea
+ *   mai ușoară era cea mai probabilă să încapă.
  *
- *   When i == j, one person remains. The code still counts one boat.
- *   people[i] + people[j] is then twice that person; if that happens
- *   to be <= limit you still only increment once and move both
- *   pointers, which is one boat for one person. Correct, if a little
- *   accidental. The else branch also counts one boat and decrements
- *   j, leaving i > j. Also correct. Do not "pair" two copies of the
- *   last person onto two seats of one boat as if they were two people.
+ *   Când i == j, rămâne o persoană. Codul tot numără o barcă.
+ *   people[i] + people[j] e atunci de două ori persoana aia; dacă se
+ *   întâmplă să fie <= limit tot incrementezi o dată și muți ambii
+ *   pointeri, ceea ce e o barcă pentru o persoană. Corect, chiar dacă
+ *   un pic accidental. Ramura else tot numără o barcă și decrementează
+ *   j, lăsând i > j. Tot corect. Nu „împerechea” două copii ale ultimei
+ *   persoane pe două locuri ale unei bărci ca și cum ar fi două persoane.
  *
- * Complexity
- *   Time  O(n log n) from sort, then O(n) pairing.
- *   Extra space O(1) besides sort's stack, if we sort in place.
+ * Complexitate
+ *   Timp  O(n log n) de la sort, apoi O(n) împerechere.
+ *   Memorie extra O(1) pe lângă stiva lui sort, dacă sortăm pe loc.
  *
- * Memory management
- *   int people[] decays to a pointer. sort(people, people+n) sorts the
- *   caller's buffer. The original order of people is lost. If you
- *   needed it, copy first. The function allocates no second people
- *   array. We avoid vector on purpose. Two indices and a counter on
- *   the stack.
+ * Memorie
+ *   int people[] decade la un pointer. sort(people, people+n) sortează
+ *   buffer-ul apelantului. Ordinea originală a oamenilor e pierdută.
+ *   Dacă ai avea nevoie de ea, copiază mai întâi. Funcția nu alocă un
+ *   al doilea tablou de people. Evităm vector dinadins. Doi indici și
+ *   un contor pe stivă.
  *
- * C theory — sort, overflow of the pair sum, cache, UB
- *   people[i] + people[j] as int can overflow. A weight of INT_MAX
- *   plus anything positive is UB in signed addition. Compare with
+ * Teorie C — sort, overflow-ul sumei perechii, cache, UB
+ *   people[i] + people[j] ca int poate da overflow. O greutate de
+ *   INT_MAX plus orice pozitiv e UB la adunarea signed. Compară cu
  *     1LL * people[i] + people[j] <= limit
- *   promoting limit to long long. The sample is nowhere near that.
+ *   promovând limit la long long. Exemplul nu e nicăieri pe-acolo.
  *
- *   sort permutes the n ints with O(n log n) assignments. Afterward
- *   the two-pointer pass is sequential from both ends: good cache
- *   behavior on the sorted array. The sort itself has worse locality;
- *   it is still the right tool.
+ *   sort permutează cele n int-uri cu O(n log n) atribuiri. După aia
+ *   trecerea cu doi pointeri e secvențială de la ambele capete: comportament
+ *   bun de cache pe tabloul sortat. sort-ul însuși are localitate mai
+ *   proastă; tot e unealta potrivită.
  *
- *   i and j as int, loop while i <= j. When they are equal, both
- *   index a live cell. After j-- from 0, j becomes -1. The condition
- *   is checked at the top: if i was 0 and j was 0, we process, j
- *   becomes -1, and i <= j is 0 <= -1, which is false. Signed is the
- *   natural fit for a shrinking high index that can pass zero.
+ *   i și j ca int, buclă cât timp i <= j. Când sunt egali, amândoi
+ *   indexează o celulă vie. După j-- de la 0, j devine -1. Condiția
+ *   e verificată la cap: dacă i era 0 și j era 0, procesăm, j devine
+ *   -1, și i <= j e 0 <= -1, care e fals. signed e potrivirea naturală
+ *   pentru un indice înalt care se micșorează și poate trece de zero.
  *
- *   Empty: 0 boats. We return 0 without n-1.
+ *   Gol: 0 bărci. Ne întoarcem 0 fără n-1.
  *
- *   In-place mutation: sort. The pairing does not need further
- *   writes.
+ *   Mutație pe loc: sort. Împerecherea n-are nevoie de scrieri
+ *   ulterioare.
  */
 
 #include <algorithm>

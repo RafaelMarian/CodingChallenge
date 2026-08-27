@@ -1,75 +1,80 @@
 /*
- * LESSON — Three-sum existence after sorting
+ * LECȚIE — Three-sum: existență după sortare
  *
- * Student, two-sum on a sorted array is one pair of pointers. Three-sum
- * is that algorithm inside a loop that fixes the third value. You pay
- * a factor of n and you still do not go to O(n^3) brute force.
+ * Studentule, two-sum pe un tablou sortat e o pereche de pointeri.
+ * Three-sum e algoritmul ăla în interiorul unei bucle care fixează a
+ * treia valoare. Plătești un factor de n și tot nu ajungi la forța
+ * brută O(n^3).
  *
- * Problem
- *   Return whether three (not necessarily distinct-index) values exist
- *   that add to a target. Indices must be distinct: each position is
- *   used at most once. Sample: {1,4,45,6,10,8} and target 22 is true
- *   (4 + 8 + 10).
+ * Problemă
+ *   Întoarce dacă există trei valori (nu neapărat de indici distincți
+ *   ca valoare) care se adună la un target. Indicii trebuie să fie
+ *   distincți: fiecare poziție e folosită cel mult o dată. Exemplu:
+ *   {1,4,45,6,10,8} și target 22 e true (4 + 8 + 10).
  *
- * Algorithm intuition
- *   Sort first. For each index i from 0 to n-3, search for two values
- *   in the strict suffix i+1..n-1 that sum to target - nums[i], using
- *   the sorted two-pointer method: l = i+1, r = n-1, move l if the
- *   triple is too small, move r if too large, return true on equality.
+ * Intuiție / Algoritm
+ *   Sortează mai întâi. Pentru fiecare indice i de la 0 la n-3, caută
+ *   două valori în sufixul strict i+1..n-1 care se adună la
+ *   target - nums[i], folosind metoda sortată cu doi pointeri: l = i+1,
+ *   r = n-1, mută l dacă triplul e prea mic, mută r dacă e prea mare,
+ *   întoarce true la egalitate.
  *
- *   Sorting is allowed because we return a boolean, not original
- *   indices. If you needed indices into the unsorted array, sort
- *   pairs of (value, index) or search without destroying identity.
+ *   Sortarea e permisă pentru că întoarcem un boolean, nu indici
+ *   originali. Dacă ai avea nevoie de indici în tabloul nesortat,
+ *   sortează perechi (valoare, indice) sau caută fără să distrugi
+ *   identitatea.
  *
- *   Skipping duplicate nums[i] is optional for a boolean; it only
- *   helps the "list all unique triples" variant. We skip nothing
- *   extra here beyond the i,l,r distinctness of positions.
+ *   Să sari nums[i] duplicate e opțional pentru un boolean; ajută doar
+ *   varianta „listează toate triplele unice.” Aici nu sărim nimic extra
+ *   dincolo de distinctivitatea pozițiilor i,l,r.
  *
- * Complexity
- *   Time  O(n^2): O(n log n) sort plus n times an O(n) two-pointer
- *   scan. Brute force is O(n^3).
- *   Extra space O(1) besides the sort. sort(nums, nums+n) is in-place
- *   (introsort) with O(log n) stack for recursion, which we still call
- *   O(1) extra relative to the input in casual speech, or O(log n) if
- *   we are precise about sort's stack. We mutate the caller's array by
- *   sorting it.
+ * Complexitate
+ *   Timp  O(n^2): sort O(n log n) plus n ori o scanare cu doi pointeri
+ *   O(n). Forța brută e O(n^3).
+ *   Memorie extra O(1) în afară de sort. sort(nums, nums+n) e pe loc
+ *   (introsort) cu O(log n) stivă pentru recurență, pe care tot o
+ *   numim O(1) extra față de input în vorbirea de zi cu zi, sau O(log n)
+ *   dacă suntem preciși cu stiva lui sort. Muteăm tabloul apelantului
+ *   sortându-l.
  *
- * Memory management
- *   int arr[] decays to a pointer. We sort in place with sort(arr, arr+n).
- *   If the caller needed the original order, we would copy first: that
- *   copy is O(n) extra. This function treats the buffer as scratch.
- *   Document that. We avoid vector on purpose.
+ * Memorie
+ *   int arr[] decade la un pointer. Sortăm pe loc cu sort(arr, arr+n).
+ *   Dacă apelantul avea nevoie de ordinea originală, am copia mai întâi:
+ *   copia aia e O(n) extra. Funcția asta tratează buffer-ul ca spațiu de lucru.
+ *   Documentează asta. Evităm vector dinadins.
  *
- *   No hash set. A hash set of complements is the unsorted two-sum
- *   approach and would be O(n) extra memory per i, worse constants, and
- *   worse locality.
+ *   Fără hash set. Un hash set de complemente e abordarea two-sum
+ *   nesortată și ar fi O(n) memorie extra per i, constante mai proaste
+ *   și localitate mai proastă.
  *
- * C theory — sort, overflow of three ints, pointers, cache, UB
- *   Three ints can overflow int: INT_MAX + INT_MAX + INT_MAX does not
- *   fit in 32 bits. The expression a + b + c is left-associative and
- *   all int, so the first addition may already be UB. Accumulate in
+ * Teorie C — sort, overflow-ul a trei int-uri, pointeri, cache, UB
+ *   Trei int-uri pot da overflow pe int: INT_MAX + INT_MAX + INT_MAX
+ *   nu încape pe 32 de biți. Expresia a + b + c e asociativă la stânga
+ *   și tot int, deci prima adunare poate fi deja UB. Acumulează în
  *   long long:
  *     1LL * nums[i] + nums[l] + nums[r]
- *   which is ((1LL * nums[i]) + nums[l]) + nums[r]. Safe.
+ *   care e ((1LL * nums[i]) + nums[l]) + nums[r]. Sigur.
  *
- *   sort needs random-access iterators. A C array decays to a pointer,
- *   and pointers into an array are random-access. sort(arr, arr+n)
- *   sorts the n ints in place. For int that is copies of machine words.
+ *   sort are nevoie de iteratori random-access. Un tablou C decade la
+ *   un pointer, iar pointerii într-un tablou sunt random-access.
+ *   sort(arr, arr+n) sortează cele n int-uri pe loc. Pentru int, asta
+ *   înseamnă copii de cuvinte mașină.
  *
- *   After sort, the two-pointer argument from TwoSumSorted applies
- *   on the suffix: the suffix is still sorted.
+ *   După sort, argumentul cu doi pointeri din TwoSumSorted se aplică
+ *   pe sufix: sufixul e tot sortat.
  *
- *   Cache: sort is the heavy, less sequential part (it jumps). The
- *   n two-pointer scans are sequential on a hot array. For moderate
- *   n the quadratic scans dominate time and they are cache-friendly.
+ *   Cache: sort e partea grea, mai puțin secvențială (sare). Cele n
+ *   scanări cu doi pointeri sunt secvențiale pe un tablou fierbinte.
+ *   Pentru n moderat, scanările pătratice domină timpul și sunt
+ *   prietenoase cu cache-ul.
  *
- *   Bounds: l and r stay inside (i, n) with l < r. i runs only while
- *   at least two cells remain to the right: i + 2 < n.
+ *   Limite: l și r rămân în (i, n) cu l < r. i rulează doar cât timp
+ *   rămân cel puțin două celule la dreapta: i + 2 < n.
  *
- *   Empty / n < 3: return false. No n-1 on a too-short array.
+ *   Gol / n < 3: întoarce false. Fără n-1 pe un tablou prea scurt.
  *
- *   In-place mutation: the sorted permutation replaces the input.
- *   The boolean does not need the original order after the sort.
+ *   Mutație pe loc: permutarea sortată înlocuiește input-ul. Booleanul
+ *   n-are nevoie de ordinea originală după sort.
  */
 
 #include <algorithm>

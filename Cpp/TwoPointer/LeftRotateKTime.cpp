@@ -1,81 +1,80 @@
 /*
- * LESSON — Left rotate by k using three reversals
+ * LECȚIE — Rotație la stânga cu k folosind trei inversări
  *
- * Student, you already know rotate-by-one: save the head, shift left,
- * put the head at the tail. Doing that k times is O(k n) assignments.
- * Three reversals do the same permutation in O(n) time and O(1) extra
- * memory, using the two-pointer reverse you just wrote.
+ * Studentule, deja știi rotate-by-one: salvezi capul, muți la stânga,
+ * pui capul la coadă. Făcând asta de k ori e O(k n) atribuiri. Trei
+ * inversări fac aceeași permutare în O(n) timp și O(1) memorie extra,
+ * folosind reverse-ul cu doi pointeri pe care tocmai l-ai scris.
  *
- * Problem
- *   Left rotate the array by k positions. Index 0 moves to index n-k
- *   (modulo n), and so on. For {1,2,3,4} and k = 5, k modulo 4 is 1,
- *   so the result is {2,3,4,1}.
+ * Problemă
+ *   Rotește tabloul la stânga cu k poziții. Indicele 0 se mută la
+ *   indicele n-k (modulo n), și tot așa. Pentru {1,2,3,4} și k = 5,
+ *   k modulo 4 e 1, deci rezultatul e {2,3,4,1}.
  *
- * Algorithm intuition
- *   A left rotate by k is: the prefix of length k moves to the end,
- *   the suffix of length n-k moves to the front, both blocks keeping
- *   their internal order.
+ * Intuiție / Algoritm
+ *   O rotație la stânga cu k e: prefixul de lungime k se mută la capăt,
+ *   sufixul de lungime n-k se mută în față, ambele blocuri păstrându-și
+ *   ordinea internă.
  *
- *   Identity: reverse(reverse(A) + reverse(B)) = B + A for concatenation.
- *   In an array that is prefix A of length k and suffix B:
- *     reverse A, reverse B, reverse the whole array
- *   yields B then A, which is a left rotate by k.
+ *   Identitate: reverse(reverse(A) + reverse(B)) = B + A pentru concatenare.
+ *   Într-un tablou care e prefixul A de lungime k și sufixul B:
+ *     reverse A, reverse B, reverse tot tabloul
+ *   dă B apoi A, care e o rotație la stânga cu k.
  *
- *   Walk it on {1,2,3,4}, k = 1:
+ *   Urmărește pe {1,2,3,4}, k = 1:
  *     reverse [0,0]:        {1,2,3,4}
  *     reverse [1,3]:        {1,4,3,2}
  *     reverse [0,3]:        {2,3,4,1}
  *
- *   k %= n so rotating by n, 2n, ... is a no-op, and k = 5 on n = 4
- *   is the same as k = 1. If k is negative in some API, you would
- *   convert to an equivalent left rotate in [0, n). This lesson takes
- *   k >= 0.
+ *   k %= n ca rotația cu n, 2n, ... să fie un no-op, iar k = 5 pe n = 4
+ *   e același lucru cu k = 1. Dacă k e negativ într-un API, ai converti
+ *   la o rotație la stânga echivalentă în [0, n). Lecția asta ia k >= 0.
  *
- * Complexity
- *   Time  O(n): three linear reversals, each O(n).
- *   Extra space O(1): the reverse temporary. No second buffer.
- *   A new array that writes nums[(i+k)%n] into dst[i] is O(n) extra
- *   memory. The reversal method avoids that allocation.
+ * Complexitate
+ *   Timp  O(n): trei inversări liniare, fiecare O(n).
+ *   Memorie extra O(1): temporarul din reverse. Fără al doilea buffer.
+ *   Un tablou nou care scrie nums[(i+k)%n] în dst[i] e O(n) memorie
+ *   extra. Metoda cu inversări evită alocarea aia.
  *
- * Memory management
- *   int nums[] decays to a pointer. In-place mutation of the caller's
- *   n cells. Reverse writes pairs of existing cells. We avoid vector
- *   on purpose. No resize. Ownership does not change because there is
- *   no owner object: the array is just n ints.
+ * Memorie
+ *   int nums[] decade la un pointer. Mutație pe loc a celor n celule
+ *   ale apelantului. reverse scrie perechi de celule existente. Evităm
+ *   vector dinadins. Fără resize. Proprietatea nu se schimbă pentru că
+ *   nu există un obiect proprietar: tabloul e doar n int-uri.
  *
- *   Guard n == 0 before k %= n. Remainder with divisor 0 is undefined
- *   behavior in C and C++ (on integers). An empty array has nothing
- *   to rotate; return.
+ *   Păzește n == 0 înainte de k %= n. Restul cu divisor 0 e comportament
+ *   nedefinit în C și C++ (pe întregi). Un tablou gol n-are ce să
+ *   rotească; return.
  *
- * C theory — modulo, reverse bounds, overflow, cache, memmove
- *   k %= n. If k and n are int and n is positive, the result is in
- *   [0, n). Keep both types int so a negative k does not silently
- *   become a huge unsigned remainder.
+ * Teorie C — modulo, limitele lui reverse, overflow, cache, memmove
+ *   k %= n. Dacă k și n sunt int și n e pozitiv, rezultatul e în
+ *   [0, n). Ține ambele tipuri int ca un k negativ să nu devină tăcut
+ *   un rest unsigned uriaș.
  *
- *   reverse(0, k-1) on k == 0: do not form k-1. A zero-length rotate
- *   is a no-op; skip the reversals or make reverse a no-op when the
- *   interval is empty. We return early on r == 0.
+ *   reverse(0, k-1) pe k == 0: nu forma k-1. O rotație de lungime zero
+ *   e un no-op; sari inversările sau fă reverse un no-op când intervalul
+ *   e gol. Ne întoarcem devreme pe r == 0.
  *
- *   The two-pointer reverse must not read past the ends. Pass inclusive
- *   indices that are < n. Forming lo + hi as an int midpoint is not
- *   needed here; we only walk inward.
+ *   reverse-ul cu doi pointeri nu trebuie să citească după capete.
+ *   Transmite indici inclusiv care sunt < n. Formarea lui lo + hi ca
+ *   mijloc int nu e nevoie aici; doar umblăm spre interior.
  *
- *   Block rotate by memmove: save the prefix of k ints, shift the suffix
- *   left by k, copy the prefix into the tail. That is also O(n) time
- *   and O(k) extra memory for the saved prefix (or you memmove in
- *   overlapping fashion with a temp of k). Three reversals use O(1)
- *   extra and only swaps. memmove is allowed to overlap; memcpy is
- *   not. If you ever shift with memcpy on overlapping ranges, that is
- *   UB.
+ *   Rotație pe blocuri cu memmove: salvează prefixul de k int-uri, mută
+ *   sufixul la stânga cu k, copiază prefixul în coadă. Asta e tot O(n)
+ *   timp și O(k) memorie extra pentru prefixul salvat (sau faci memmove
+ *   cu overlap cu un temp de k). Trei inversări folosesc O(1) extra
+ *   și doar swap-uri. memmove e permis să se suprapună; memcpy nu.
+ *   Dacă vreodată muți cu memcpy pe intervale care se suprapun, ăsta
+ *   e UB.
  *
- *   Cache: each reverse is two sequential streams. Three of them still
- *   beat k full shifts. The permutation is done with good locality.
+ *   Cache: fiecare reverse e două fluxuri secvențiale. Trei dintre ele
+ *   tot bat k deplasări complete. Permutarea e făcută cu localitate bună.
  *
- *   Integer overflow: we do not add element values. Indices stay in
- *   range if you reduce k and skip n == 0.
+ *   Overflow pe întregi: nu adunăm valorile elementelor. Indicii rămân
+ *   în interval dacă reduci k și sari n == 0.
  *
- *   In-place: the original order is replaced by the rotated order in
- *   the same cells.
+ *   Pe loc: ordinea originală e înlocuită de ordinea rotită în aceleași
+ *   celule.
  */
 
 #include <iostream>

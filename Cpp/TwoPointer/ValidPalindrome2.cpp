@@ -1,71 +1,71 @@
 /*
- * LESSON — Palindrome after deleting at most one character
+ * LECȚIE — Palindrom după ștergerea a cel mult un caracter
  *
- * Student, the strict palindrome test rejects at the first mismatch.
- * Here you are allowed one deletion. That one degree of freedom is
- * still solvable with two pointers; you do not need to try deleting
- * every character.
+ * Studentule, testul strict de palindrom respinge la prima nepotrivire.
+ * Aici ți se permite o ștergere. Gradul ăla de libertate tot se
+ * rezolvă cu doi pointeri; n-ai nevoie să încerci să ștergi fiecare
+ * caracter.
  *
- * Problem
- *   Return true if s can be a palindrome after removing at most one
- *   character (including removing none). Sample: "abdeddba" is true.
+ * Problemă
+ *   Întoarce true dacă s poate fi palindrom după ce scoți cel mult un
+ *   caracter (inclusiv să nu scoți niciunul). Exemplu: "abdeddba" e
+ *   true.
  *
- * Algorithm intuition
- *   Walk inward as in a normal palindrome. While s[i] == s[j], keep
- *   going. On the first mismatch you must use the deletion: either
- *   skip s[i] and ask whether s[i+1..j] is a palindrome, or skip s[j]
- *   and ask whether s[i..j-1] is a palindrome. If either subrange is
- *   a palindrome, one deletion suffices. If both fail, two or more
- *   mismatches remain and you reject.
+ * Intuiție / Algoritm
+ *   Umblă spre interior ca la un palindrom normal. Cât timp s[i] == s[j],
+ *   continuă. La prima nepotrivire trebuie să folosești ștergerea: fie
+ *   sari s[i] și întreabă dacă s[i+1..j] e palindrom, fie sari s[j]
+ *   și întreabă dacă s[i..j-1] e palindrom. Dacă oricare subinterval
+ *   e palindrom, o ștergere e de ajuns. Dacă amândouă eșuează, rămân
+ *   două sau mai multe nepotriviri și respingi.
  *
- *   You only branch at the first mismatch. A second mismatch inside
- *   a candidate subrange is fatal for that candidate. That is enough,
- *   because any valid single deletion that repairs the string must
- *   delete one of the two disagreeing ends (or a character that this
- *   skip simulates). You do not search the interior first; the ends
- *   are the obstruction.
+ *   Te ramifici doar la prima nepotrivire. O a doua nepotrivire în
+ *   interiorul unui subinterval candidat e fatală pentru candidatul ăla.
+ *   Asta e de ajuns, pentru că orice ștergere unică validă care repară
+ *   șirul trebuie să șteargă unul din cele două capete care nu se
+ *   potrivesc (sau un caracter pe care skip-ul ăsta îl simulează).
+ *   Nu cauți mai întâi interiorul; capetele sunt obstacolul.
  *
- * Complexity
- *   Time  O(n): the outer walk plus at most two palindrome checks on
- *   a suffix of the string. Each character is compared O(1) times.
- *   Extra space O(1): indices only. Copying substrings into new buffers
- *   would copy bytes and blow both time and memory. Pass indices into
- *   the original buffer.
+ * Complexitate
+ *   Timp  O(n): plimbarea exterioară plus cel mult două verificări de
+ *   palindrom pe un sufix al șirului. Fiecare caracter e comparat de
+ *   O(1) ori.
+ *   Memorie extra O(1): doar indici. Copierea de substring-uri în
+ *   buffer-e noi ar copia octeți și ar umfla și timpul, și memoria.
+ *   Transmite indici în buffer-ul original.
  *
- * Memory management
- *   char s[] decays to char*. Pass n because the pointer has no length.
- *   The helper reads s[i]..s[j] by index. No substring allocation. We
- *   avoid vector on purpose. In C you would pass (char *s, int i, int j)
- *   and never copy a piece out.
+ * Memorie
+ *   char s[] decade la char*. Transmite n pentru că pointerul n-are
+ *   lungime. Helper-ul citește s[i]..s[j] după indice. Fără alocare de
+ *   substring. Evităm vector dinadins. În C ai transmite (char *s,
+ *   int i, int j) și n-ai copia niciodată o bucată afară.
  *
- *   The characters are contiguous. We only load. In main, n is
- *   sizeof(s) - 1 so we do not count the terminating '\0'.
+ *   Caracterele sunt contigue. Doar încărcăm. În main, n e
+ *   sizeof(s) - 1 ca să nu numărăm '\0'-ul terminator.
  *
- * C theory — indices on a byte array, no mutation, overflow, UB
- *   s[i] is a char in a contiguous array. i and j are int. The helper
- *   loops while i < j, so j-- is safe: j is at least i+1. Forming
- *   j = n - 1 on an empty string is a bad index; we treat length < 2
- *   as already true before that.
+ * Teorie C — indici pe un tablou de octeți, fără mutație, overflow, UB
+ *   s[i] e un char într-un tablou contig. i și j sunt int. Helper-ul
+ *   rulează cât timp i < j, deci j-- e sigur: j e cel puțin i+1.
+ *   Formarea lui j = n - 1 pe un șir gol e un indice prost; tratăm
+ *   lungimea < 2 ca deja true înainte de asta.
  *
- *   This lesson does not skip punctuation. Every character counts.
- *   The sample is lowercase letters only. Mixing this with the
- *   alphanumeric filter is a different specification; do not silently
- *   combine them.
+ *   Lecția asta nu sare punctuația. Fiecare caracter contează.
+ *   Exemplul e doar litere mici. Să amesteci asta cu filtrul
+ *   alfanumeric e o specificație diferită; nu le combina în tăcere.
  *
- *   Comparison is raw char equality. No ctype, no locale.
+ *   Comparația e egalitate brută pe char. Fără ctype, fără locale.
  *
- *   Stack: the helper is iterative. If you wrote a recursive palindrome
- *   on n/2, you could overflow the stack. Iteration keeps a constant
- *   frame.
+ *   Stivă: helper-ul e iterativ. Dacă ai scrie un palindrom recursiv
+ *   pe n/2, ai putea umple stiva. Iterația ține un cadru constant.
  *
- *   Cache: sequential from both ends, then at most two more sequential
- *   scans of a subrange. Still linear streaming.
+ *   Cache: secvențial de la ambele capete, apoi cel mult două scanări
+ *   secvențiale în plus pe un subinterval. Tot streaming liniar.
  *
- *   In-place mutation is not used. Deleting a character is simulated
- *   by skipping an index, not by memmove of the tail. The caller's
- *   string is unchanged. That is important: a real delete would be
- *   O(n) moves for a contiguous buffer, which you would not want
- *   inside a loop of candidates.
+ *   Mutația pe loc nu e folosită. Ștergerea unui caracter e simulată
+ *   sărind un indice, nu prin memmove al cozii. Șirul apelantului
+ *   rămâne neschimbat. Asta e important: o ștergere reală ar fi O(n)
+ *   mutări pe un buffer contig, pe care n-ai vrea-o în interiorul unei
+ *   bucle de candidați.
  */
 
 #include <iostream>

@@ -1,74 +1,74 @@
 /*
- * LESSON — Minimize the maximum pair sum
+ * LECȚIE — Minimizează suma maximă a perechilor
  *
- * Student, you must pair 2n numbers into n pairs. The cost of a
- * pairing is the maximum of the pair sums. You want that cost as
- * small as possible. Pairing the current smallest with the current
- * largest is the unique structure of the optimum.
+ * Studentule, trebuie să împerechezi 2n numere în n perechi. Costul
+ * unei împerecheri e maximul sumelor perechilor. Vrei costul ăla cât
+ * mai mic. Să împerechezi cel mai mic curent cu cel mai mare curent
+ * e structura unică a optimumului.
  *
- * Problem
- *   Even-length array. Pair every element with exactly one other.
- *   Minimize the maximum of (a + b) over those pairs. Sample:
- *   {2,6,3,4,7,11,5,8} prints 13, from the pair 2+11 (the other
- *   pairs 3+8, 4+7, 5+6 are all 11).
+ * Problemă
+ *   Tablou de lungime pară. Împerechează fiecare element cu exact unul
+ *   altul. Minimizează maximul lui (a + b) peste perechile alea.
+ *   Exemplu: {2,6,3,4,7,11,5,8} tipărește 13, din perechea 2+11 (celelalte
+ *   perechi 3+8, 4+7, 5+6 sunt toate 11).
  *
- * Algorithm intuition
- *   Sort. Pair nums[0] with nums[n-1], nums[1] with nums[n-2], and
- *   so on. Track the maximum of those n/2 sums. Return that maximum.
+ * Intuiție / Algoritm
+ *   Sortează. Împerechează nums[0] cu nums[n-1], nums[1] cu nums[n-2],
+ *   și tot așa. Ține maximul acelor n/2 sume. Întoarce maximul ăla.
  *
- *   Why not pair large with large: 11+8 = 19, worse. Why not pair
- *   small with small: you then have to pair 11 with something medium
- *   like 7, still 18, and you wasted the small values on each other
- *   where they could have been neutralizing the giants. The sorted
- *   extremes balance the sums. Any inversion (a smaller large-side
- *   value swapped with a larger one) increases the bigger pair sum
- *   or leaves it equal; the max does not improve.
+ *   De ce să nu împerechezi mare cu mare: 11+8 = 19, mai rău. De ce să
+ *   nu împerechezi mic cu mic: atunci trebuie să împerechezi 11 cu ceva
+ *   mediu ca 7, tot 18, și ai irosit valorile mici una pe alta, unde
+ *   ar fi putut neutraliza giganții. Extremele sortate echilibrează
+ *   sumele. Orice inversiune (o valoare mai mică de pe partea mare
+ *   schimbată cu una mai mare) crește suma perechii mai mari sau o
+ *   lasă egală; maximul nu se îmbunătățește.
  *
- *   This is the same two-pointer walk as reverse: i++, j--, but you
- *   add instead of swap, and you keep a running max.
+ *   E aceeași plimbare cu doi pointeri ca la reverse: i++, j--, dar
+ *   aduni în loc să faci swap, și ții un max care rulează.
  *
- * Complexity
- *   Time  O(n log n) sort plus O(n) pairing.
- *   Extra space O(1) extra besides sort, if we sort in place.
+ * Complexitate
+ *   Timp  O(n log n) sort plus O(n) împerechere.
+ *   Memorie extra O(1) extra pe lângă sort, dacă sortăm pe loc.
  *
- * Memory management
- *   int nums[] decays to a pointer. sort(nums, nums+n) permutes the
- *   existing n cells. No pair list is stored. We do not allocate n/2
- *   pair objects. The output is one integer. We avoid vector on
- *   purpose. If you materialized the pairs you would spend O(n) extra
- *   words for no gain in this API.
+ * Memorie
+ *   int nums[] decade la un pointer. sort(nums, nums+n) permutează
+ *   cele n celule existente. Nicio listă de perechi nu e stocată. Nu
+ *   alocăm n/2 obiecte pair. Output-ul e un întreg. Evităm vector
+ *   dinadins. Dacă ai materializa perechile, ai cheltui O(n) cuvinte
+ *   extra fără câștig în API-ul ăsta.
  *
- * C theory — pairing extremes, overflow, even n, cache, UB
- *   nums[i] + nums[j] overflow: same rule as always. 1LL * nums[i] +
- *   nums[j], keep max as long long. INT_MAX+INT_MAX fits in 64-bit
- *   signed. Returning int is only valid if the answer fits; the
- *   sample does.
+ * Teorie C — împerecherea extremelor, overflow, n par, cache, UB
+ *   nums[i] + nums[j] overflow: aceeași regulă ca întotdeauna.
+ *   1LL * nums[i] + nums[j], ține max-ul ca long long. INT_MAX+INT_MAX
+ *   încape pe signed pe 64 de biți. Să întorci int e valid doar dacă
+ *   răspunsul încape; exemplul încape.
  *
- *   Odd length is not a pairing of everyone. The problem guarantees
- *   even n. If n were odd, one element would be left; the spec would
- *   have to say whether it sits as a singleton "pair." We do not
- *   guess. n < 2: return 0.
+ *   Lungimea impară nu e o împerechere a tuturor. Problema garantează
+ *   n par. Dacă n ar fi impar, un element ar rămâne; specificația ar
+ *   trebui să spună dacă stă ca o „pereche” singleton. Nu ghicim.
+ *   n < 2: întoarce 0.
  *
- *   i < j with signed indices: because we stop at i < j, when n is
- *   even we process n/2 pairs and i meets j in the middle without a
- *   leftover cell. Start j = n-1 only if n > 0.
+ *   i < j cu indici signed: pentru că ne oprim la i < j, când n e par
+ *   procesăm n/2 perechi și i se întâlnește cu j la mijloc fără o
+ *   celulă rămasă. Pornește j = n-1 doar dacă n > 0.
  *
- *   sort: in-place, introsort, O(log n) stack. Afterward the pairing
- *   reads sequentially from both ends. Two streams, like reverse, but
- *   the values are only loaded, not swapped (the array is already in
- *   the order we need). We could skip writing; we already wrote
- *   during sort.
+ *   sort: pe loc, introsort, O(log n) stivă. După aia împerecherea
+ *   citește secvențial de la ambele capete. Două fluxuri, ca la reverse,
+ *   dar valorile sunt doar încărcate, nu prin swap (tabloul e deja în
+ *   ordinea de care avem nevoie). Am putea sări scrierea; am scris
+ *   deja în timpul lui sort.
  *
- *   In-place mutation is the sort, not the pairing. The pairing is
- *   read-only on the sorted permutation.
+ *   Mutația pe loc e sort-ul, nu împerecherea. Împerecherea e doar
+ *   citire pe permutarea sortată.
  *
- *   Cache after sort is excellent. Do not put the numbers in a node
- *   list just to pair them.
+ *   Cache-ul după sort e excelent. Nu pune numerele într-o listă de
+ *   noduri doar ca să le împerechezi.
  *
- *   C form: qsort the array, then the same i/j loop. qsort's
- *   comparator must not overflow in a compare-by-subtraction; use
- *   (a > b) - (a < b) or a three-way if. sort with operator< on int
- *   does not subtract.
+ *   Formă C: qsort tabloul, apoi aceeași buclă i/j. Comparatorul lui
+ *   qsort nu trebuie să dea overflow într-un compare-by-subtraction;
+ *   folosește (a > b) - (a < b) sau un if pe trei căi. sort cu
+ *   operator< pe int nu scade.
  */
 
 #include <algorithm>

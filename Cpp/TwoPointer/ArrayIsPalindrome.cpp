@@ -1,63 +1,66 @@
 /*
- * LESSON — Is an integer array a palindrome?
+ * LECȚIE — Este un tablou de întregi palindrom?
  *
- * Student, a palindrome reads the same forward and backward. For an array
- * of ints that is a statement about pairs of cells, not about strings.
+ * Studentule, un palindrom se citește la fel de la stânga la dreapta
+ * și de la dreapta la stânga. Pentru un tablou de int-uri, asta e o
+ * afirmație despre perechi de celule, nu despre șiruri.
  *
- * Problem
- *   Return true if and only if nums[k] == nums[n-1-k] for every k in
- *   [0, n). An empty array and a one-element array are palindromes:
- *   there is no pair that can disagree.
+ * Problemă
+ *   Întoarce true dacă și numai dacă nums[k] == nums[n-1-k] pentru
+ *   fiecare k din [0, n). Un tablou gol și un tablou cu un element
+ *   sunt palindroame: nu există nicio pereche care să poată să nu
+ *   coincidă.
  *
- * Algorithm intuition
- *   You do not need to reverse a copy and compare. Put i at 0 and j at
- *   n-1. While i < j, if the two cells differ, reject. Otherwise walk
- *   inward. If you exhaust the pairs, every required equality held.
+ * Intuiție / Algoritm
+ *   Nu trebuie să inversezi o copie și să compari. Pune i la 0 și j
+ *   la n-1. Cât timp i < j, dacă cele două celule diferă, respinge.
+ *   Altfel pășește spre interior. Dacă epuizezi perechile, toate
+ *   egalitățile cerute au ținut.
  *
- *   This is the reverse loop with a comparison instead of a swap. The
- *   invariant is: all pairs outside [i, j] already matched.
+ *   E bucla de reverse, dar cu o comparație în loc de un swap. Invariantul
+ *   e: toate perechile din afara lui [i, j] s-au potrivit deja.
  *
- * Complexity
- *   Time  O(n). Best case is O(1) if the ends already differ; we still
- *   quote the worst case.
- *   Extra space O(1). We do not build a reversed copy. A reversed copy
- *   would be O(n) extra memory and O(n) time before the first comparison.
- *   That is wasted work and wasted memory.
+ * Complexitate
+ *   Timp  O(n). Cazul cel mai bun e O(1) dacă capetele diferă deja;
+ *   totuși cităm cazul cel mai rău.
+ *   Memorie extra O(1). Nu construim o copie inversată. O copie
+ *   inversată ar fi O(n) memorie extra și O(n) timp înainte de prima
+ *   comparație. Asta e muncă irosită și memorie irosită.
  *
- * Memory management
- *   The parameter is int nums[] plus int n. nums decays to int*: a
- *   pointer to the first cell. It does not store the length, so n is
- *   required. We avoid vector on purpose. We only load. The n ints stay
- *   where the caller put them (here, a stack array in main). Stack usage
- *   in this function is two indices.
+ * Memorie
+ *   Parametrul e int nums[] plus int n. nums decade la int*: un
+ *   pointer către prima celulă. Nu stochează lungimea, deci n e
+ *   obligatoriu. Evităm vector dinadins. Doar încărcăm. Cele n int-uri
+ *   rămân unde le-a pus apelantul (aici, un tablou pe stivă în main).
+ *   Folosirea stivei în funcția asta sunt doi indici.
  *
- *   const on the pointed-to ints would be a contract that the callee
- *   will not write. This lesson does not write either way. The bytes
- *   still live wherever the caller allocated them.
+ *   const pe int-urile pointeate ar fi un contract că apelatul nu
+ *   scrie. Lecția asta oricum nu scrie. Octeții tot trăiesc unde i-a
+ *   alocat apelantul.
  *
- * C theory — comparison, not mutation; cache; UB
- *   This algorithm does not mutate. In-place is a property of writers.
- *   Here every access is a load. That is the cheapest thing a CPU does
- *   to memory besides not touching it.
+ * Teorie C — comparație, nu mutație; cache; UB
+ *   Algoritmul ăsta nu mutează. Pe loc e o proprietate a celor care
+ *   scriu. Aici fiecare acces e un load. E cel mai ieftin lucru pe
+ *   care îl face un CPU cu memoria, în afară de a n-o atinge deloc.
  *
- *   i and j are indices, not pointers, but the hardware is doing pointer
- *   arithmetic: the load of nums[i] is *(nums + i). If i is in range,
- *   that address is inside the array. If it is not, the load is
- *   undefined behavior. We keep i < j and j = n-1 with n >= 2, so both
- *   indices are valid.
+ *   i și j sunt indici, nu pointeri, dar hardware-ul face aritmetică
+ *   de pointer: load-ul lui nums[i] e *(nums + i). Dacă i e în
+ *   interval, adresa e înăuntrul tabloului. Dacă nu, load-ul e
+ *   comportament nedefinit. Ținem i < j și j = n-1 cu n >= 2, deci
+ *   ambii indici sunt valizi.
  *
- *   Empty-array trap: n = 0, then n-1 is -1. We return true before
- *   forming that index. Signed overflow of int is undefined behavior;
- *   forming -1 as an index is simply the wrong address. Know which
- *   mistake you are dealing with.
+ *   Capcana tabloului gol: n = 0, atunci n-1 e -1. Întoarcem true
+ *   înainte să formăm indicele ăla. Overflow-ul signed pe int e
+ *   comportament nedefinit; formarea lui -1 ca indice e pur și simplu
+ *   adresa greșită. Știi cu care greșeală ai de-a face.
  *
- *   Cache: two sequential streams from the ends, same as reverse. For
- *   a palindrome check you often reject early, so you may not touch
- *   the middle at all. Early exit is a gift; do not disable it by
- *   reversing first.
+ *   Cache: două fluxuri secvențiale de la capete, la fel ca la reverse.
+ *   La un test de palindrom respingi adesea devreme, deci s-ar putea
+ *   să nu atingi deloc mijlocul. Ieșirea timpurie e un cadou; nu o
+ *   anula inversând mai întâi.
  *
- *   Equality of int is bitwise on two's complement. No overflow occurs
- *   because we never add the elements.
+ *   Egalitatea pe int e pe biți, în complement față de doi. Nu apare
+ *   overflow pentru că nu adunăm niciodată elementele.
  */
 
 #include <iostream>

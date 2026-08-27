@@ -1,78 +1,83 @@
 /*
- * LESSON — Negatives first, with more of the original relative order
+ * LECȚIE — Negativele primele, cu mai mult din ordinea relativă originală
  *
- * Student, Hoare partition from both ends is O(n) and destroys order.
- * This lesson uses a slow/fast pair that both run forward. It keeps the
- * relative order of the negatives. It does not keep the relative order
- * of the positives. It can do quadratic work. You should know it exists
- * so you can refuse it.
+ * Studentule, partiția Hoare de la ambele capete e O(n) și distruge
+ * ordinea. Lecția asta folosește o pereche lent/rapid care amândoi
+ * merg înainte. Păstrează ordinea relativă a negativelor. Nu păstrează
+ * ordinea relativă a pozitivelor. Poate face muncă pătratică. Trebuie
+ * să știi că există ca să poți să-l refuzi.
  *
- * Problem
- *   Move every negative before every positive. Prefer preserving the
- *   order of negatives. In-place with swaps. The sample is
+ * Problemă
+ *   Mută fiecare negativ înaintea fiecărui pozitiv. Preferă păstrarea
+ *   ordinii negativelor. Pe loc, cu swap-uri. Exemplul e
  *   {-2, 6, 3, -4, 1, 10, -5, 8, -7, -9}.
  *
- * Algorithm intuition
- *   Slow index i finds the leftmost value that is not negative (the
- *   first positive sitting in the way). Fast index j then starts just
- *   after i and finds the next negative. Swap them. That negative has
- *   jumped left into the first hole. Repeat. Negatives encountered
- *   later still swap into later holes, so negatives keep their order.
- *   Each swap dumps a positive into the slot the negative came from,
- *   which may be far to the right, so positives are permuted.
+ * Intuiție / Algoritm
+ *   Indicele lent i găsește cea mai din stânga valoare care nu e
+ *   negativă (primul pozitiv care stă în cale). Indicele rapid j
+ *   pornește imediat după i și găsește următorul negativ. Fă-le swap.
+ *   Negativul ăla a sărit la stânga în prima gaură. Repetă. Negativele
+ *   întâlnite mai târziu tot fac swap în găuri mai târzii, deci
+ *   negativele își păstrează ordinea. Fiecare swap aruncă un pozitiv
+ *   în locul de unde a venit negativul, care poate fi departe la
+ *   dreapta, deci pozitivele sunt permutate.
  *
- *   After enough swaps the prefix is all negatives in original order
- *   and the suffix is the leftover positives in some order.
+ *   După destule swap-uri, prefixul e toate negativele în ordinea
+ *   originală, iar sufixul e pozitivele rămase într-o ordine oarecare.
  *
- *   This is not a stable partition of both classes. A stable partition
- *   that keeps both orders needs extra memory (a buffer of n, or a
- *   list) or a more sophisticated in-place rotation algorithm.
+ *   Asta nu e o partiție stabilă a ambelor clase. O partiție stabilă
+ *   care păstrează ambele ordini are nevoie de memorie extra (un buffer
+ *   de n, sau o listă) sau de un algoritm de rotație pe loc mai
+ *   sofisticat.
  *
- * Complexity
- *   Time  O(n^2) worst case. Each swap moves one negative into place,
- *   but i and j restart their scans from the current hole. If negatives
- *   and positives strictly alternate, you walk long stretches repeatedly.
- *   Extra space O(1).
+ * Complexitate
+ *   Timp  O(n^2) în cazul cel mai rău. Fiecare swap mută un negativ
+ *   la locul lui, dar i și j își reiau scanările de la gaura curentă.
+ *   Dacă negativele și pozitivele alternează strict, parcurgi porțiuni
+ *   lungi în repetate rânduri.
+ *   Memorie extra O(1).
  *
- *   Contrast: Hoare sign-partition is O(n) time, O(1) space, not stable.
- *   Buffer method: one pass into a new array, O(n) time, O(n) space,
- *   stable for both sides if you push negatives first in order then
- *   positives in order.
+ *   Contrast: partiția pe semn Hoare e O(n) timp, O(1) spațiu, nu e
+ *   stabilă. Metoda cu buffer: o trecere într-un tablou nou, O(n) timp,
+ *   O(n) spațiu, stabilă pe ambele părți dacă pui întâi negativele în
+ *   ordine, apoi pozitivele în ordine.
  *
- * Memory management
- *   int arr[] decays to a pointer; n is the length. In-place swaps in
- *   the caller's buffer. No second allocation. We avoid vector on
- *   purpose. That is the only virtue of this quadratic scan. The extra
- *   memory you refused is often cheaper than the extra time you accepted.
- *   Measure before you keep an O(n^2) in-place method on large n.
+ * Memorie
+ *   int arr[] decade la un pointer; n e lungimea. Swap-uri pe loc în
+ *   buffer-ul apelantului. Fără a doua alocare. Evităm vector dinadins.
+ *   Asta e singura virtute a scanării ăsteia pătratice. Memoria extra
+ *   pe care ai refuzat-o e adesea mai ieftină decât timpul extra pe
+ *   care l-ai acceptat. Măsoară înainte să păstrezi o metodă O(n^2)
+ *   pe loc pe n mare.
  *
- * C theory — slow/fast, swap, cache, why quadratic
- *   Two indices that both increase is the "slow and fast" pattern you
- *   will also see in cycle detection, but here they are not a cycle.
- *   Slow marks a hole (a positive in the negative prefix). Fast hunts
- *   the next occupant for that hole (a negative). After the swap, the
- *   hole has moved: the positive is now at j, and i may still point at
- *   a positive (the next one), so the outer loop continues.
+ * Teorie C — lent/rapid, swap, cache, de ce e pătratic
+ *   Doi indici care amândoi cresc e tiparul „lent și rapid” pe care-l
+ *   vei vedea și la detectarea de cicluri, dar aici nu e un ciclu.
+ *   Lentul marchează o gaură (un pozitiv în prefixul negativ). Rapidul
+ *   vânează următorul ocupant pentru gaura aia (un negativ). După swap,
+ *   gaura s-a mutat: pozitivul e acum la j, iar i tot poate arăta spre
+ *   un pozitiv (următorul), deci bucla exterioară continuă.
  *
- *   Each inner while is a linear scan. Nested linear scans over the
- *   same array, restarting, is the classic O(n^2) cache-friendly but
- *   still quadratic pattern. Sequential access does not cancel an extra
- *   factor of n. It only makes each of the O(n^2) steps a cheap load.
+ *   Fiecare while interior e o scanare liniară. Scanări liniare
+ *   imbricate pe același tablou, reluate, e tiparul clasic O(n^2)
+ *   prietenos cu cache-ul, dar tot pătratic. Accesul secvențial nu
+ *   anulează un factor extra de n. Face doar ca fiecare dintre pașii
+ *   O(n^2) să fie un load ieftin.
  *
- *   Swap uses a temporary int. The two indices i and j are distinct
- *   when we swap (j starts at i+1 and only swaps when both are in
- *   range and a negative was found). No XOR.
+ *   Swap-ul folosește un int temporar. Cei doi indici i și j sunt
+ *   distincte când facem swap (j pornește de la i+1 și face swap doar
+ *   când amândoi sunt în interval și s-a găsit un negativ). Fără XOR.
  *
- *   Bounds: every while checks i < n and j < n before dereferencing.
- *   That is the difference between a defined program and a buffer
- *   overflow. AddressSanitizer will catch the latter; do not rely on
- *   it as a substitute for the checks.
+ *   Limite: fiecare while verifică i < n și j < n înainte de
+ *   dereferențiere. Asta e diferența dintre un program definit și un
+ *   buffer overflow. AddressSanitizer îl prinde pe-al doilea; nu te
+ *   baza pe el ca substitut al verificărilor.
  *
- *   No overflow on values. In-place mutation again means the original
- *   permutation is gone.
+ *   Fără overflow pe valori. Mutația pe loc înseamnă din nou că
+ *   permutarea originală e dusă.
  *
- *   You may print i and j before each swap when tracing. The program
- *   below prints only the final array, space-separated.
+ *   Poți tipări i și j înainte de fiecare swap când urmărești. Programul
+ *   de mai jos tipărește doar tabloul final, separat prin spații.
  */
 
 #include <iostream>

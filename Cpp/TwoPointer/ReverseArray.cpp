@@ -1,75 +1,79 @@
 /*
- * LESSON — Reverse an array in place with two indices
+ * LECȚIE — Inversează un tablou pe loc cu doi indici
  *
- * Student, start here. Reversal is the simplest two-pointer mutation, and
- * every later in-place algorithm in this folder is a variation of the same
- * idea: two indices, a loop invariant, and a handful of assignments.
+ * Studentule, începe de aici. Inversarea e cea mai simplă mutație cu
+ * doi pointeri, iar fiecare algoritm pe loc din folderul ăsta e o
+ * variație a aceleiași idei: doi indici, un invariant de buclă și
+ * câteva atribuiri.
  *
- * Problem
- *   Reverse the sequence so that the first element becomes last and the last
- *   becomes first. Do it in the existing buffer. Do not allocate a second
- *   array.
+ * Problemă
+ *   Inversează secvența astfel încât primul element să ajungă ultimul,
+ *   iar ultimul primul. Fă-o în buffer-ul existent. Nu aloca un al
+ *   doilea tablou.
  *
- * Algorithm intuition
- *   Place i on the leftmost cell and j on the rightmost cell. While i < j,
- *   exchange the two cells, then move inward: i++, j--. When the indices
- *   meet or cross, every pair (k, n-1-k) has been swapped exactly once.
- *   An odd-length array leaves the middle element untouched, which is
- *   correct: it is already in its final position.
+ * Intuiție / Algoritm
+ *   Pune i pe celula din stânga și j pe cea din dreapta. Cât timp i < j,
+ *   schimbă cele două celule, apoi apropie-le: i++, j--. Când indicii
+ *   se întâlnesc sau se încrucișează, fiecare pereche (k, n-1-k) a fost
+ *   schimbată prin swap exact o dată.
+ *   Un tablou de lungime impară lasă elementul din mijloc neatins, ceea
+ *   ce e corect: e deja pe poziția lui finală.
  *
- *   The invariant is: after t swaps, the prefix of length t and the suffix
- *   of length t are the finished reversed ends, and the open interval
- *   (i, j) is the still-unreversed middle.
+ *   Invariantul e: după t swap-uri, prefixul de lungime t și sufixul
+ *   de lungime t sunt capetele inversate gata, iar intervalul deschis
+ *   (i, j) e mijlocul încă neinversat.
  *
- * Complexity
- *   Time  O(n): each element is read and written a constant number of times.
- *   Extra space O(1): one temporary int, plus the two indices. The array
- *   does not grow. We overwrite the same n cells.
+ * Complexitate
+ *   Timp  O(n): fiecare element e citit și scris de un număr constant
+ *   de ori.
+ *   Memorie extra O(1): un int temporar, plus cei doi indici. Tabloul
+ *   nu crește. Suprascriem aceleași n celule.
  *
- * Memory management
- *   The parameter is int nums[] plus int n. In C and C++, an array
- *   parameter decays to a pointer to the first int. nums is really int*.
- *   The pointer does not know how many cells follow, which is why we
- *   always pass n ourselves. We avoid vector on purpose: a C array in
- *   main is a contiguous block of ints (these samples live on the stack).
- *   Passing nums passes one pointer. We never copy the n ints. We
- *   overwrite cells. No heap allocation, no destructor to remember.
+ * Memorie
+ *   Parametrul e int nums[] plus int n. În C și C++, un parametru
+ *   tablou decade la un pointer către primul int. nums e de fapt int*.
+ *   Pointerul nu știe câte celule urmează, de-asta transmitem n noi
+ *   întotdeauna. Evităm vector dinadins: un tablou C în main e un
+ *   bloc contig de int-uri (aceste exemple trăiesc pe stivă).
+ *   Transmiterea lui nums transmite un pointer. Nu copiem cele n int-uri.
+ *   Suprascriem celule. Fără alocare pe heap, fără destructor de ținut minte.
  *
- *   nums[i] is *(nums + i). That is pointer arithmetic. i must stay in
- *   [0, n). The length lives in n, not inside the pointer.
+ *   nums[i] e *(nums + i). Asta e aritmetică de pointer. i trebuie să
+ *   rămână în [0, n). Lungimea stă în n, nu în pointer.
  *
- * C theory — swap, aliasing, XOR, cache
- *   A correct swap of two ints is three assignments through a temporary:
+ * Teorie C — swap, aliasing, XOR, cache
+ *   Un swap corect a două int-uri sunt trei atribuiri printr-un temporar:
  *     int temp = a[i];
  *     a[i]     = a[j];
  *     a[j]     = temp;
- *   temp is a stack local, almost certainly a register. Two loads, two
- *   stores. That is the machine code you want.
+ *   temp e o locală pe stivă, aproape sigur un registru. Două load-uri,
+ *   două store-uri. Ăsta e codul mașină pe care îl vrei.
  *
- *   Do not XOR-swap. The folklore sequence
+ *   Nu face XOR-swap. Secvența din folclor
  *     x ^= y; y ^= x; x ^= y;
- *   fails if x and y alias the same object: x ^= x clears the cell to
- *   zero, and the value is gone. Even when the cells are distinct, XOR
- *   creates a serial dependency chain of three operations. A register
- *   temporary is faster on every modern CPU. XOR also does not generalize
- *   to types that are not bitwise integers. Treat it as a curiosity, not
- *   a tool.
+ *   eșuează dacă x și y sunt alias pentru același obiect: x ^= x golește
+ *   celula la zero, și valoarea e dusă. Chiar când celulele sunt distincte,
+ *   XOR creează un lanț de dependență serială de trei operații. Un temporar
+ *   în registru e mai rapid pe orice CPU modern. XOR nu se generalizează
+ *   nici la tipuri care nu sunt întregi pe biți. Tratează-l ca o curiozitate,
+ *   nu ca o unealtă.
  *
- *   Signed integers are not overflowed here: we only copy bits from one
- *   cell to another. Out-of-bounds is the UB to fear. If you wrote
- *   j = n with no -1, the first read of nums[j] is past the end. The
- *   compiler owes you nothing: crash, silent corruption, or "it worked
- *   on my machine." Guard n < 2 before computing n-1 so you never form
- *   a bogus index on an empty array.
+ *   Întregii signed nu dau overflow aici: doar copiem biți dintr-o
+ *   celulă în alta. Ieșirea din interval e UB-ul de care trebuie să
+ *   te temi. Dacă ai scrie j = n fără -1, prima citire a lui nums[j]
+ *   e după capăt. Compilatorul nu-ți datorează nimic: crash, corupere
+ *   tăcută, sau „a mers pe mașina mea.” Păzește n < 2 înainte să
+ *   calculezi n-1, ca să nu formezi un indice fals pe un tablou gol.
  *
- *   The walk is sequential from both ends. Each end streams through
- *   cache lines (typically 64 bytes, 16 ints). Two sequential streams
- *   are still cache-friendly. A linked-list reverse would chase heap
- *   nodes and miss constantly. Contiguous storage is the point.
+ *   Parcurgerea e secvențială de la ambele capete. Fiecare capăt
+ *   curge prin linii de cache (de obicei 64 de octeți, 16 int-uri).
+ *   Două fluxuri secvențiale rămân prietenoase cu cache-ul. Un reverse
+ *   pe listă înlănțuită ar urmări noduri pe heap și ar rata constant.
+ *   Stocarea contiguă e tot punctul.
  *
- *   In-place mutation means the caller's array is the output. After
- *   reverse returns, the original order is gone unless the caller
- *   copied it first.
+ *   Mutația pe loc înseamnă că tabloul apelantului e output-ul. După
+ *   ce reverse se întoarce, ordinea originală e dusă, decât dacă
+ *   apelantul a copiat-o înainte.
  */
 
 #include <iostream>

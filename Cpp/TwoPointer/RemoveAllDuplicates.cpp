@@ -1,71 +1,73 @@
 /*
- * LESSON — Unique a sorted array in place; return the new length
+ * LECȚIE — Unicizează un tablou sortat pe loc; întoarce lungimea nouă
  *
- * Student, uniqueness is easy with a hash set and a new buffer. It is
- * more interesting when the array is already sorted and you must keep
- * the unique run in the same allocation.
+ * Studentule, unicitatea e ușoară cu un hash set și un buffer nou. E
+ * mai interesantă când tabloul e deja sortat și trebuie să ții seria
+ * unică în aceeași alocare.
  *
- * Problem
- *   nums is sorted non-decreasing, so duplicates are adjacent. Overwrite
- *   the array so that the unique values occupy a prefix, in order, and
- *   return k, the number of unique values. The prefix [0, k) is the
- *   answer. Cells [k, n) are unspecified leftover; callers must not read
- *   them as part of the unique sequence. We do not shrink the array.
+ * Problemă
+ *   nums e sortat nedescrescător, deci duplicatele sunt alăturate.
+ *   Suprascrie tabloul astfel încât valorile unice să ocupe un prefix,
+ *   în ordine, și întoarce k, numărul de valori unice. Prefixul [0, k)
+ *   e răspunsul. Celulele [k, n) sunt rest nespecificat; apelanții nu
+ *   trebuie să le citească ca parte a secvenței unice. Nu micșorăm
+ *   tabloul.
  *
- * Algorithm intuition
- *   Slow pointer k is the length of the unique prefix so far, equivalently
- *   the destination index of the next new value. Fast pointer i scans.
- *   When nums[i] differs from the last kept value nums[k-1], it is a new
- *   run: store it at nums[k] and increment k. When it equals nums[k-1],
- *   skip it. Because equals only occur in adjacent runs of a sorted
- *   array, comparing to the last kept value is enough; you never need
- *   a set.
+ * Intuiție / Algoritm
+ *   Pointerul lent k e lungimea prefixului unic de până acum, echivalent
+ *   cu indicele de destinație al următoarei valori noi. Pointerul rapid
+ *   i scanează. Când nums[i] diferă de ultima valoare păstrată nums[k-1],
+ *   e o serie nouă: stocheaz-o la nums[k] și incrementează k. Când e
+ *   egal cu nums[k-1], sari peste el. Pentru că egalitățile apar doar
+ *   în serii alăturate ale unui tablou sortat, comparația cu ultima
+ *   valoare păstrată e de ajuns; n-ai nevoie niciodată de un set.
  *
- *   After the scan, [0, k) is strictly increasing (or non-decreasing
- *   with all duplicates squeezed out — here values are unique, so
- *   strictly increasing).
+ *   După scanare, [0, k) e strict crescător (sau nedescrescător cu
+ *   toate duplicatele stoarse — aici valorile sunt unice, deci
+ *   strict crescător).
  *
- * Complexity
- *   Time  O(n).
- *   Extra space O(1). The unique values occupy the front of the same
- *   buffer. Erasing from the front in a loop would be O(n^2) moves. A
- *   new array of uniques is O(k) extra memory. This algorithm needs
- *   neither.
+ * Complexitate
+ *   Timp  O(n).
+ *   Memorie extra O(1). Valorile unice ocupă fața aceluiași buffer.
+ *   Ștergerea din față într-o buclă ar fi O(n^2) mutări. Un tablou
+ *   nou de unice e O(k) memorie extra. Algoritmul ăsta n-are nevoie
+ *   de niciuna.
  *
- * Memory management
- *   int nums[] decays to a pointer; n is the live length. We write
- *   unique values into the existing buffer. We do not allocate a shorter
- *   copy. The n cells still exist; only the prefix of length k is the
- *   answer. We avoid vector on purpose. k never exceeds n, so we never
- *   write past the allocation. We also never read past it: i < n.
+ * Memorie
+ *   int nums[] decade la un pointer; n e lungimea vie. Scriem valorile
+ *   unice în buffer-ul existent. Nu alocăm o copie mai scurtă. Cele n
+ *   celule tot există; doar prefixul de lungime k e răspunsul. Evităm
+ *   vector dinadins. k nu trece niciodată de n, deci nu scriem niciodată
+ *   după alocare. Nici nu citim după ea: i < n.
  *
- * C theory — overlapping source and destination, leftover tail
- *   The copy nums[k] = nums[i] may have k < i (after skipping duplicates)
- *   or k == i (no duplicate yet, the unique prefix is still the whole
- *   scan). When k == i the assignment is a no-op. When k < i we write
- *   into a cell whose original value was already consumed as a duplicate
- *   or already copied forward. Source and destination overlap in the
- *   sense of being the same array, but each assignment is one cell to
- *   one cell, so this is not the memmove/memcpy overlap problem.
+ * Teorie C — sursă și destinație care se suprapun, coada rămasă
+ *   Copia nums[k] = nums[i] poate avea k < i (după ce-ai sărit duplicate)
+ *   sau k == i (încă nicio duplicată, prefixul unic e încă toată
+ *   scanarea). Când k == i, atribuirea e un no-op. Când k < i scriem
+ *   într-o celulă a cărei valoare originală a fost deja consumată ca
+ *   duplicat sau deja copiată înainte. Sursa și destinația se suprapun
+ *   în sensul că sunt același tablou, dar fiecare atribuire e o celulă
+ *   către o celulă, deci nu e problema de overlap de la memmove/memcpy.
  *
- *   memcpy of overlapping regions is undefined behavior. memmove is
- *   defined for overlap. We are not calling either; we assign one int
- *   at a time. That is always well-defined if both indices are in range.
+ *   memcpy pe regiuni care se suprapun e comportament nedefinit.
+ *   memmove e definit pentru overlap. Nu apelăm niciuna; atribuim câte
+ *   un int pe rând. Asta e întotdeauna bine definit dacă ambii indici
+ *   sunt în interval.
  *
- *   Empty array: there is no nums[k-1]. Return 0 before the loop.
- *   One element: k starts at 1, the loop does not run, return 1.
+ *   Tablou gol: nu există nums[k-1]. Întoarce 0 înainte de buclă.
+ *   Un element: k pornește de la 1, bucla nu rulează, întoarce 1.
  *
- *   k - 1 on k == 0 would be a bad index. We keep k >= 1 after the
- *   empty check, so nums[k - 1] is valid.
+ *   k - 1 pe k == 0 ar fi un indice prost. Ținem k >= 1 după verificarea
+ *   de gol, deci nums[k - 1] e valid.
  *
- *   Cache: one forward scan, mostly streaming. Writes go to the left
- *   side of the same lines. Excellent locality.
+ *   Cache: o scanare înainte, în mare parte streaming. Scrierile merg
+ *   spre stânga acelorași linii. Localitate excelentă.
  *
- *   Overflow is not involved. In-place mutation is the whole point:
- *   the unique sequence reuses the input's cells.
+ *   Overflow-ul nu e implicat. Mutația pe loc e tot punctul: secvența
+ *   unică reutilizează celulele input-ului.
  *
- *   Printing "ans" concatenated with the integer is the sample's
- *   convention, not a format you should use in a library.
+ *   Tipărirea lui "ans" concatenat cu întregul e convenția exemplului,
+ *   nu un format pe care ar trebui să-l folosești într-o bibliotecă.
  */
 
 #include <iostream>

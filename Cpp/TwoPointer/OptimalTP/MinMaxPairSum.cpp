@@ -1,78 +1,79 @@
 /*
- * LESSON — Minimize the maximum pair sum (pairing the extremes)
+ * LECȚIE — Minimizează suma maximă a perechilor (împerecherea extremelor)
  *
- * Student, this is an independent write-up of the same pairing
- * strategy as MiniMaxSum, with a different sample, so you can
- * re-implement from the comment without looking at that file.
+ * Studentule, ăsta e o explicație independentă a aceleiași strategii de
+ * împerechere ca MiniMaxSum, cu un exemplu diferit, ca să poți
+ * reimplementa din comentariu fără să te uiți la fișierul ăla.
  *
- * Problem
- *   You are given an even count of integers. Pair them all. The
- *   score of a pairing is the largest pair sum. Minimize that score.
- *   Sample: {7,3,1,8,6,1,7,5}. After sorting, 1 1 3 5 6 7 7 8. The
- *   extreme pairs are 1+8=9, 1+7=8, 3+7=10, 5+6=11. The maximum of
- *   those is 11. That is the answer.
+ * Problemă
+ *   Primești un număr par de întregi. Împerechează-i pe toți. Scorul
+ *   unei împerecheri e cea mai mare sumă de pereche. Minimizează scorul
+ *   ăla. Exemplu: {7,3,1,8,6,1,7,5}. După sortare, 1 1 3 5 6 7 7 8.
+ *   Perechile de extreme sunt 1+8=9, 1+7=8, 3+7=10, 5+6=11. Maximul
+ *   lor e 11. Ăsta e răspunsul.
  *
- * Algorithm intuition
- *   Sort the array into non-decreasing order. The smallest remaining
- *   value is the best counterweight for the largest remaining value:
- *   it raises that large number's pair sum as little as possible.
- *   Then repeat on the leftover inner interval. Two indices, one at
- *   each end, walk until they cross. The running max of (nums[i] +
- *   nums[j]) is the minimax score.
+ * Intuiție / Algoritm
+ *   Sortează tabloul nedescrescător. Cea mai mică valoare rămasă e cea
+ *   mai bună contragreutate pentru cea mai mare valoare rămasă: ridică
+ *   suma perechii numărului mare cât de puțin se poate. Apoi repetă pe
+ *   intervalul interior rămas. Doi indici, câte unul la fiecare capăt,
+ *   umblă până se încrucișează. Max-ul care rulează al lui (nums[i] +
+ *   nums[j]) e scorul minimax.
  *
- *   If you pair two large numbers, their sum is a high bar you can
- *   never lower later. If you pair two small numbers, you spend
- *   cheap addends on each other and leave a large number to pair
- *   with a medium one, which is usually a worse max. The extreme
- *   pairing equalizes.
+ *   Dacă împerechezi două numere mari, suma lor e o bară înaltă pe
+ *   care n-o mai poți coborî mai târziu. Dacă împerechezi două numere
+ *   mici, cheltuiești adunzi ieftini unul pe altul și lași un număr
+ *   mare să se împerecheze cu unul mediu, ceea ce e de obicei un max
+ *   mai rău. Împerecherea extremelor egalizează.
  *
- * Complexity
- *   Time  O(n log n) dominated by sort, then a linear scan of n/2
- *   pairs.
- *   Extra space O(1) working memory if sort is in-place. The output
- *   is a single int. Do not store the pairs.
+ * Complexitate
+ *   Timp  O(n log n) dominat de sort, apoi o scanare liniară a n/2
+ *   perechi.
+ *   Memorie extra O(1) memorie de lucru dacă sort e pe loc. Output-ul
+ *   e un singur int. Nu stoca perechile.
  *
- * Memory management
- *   int nums[] decays to a pointer. sort(nums, nums+n) sorts the
- *   existing n cells. Two indices and a long long max on the stack.
- *   We avoid vector on purpose. No second array. The caller's buffer
- *   is permuted; there is no destructor to free it.
+ * Memorie
+ *   int nums[] decade la un pointer. sort(nums, nums+n) sortează cele
+ *   n celule existente. Doi indici și un max long long pe stivă.
+ *   Evităm vector dinadins. Fără al doilea tablou. Buffer-ul apelantului
+ *   e permutat; nu există un destructor care să-l elibereze.
  *
- *   Passing a copy would preserve the original at O(n) extra memory.
- *   This API does not need the original.
+ *   Să transmiți o copie ar păstra originalul cu O(n) memorie extra.
+ *   API-ul ăsta n-are nevoie de original.
  *
- * C theory — extremes, overflow, even length, cache, UB, in-place
- *   The pair sum must be computed in long long. Two int addends at
- *   the positive extreme overflow signed 32-bit. UB is not "wrap
- *   to negative and then your max is wrong"; UB means the compiler
- *   may delete the max update. 1LL * nums[i] + nums[j] is the
- *   habit. Track best in long long. Return int only when you know
- *   the result fits, as in this sample.
+ * Teorie C — extreme, overflow, lungime pară, cache, UB, pe loc
+ *   Suma perechii trebuie calculată în long long. Doi adunzi int la
+ *   extrema pozitivă dau overflow pe signed pe 32 de biți. UB nu e
+ *   „se înfășoară la negativ și apoi max-ul tău e greșit”; UB înseamnă
+ *   că compilatorul poate șterge actualizarea max-ului.
+ *   1LL * nums[i] + nums[j] e obiceiul. Ține best în long long.
+ *   Întoarce int doar când știi că rezultatul încape, ca în exemplul ăsta.
  *
- *   n even: i and j land on a clean split. We loop while i < j, so
- *   we never pair an element with itself. j = n-1 is valid after
- *   an n < 2 guard. Decrementing j is safe while i < j.
+ *   n par: i și j aterizează pe o împărțire curată. Buclăm cât timp
+ *   i < j, deci nu împerechem niciodată un element cu el însuși.
+ *   j = n-1 e valid după o gardă n < 2. Decrementarea lui j e sigură
+ *   cât timp i < j.
  *
- *   sort requires operator< to be a strict weak ordering. For int
- *   it is. Do not compare ints by subtracting them in a qsort
- *   comparator; that subtraction overflows. C++ operator< does not
- *   subtract.
+ *   sort cere ca operator< să fie o ordine slabă strictă. Pentru int
+ *   e. Nu compara int-uri scăzându-le într-un comparator qsort;
+ *   scăderea aia dă overflow. operator< din C++ nu scade.
  *
- *   After sort, the array is contiguous and monotonic. Loading
- *   nums[i] and nums[j] in a lockstep inward walk hits two
- *   sequential streams. Prefetchers like this. A pointer-linked
- *   list of nodes with the same values would turn each step into
- *   a potential cache miss.
+ *   După sort, tabloul e contig și monotonic. Încărcarea lui nums[i]
+ *   și nums[j] într-o plimbare în pas spre interior lovește două
+ *   fluxuri secvențiale. Prefetcher-ele iubesc asta. O listă de noduri
+ *   legate prin pointeri cu aceleași valori ar transforma fiecare pas
+ *   într-un potențial miss de cache.
  *
- *   In-place: sort overwrites the input permutation. The pairing
- *   loop does not write. If a later function needed the unsorted
- *   people list, you already lost it. Copy-and-sort if that matters.
+ *   Pe loc: sort suprascrie permutarea de input. Bucla de împerechere
+ *   nu scrie. Dacă o funcție ulterioară ar avea nevoie de lista
+ *   nesortată de oameni, deja ai pierdut-o. Copiază-și-sortează dacă
+ *   contează.
  *
- *   Empty array: 0. One element: not a pair, 0. Those guards also
- *   prevent a bogus n-1.
+ *   Tablou gol: 0. Un element: nu e o pereche, 0. Gărzile alea și
+ *   previn un n-1 fals.
  *
- *   Printing the int is the whole API. There is no pair list to
- *   format.
+ *   Tipărirea int-ului e tot API-ul. Nu există o listă de perechi de
+ *   formatat.
  */
 
 #include <algorithm>
