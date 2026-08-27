@@ -11,7 +11,7 @@
  *   Pune-le egale:
  *       x(x+1)/2  =  n(n+1)/2 - x(x-1)/2
  *       x^2       =  n(n+1)/2
- *   Deci x e un pivot integer iff x^2 egalează al n-lea număr
+ *   Deci x e un pivot integer dacă și numai dacă x^2 egalează al n-lea număr
  *   triunghiular. x e rădăcina pătrată întreagă a lui T_n, când
  *   rădăcina aia e exactă.
  *

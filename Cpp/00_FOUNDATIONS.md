@@ -1,291 +1,300 @@
-# Foundations: C and C++, taught from the machine up
+# Fundamente: C și C++, de la mașină în sus
 
-Read this before the challenges. Excellent software engineers do not only know
-*what* an algorithm does. They know *where the bytes live*, *who owns them*,
-and *what the language promises* (and does not promise).
+Citește asta înainte de provocări. Un inginer bun nu știe doar *ce face*
+un algoritm. Știe *unde stau octeții*, *cine îi deține* și *ce promite
+limbajul* (și ce nu promite).
 
-C is the portable assembly of UNIX: types, pointers, and a thin runtime.
-C++ is C's model plus types that can own resources. These lessons are C++
-source. The type we use for a list of ints is a C array: `int nums[]`
-plus a length `int n`. That is a pointer, a length, and a buffer you can
-see. C++ also has `vector<int>` (a heap buffer plus a length object).
-These lessons do not use it. We want the parameter to look like
-`int nums[]`.
+C este ansamblul portabil al UNIX: tipuri, pointeri și un runtime subțire.
+C++ este modelul din C, plus tipuri care pot deține resurse. Lecțiile sunt
+sursă C++. Tipul pe care îl folosim pentru o listă de `int` este un tablou C:
+`int nums[]` plus o lungime `int n`. Asta înseamnă un pointer, o lungime
+și un buffer pe care îl vezi. C++ are și `vector<int>` (un buffer pe heap
+plus un obiect cu lungime). Aceste lecții nu îl folosesc. Vrem ca
+parametrul să arate ca `int nums[]`.
 
 ---
 
-## 1. What a program actually is
+## 1. Ce este, de fapt, un program
 
-The compiler produces **machine code**. Rough pipeline:
+Compilatorul produce **cod mașină**. Pipeline-ul, pe scurt:
 
 ```
 source.cpp  ->  preprocessor  ->  compiler  ->  assembler  ->  linker  ->  executable
    .cpp           #include           .s / .o        .o          libc++        a.out
 ```
 
-- **Preprocessor**: text substitution (`#include`, `#define`). It does not
-  understand types.
-- **Compiler**: parses C++, type-checks, emits object code.
-- **Linker**: stitches object files and libraries, resolves `main`, `printf`,
+- **Preprocessor**: înlocuire de text (`#include`, `#define`). Nu înțelege tipuri.
+- **Compiler**: parsează C++, verifică tipurile, emite object code.
+- **Linker**: leagă fișierele obiect și bibliotecile, rezolvă `main`, `printf`,
   `std::cout`.
-- **Loader** (OS): maps the binary into a process: code, static data, heap, stack.
+- **Loader** (sistemul de operare): mapează binarul într-un proces: cod, date
+  statice, heap, stivă.
 
-A missing `#include` is a **compile** error. A missing library is a **link**
-error. A wild pointer is a **runtime** crash — or silent corruption.
+Un `#include` lipsă este eroare de **compilare**. O bibliotecă lipsă este
+eroare de **link**. Un pointer sălbatic este crash la **rulare** — sau
+corupere tăcută.
 
-Compile every lesson with warnings on:
+Compilează fiecare lecție cu avertismentele pornite:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -Wpedantic -O0 -g file.cpp -o file
 ```
 
-`-O0 -g` keeps the mapping from source to machine honest while you learn.
-Later, `-O2` changes codegen (inlining, unrolling) but not the *meaning* of
-well-defined programs.
+`-O0 -g` păstrează maparea de la sursă la mașină cinstită cât înveți.
+Mai târziu, `-O2` schimbă generarea de cod (inlining, unrolling), dar nu
+*sensul* programelor bine definite.
 
-C compilation is the same pipeline with `gcc` and a `.c` file. C++ adds name
-mangling, constructors, and a richer standard library. The CPU still executes
-loads, stores, and jumps.
+Compilarea C este același pipeline cu `gcc` și un fișier `.c`. C++ adaugă
+name mangling, constructori și o bibliotecă standard mai bogată. CPU-ul tot
+execută load-uri, store-uri și salturi.
 
 ---
 
-## 2. Process memory layout
+## 2. Așezarea memoriei unui proces
 
-A typical user-space process (addresses grow as drawn):
+Un proces tipic în user-space (adresele cresc ca în desen):
 
 ```
-high addresses
+adrese mari
   ┌─────────────────────────┐
-  │ stack                   │  function frames, locals, return addresses
-  │         ↓ grows down    │
+  │ stivă (stack)           │  cadre de funcție, locale, adrese de retur
+  │         ↓ crește în jos │
   ├─────────────────────────┤
-  │ ... unused ...          │
+  │ ... nefolosit ...       │
   ├─────────────────────────┤
-  │         ↑ grows up      │
-  │ heap                    │  malloc / new / std::vector buffer
+  │         ↑ crește în sus │
+  │ heap                    │  malloc / new / buffer std::vector
   ├─────────────────────────┤
-  │ BSS  (zero-initialized  │  global/static with no explicit init
-  │       static storage)   │
+  │ BSS  (stocare statică   │  globale/statice fără inițializare explicită
+  │       zeroată)          │
   ├─────────────────────────┤
-  │ data (initialized       │  global/static with values
-  │       static storage)   │
+  │ data (stocare statică   │  globale/statice cu valori
+  │       inițializată)     │
   ├─────────────────────────┤
-  │ text (machine code)     │  your functions, usually read-only
+  │ text (cod mașină)       │  funcțiile tale, de obicei doar citire
   └─────────────────────────┘
-low addresses
+adrese mici
 ```
 
-**Stack**
+**Stiva (stack)**
 
-- Each call pushes a **frame**: return address, spilled registers, locals.
-- Allocation is a pointer bump (`sub rsp, N`). Freeing is `ret`. Extremely fast.
-- Size is limited (often a few MB). `int a[10'000'000];` as a local can
-  smash the stack.
-- Objects on the stack die when the scope ends. That is the heart of RAII.
+- Fiecare apel pune un **cadru**: adresa de retur, registre salvate, locale.
+- Alocarea este o mutare de pointer (`sub rsp, N`). Eliberarea este `ret`.
+  Extrem de rapid.
+- Dimensiunea e limitată (adesea câteva MB). `int a[10'000'000];` ca local
+  poate sparge stiva.
+- Obiectele de pe stivă mor când se închide domeniul (scope). Asta e inima RAII.
 
 **Heap**
 
-- `malloc` / `new` / the buffer inside `std::vector` live here.
-- The allocator talks to the OS (`brk` / `mmap`) in chunks, then hands you
-  pieces.
-- Someone **must** free it. In C that is `free`. In C++ that is a destructor
-  (or `delete`, which you should not write by hand in these lessons).
+- Aici trăiesc `malloc` / `new` / buffer-ul din `std::vector`.
+- Allocatorul vorbește cu OS-ul (`brk` / `mmap`) în bucăți, apoi îți dă
+  piese.
+- Cineva **trebuie** să elibereze. În C asta e `free`. În C++ e un destructor
+  (sau `delete`, pe care nu trebuie să-l scrii de mână în aceste lecții).
 
-**Static storage**
+**Stocare statică**
 
-- Globals and `static` locals live for the whole program.
-- `.data` holds explicit initializers; `.bss` is zeroed by the loader.
+- Globalele și localele `static` trăiesc tot programul.
+- `.data` ține inițializatori expliciți; `.bss` e zeroat de loader.
 
-A stack array (this course, when n is known):
+Un tablou pe stivă (în acest curs, când n e cunoscut):
 
 ```cpp
 int nums[] = {8, 3, 10, 5};
 int n = sizeof(nums) / sizeof(nums[0]);
 ```
 
-A heap array (when the length is data-dependent, see HashingIntro):
+Un tablou pe heap (când lungimea depinde de date, vezi HashingIntro):
 
 ```cpp
 int *a = new int[n];
-/* use a[0..n) */
+/* folosește a[0..n) */
 delete[] a;
 ```
 
-C is the same heap story with `malloc` / `free`. C++ also has `vector<int>`;
-these lessons do not use it. Passing `int nums[], int n` passes a pointer
-and a length: no copy of the buffer.
+În C e aceeași poveste pe heap cu `malloc` / `free`. C++ are și `vector<int>`;
+aceste lecții nu îl folosesc. `int nums[], int n` transmite un pointer și o
+lungime: nu se copiază buffer-ul.
 
 ---
 
-## 3. Values, pointers, references, arrays
+## 3. Valori, pointeri, referințe, tablouri
 
 ```cpp
-int  x  = 42;   // a value: 42 lives in this object
-int* p  = &x;   // a pointer: p holds the address of x
-int& r  = x;    // a reference: another name for x, bound at initialization
+int  x  = 42;   // o valoare: 42 trăiește în acest obiect
+int* p  = &x;   // un pointer: p ține adresa lui x
+int& r  = x;    // o referință: alt nume pentru x, legată la inițializare
 ```
 
-| | Pointer `T*` | Reference `T&` |
+| | Pointer `T*` | Referință `T&` |
 |---|---|---|
-| Can be null? | Yes (`NULL` / `nullptr`) | No, in well-defined code |
-| Can reseat? | Yes (`p = q`) | No |
-| Arithmetic? | Yes (`p + 1`) | No |
-| Must dereference? | Yes (`*p`, `p->`) | Implicit |
+| Poate fi null? | Da (`NULL` / `nullptr`) | Nu, în cod bine definit |
+| Se poate relega? | Da (`p = q`) | Nu |
+| Aritmetică? | Da (`p + 1`) | Nu |
+| Trebuie dereferențiat? | Da (`*p`, `p->`) | Implicit |
 
-**Pointer arithmetic** is how C arrays work: `a[i]` is defined as `*(a + i)`.
-If `p` points to an `int`, `p + 1` advances **one int**, not one byte. The
-compiler multiplies by `sizeof(int)`.
+**Aritmetica pointerilor** este modul în care funcționează tablourile C:
+`a[i]` este definit ca `*(a + i)`. Dacă `p` pointează la un `int`, `p + 1`
+avansează **un int**, nu un octet. Compilatorul înmulțește cu `sizeof(int)`.
 
-**Array-to-pointer decay** is the C rule you must never forget:
+**Decay-ul tablou → pointer** este regula C pe care nu trebuie s-o uiți:
 
 ```c
-void f(int a[10]);      /* lie: this is still int *a */
-void f(int a[], int n); /* the interface this course uses */
+void f(int a[10]);      /* minciună: tot int *a este */
+void f(int a[], int n); /* interfața folosită în acest curs */
 ```
 
-A parameter declared as an array **decays** to a pointer. `sizeof(a)` inside
-`f` is the size of a pointer (8 bytes on LP64), not the array. That is why
-every function in this course takes a length: `int nums[], int n`.
+Un parametru declarat ca tablou **decade** la pointer. `sizeof(a)` în
+interiorul lui `f` este dimensiunea unui pointer (8 octeți pe LP64), nu a
+tabloului. De aceea fiecare funcție din acest curs primește o lungime:
+`int nums[], int n`.
 
-In `main` the array still has a known size. Compute `n` *there*, while
-`nums` is a real array, then pass both:
+În `main` tabloul încă are o dimensiune cunoscută. Calculează `n` *acolo*,
+cât timp `nums` este un tablou real, apoi transmite ambele:
 
 ```cpp
 int nums[] = {8, 3, 10, 5};
-int n = sizeof(nums) / sizeof(nums[0]);  // 4 — only valid HERE
-foo(nums, n);                            // nums decays to &nums[0]
+int n = sizeof(nums) / sizeof(nums[0]);  // 4 — valid DOAR AICI
+foo(nums, n);                            // nums decade la &nums[0]
 ```
 
-Inside `foo`, `sizeof(nums)` is 8 on LP64, not 16. The length traveled as
-`n`. This is the whole point of decay.
+În interiorul lui `foo`, `sizeof(nums)` este 8 pe LP64, nu 16. Lungimea a
+călătorit ca `n`. Acesta este tot punctul decay-ului.
 
-C++ also has `vector<int>` in the standard library. These lessons do not
-use it. We pass a pointer and a length on purpose so the type looks like
-`int nums[]`.
+C++ are și `vector<int>` în biblioteca standard. Aceste lecții nu îl
+folosesc. Transmitem un pointer și o lungime dinadins, ca tipul să arate
+ca `int nums[]`.
 
-**Pass by value vs pass by pointer (arrays) vs pass by reference**
+**Transmitere prin valoare vs prin pointer (tablouri) vs prin referință**
 
 ```cpp
-void by_value(int x);           // copies the int
-void by_ref  (int& x);          // alias; callee can mutate
-void by_cref (const int& x);    // alias, read-only
-void by_arr  (int a[], int n);  // this course: pointer + length. No copy of the buffer.
-void by_ptr  (int *a, int n);   // same as by_arr: a[] decays to int*
+void by_value(int x);           // copiază int-ul
+void by_ref  (int& x);          // alias; apelatul poate muta
+void by_cref (const int& x);    // alias, doar citire
+void by_arr  (int a[], int n);  // acest curs: pointer + lungime. Fără copie a buffer-ului.
+void by_ptr  (int *a, int n);   // la fel ca by_arr: a[] decade la int*
 ```
 
-Prefer `int` (by value) for small types. Prefer `int a[], int n` for arrays
-in this course. Writes through `a[i]` change the caller's buffer: that is
-not a copy. Prefer `T*` when you mean "optional" or a C string.
+Preferă `int` (prin valoare) pentru tipuri mici. Preferă `int a[], int n`
+pentru tablouri în acest curs. Scrierile prin `a[i]` schimbă buffer-ul
+apelantului: nu este o copie. Preferă `T*` când vrei „opțional” sau un
+șir C.
 
 ---
 
-## 4. Ownership and RAII (C++ on top of C)
+## 4. Proprietate și RAII (C++ deasupra lui C)
 
-In C, every `malloc` has a matching `free` on every path, including errors.
-Miss one path and you leak. Free twice and you corrupt the heap.
+În C, fiecare `malloc` are un `free` pe fiecare cale, inclusiv pe erori.
+Ratezi o cale și ai leak. Eliberezi de două ori și corupezi heap-ul.
 
-**RAII** = Resource Acquisition Is Initialization. Tie the resource to an
-object's lifetime:
+**RAII** = Resource Acquisition Is Initialization. Leagă resursa de durata
+de viață a unui obiect:
 
-- Constructor acquires (memory, file, lock).
-- Destructor releases. Destructors run when the object leaves scope,
-  including during exception unwinding.
+- Constructorul o dobândește (memorie, fișier, lock).
+- Destructorul o eliberează. Destructorii rulează când obiectul iese din
+  scope, inclusiv la derularea excepțiilor.
 
 ```cpp
 {
-    std::vector<int> v{1, 2, 3};  // constructor allocates
-} // destructor frees. You never call delete.
+    std::vector<int> v{1, 2, 3};  // constructorul alocă
+} // destructorul eliberează. Nu apelezi niciodată delete.
 ```
 
-Do **not** write `new` / `delete` in these lessons. The STL already does it
-correctly. Raw `new` is how leaks, double-frees, and use-after-free are born.
+**Nu** scrie `new` / `delete` în aceste lecții. STL-ul o face corect.
+`new` brut este cum se nasc leak-urile, double-free și use-after-free.
 
-Mental model: **every resource has exactly one owner**. `std::vector` owns
-its buffer. `std::unique_ptr` owns a single heap object. `std::shared_ptr`
-is refcounted shared ownership — use it rarely.
+Model mintal: **fiecare resursă are exact un proprietar**. `std::vector`
+își deține buffer-ul. `std::unique_ptr` deține un singur obiect pe heap.
+`std::shared_ptr` este proprietate partajată cu număr de referințe — folosește-l rar.
 
-The C analogue of RAII is `goto cleanup;` plus a single `free` at the bottom
-of a function. C++ automates that pattern with destructors.
+Analogul C al RAII este `goto cleanup;` plus un singur `free` la sfârșitul
+funcției. C++ automatizează acest tipar cu destructori.
 
 ---
 
-## 5. Integer types, overflow, and undefined behavior
+## 5. Tipuri întregi, overflow și comportament nedefinit
 
-On this machine `int` is 32-bit two's complement. The C and C++ standards
-only *guarantee* `INT_MIN <= -32767` and `INT_MAX >= 32767`. These lessons
-treat `int` as 32-bit.
+Pe această mașină `int` este complementul față de doi pe 32 de biți.
+Standardele C și C++ *garantează* doar `INT_MIN <= -32767` și
+`INT_MAX >= 32767`. Aceste lecții tratează `int` ca 32 de biți.
 
-**Signed overflow is undefined behavior (UB).**
+**Overflow-ul pe signed este comportament nedefinit (UB).**
 
 ```cpp
-int s = (n * (n + 1)) / 2;   // if n*(n+1) overflows, the program is meaningless
+int s = (n * (n + 1)) / 2;   // dacă n*(n+1) dă overflow, programul nu mai are sens
 ```
 
-The compiler may assume overflow never happens and delete "impossible"
-checks. Unsigned overflow wraps modulo 2^w and is well-defined. That is why
-`size_t` wrap-around is sneaky but legal, while `int` wrap-around is not.
+Compilatorul poate presupune că overflow-ul nu se întâmplă niciodată și
+poate șterge verificări „imposibile”. Overflow-ul pe unsigned se înfășoară
+modulo 2^w și este bine definit. De aceea wrap-ul pe `size_t` e viclean dar
+legal, iar wrap-ul pe `int` nu este.
 
-Fixes you will see in the course:
+Corecții pe care le vei vedea în curs:
 
-- Compute in `long long` (at least 64-bit). Force it with `1LL * a * b`.
-- Use `l + (r - l) / 2` instead of `(l + r) / 2` so the midpoint cannot overflow.
-- Watch `INT_MIN`: unary minus of `INT_MIN` cannot be represented in 32-bit
-  two's complement.
+- Calculează în `long long` (cel puțin 64 de biți). Forțează cu `1LL * a * b`.
+- Folosește `l + (r - l) / 2` în loc de `(l + r) / 2` ca mijlocul să nu dea overflow.
+- Atenție la `INT_MIN`: minusul unar al lui `INT_MIN` nu poate fi reprezentat
+  în complement față de doi pe 32 de biți.
 
-**Other UB you will meet:** out-of-bounds access, use of uninitialized
-storage, dangling pointers, data races. The compiler owes you **nothing**.
-The program may crash, appear to work, or corrupt data later.
+**Alt UB pe care îl vei întâlni:** acces în afara limitelor, folosirea
+stocării neinițializate, pointeri dangling, curse pe date. Compilatorul nu
+îți datorează **nimic**. Programul poate crăpa, poate părea că merge, sau
+poate corupe date mai târziu.
 
-Professional habit:
+Obicei de profesionist:
 
 ```bash
 g++ -std=c++17 -O0 -g -fsanitize=address,undefined file.cpp -o file
 ```
 
-AddressSanitizer catches heap/stack overflows and use-after-free.
-UndefinedBehaviorSanitizer catches signed overflow and many misaligned loads.
+AddressSanitizer prinde overflow pe heap/stivă și use-after-free.
+UndefinedBehaviorSanitizer prinde overflow pe signed și multe load-uri
+nealiniate.
 
 ---
 
-## 6. Cache, locality, and why arrays win
+## 6. Cache, localitate și de ce câștigă tablourile
 
-The CPU fetches **cache lines** (typically 64 bytes), not single ints.
-A contiguous `int a[n]` or `std::vector<int>` is friendly: walking
-`a[i], a[i+1], ...` hits the same line, then the next.
+CPU-ul aduce **linii de cache** (de obicei 64 de octeți), nu câte un `int`.
+Un `int a[n]` contig sau un `std::vector<int>` este prietenos: parcurgerea
+`a[i], a[i+1], ...` lovește aceeași linie, apoi pe următoarea.
 
-A node-based structure (`std::list`, a pointer graph) jumps around the heap.
-Same big-O, worse constants, worse branch prediction, worse prefetching.
+O structură pe noduri (`std::list`, un graf de pointeri) sare prin heap.
+Același big-O, constante mai proaste, predicție de salt mai proastă,
+prefetch mai prost.
 
-This is why so many of these challenges stay on arrays: O(1) extra memory
-and sequential access is how real systems stay fast.
+De aceea atâtea provocări rămân pe tablouri: memorie extra O(1) și acces
+secvențial este felul în care sistemele reale rămân rapide.
 
-`sizeof(int)` is 4. A 64-byte line holds 16 ints. A linear scan of a million
-ints is a few tens of thousands of line fills. A pointer-chasing scan of a
-million nodes can be a million cache misses.
-
----
-
-## 7. Complexity you must say out loud
-
-For every function, state:
-
-- **Time**: worst case in `n` (and extra parameters `k`, `W`, ...).
-- **Extra space**: besides the input. In-place O(1) vs a copy O(n).
-- **What you mutate**: does the caller still have the original array?
-
-Big-O hides constants. `O(n)` hashing with a cold cache can lose to
-`O(n log n)` on sorted arrays of moderate `n`. Reason first; measure when
-it matters.
+`sizeof(int)` este 4. O linie de 64 de octeți ține 16 `int`. O parcurgere
+liniară a unui milion de `int` sunt câteva zeci de mii de umpleri de linie.
+O parcurgere care urmărește pointeri pe un milion de noduri poate fi un
+milion de miss-uri de cache.
 
 ---
 
-## 8. C library vs what this course actually writes
+## 7. Complexitatea pe care trebuie s-o spui cu voce tare
 
-Every lesson starts with `using namespace std;` so names are `cout`,
-`sort`, `unordered_map` — not `std::cout`. Do not write `std::` prefixes.
-Do not write `vector`. Do not write `size_t` or `static_cast`.
+Pentru fiecare funcție, spune:
 
-The array type of this course is a C array plus a length:
+- **Timp**: cazul cel mai rău în `n` (și parametri extra `k`, `W`, ...).
+- **Spațiu extra**: în afara inputului. Pe loc O(1) vs o copie O(n).
+- **Ce muți**: mai are apelantul tabloul original?
+
+Big-O ascunde constantele. Un hashing `O(n)` cu cache rece poate pierde
+în fața lui `O(n log n)` pe tablouri sortate de `n` moderat. Raționează
+întâi; măsoară când contează.
+
+---
+
+## 8. Biblioteca C vs ce scrie de fapt acest curs
+
+Fiecare lecție începe cu `using namespace std;` ca numele să fie `cout`,
+`sort`, `unordered_map` — nu `std::cout`. Nu scrie prefixe `std::`.
+Nu scrie `vector`. Nu scrie `size_t` sau `static_cast`.
+
+Tipul de tablou al acestui curs este un tablou C plus o lungime:
 
 ```cpp
 #include <iostream>
@@ -293,7 +302,7 @@ using namespace std;
 
 int foo(int nums[], int n) {
     for (int i = 0; i < n; i++) {
-        /* nums[i] is *(nums + i) */
+        /* nums[i] este *(nums + i) */
     }
     return 0;
 }
@@ -306,37 +315,37 @@ int main() {
 }
 ```
 
-`vector<int>` exists in C++. We do not use it here. `int nums[]` is the
-type on purpose.
+`vector<int>` există în C++. Nu îl folosim aici. `int nums[]` este tipul
+dinadins.
 
-| Need | C | This course |
-|------|---|-------------|
-| Array of ints | `int a[n]` or `malloc` | `int nums[]` + `int n` |
-| Heap buffer (unknown U) | `malloc` + `free` | `int *p = new int[U];` … `delete[] p` |
-| Bytes of text | `char *` + `strlen` | `char str[]`, walk until `'\0'` |
-| Sort | `qsort` | `sort(nums, nums + n)` from `<algorithm>` |
-| Min / max | ternary | `min` / `max`, or an `if` |
-| Hash table | roll your own | `unordered_map<K,V>` (or `typedef` it) |
-| Counting alphabet | `int hash[26]` | `int hash[26]` |
-| Stack | array + `top` index | `int stk[100]; int top = -1;` |
-| Limits | `INT_MIN` in `<climits>` | `INT_MIN` / `INT_MAX` |
-| Print | `printf` | `cout << x << "\n"` (not `endl`) |
+| Nevoie | C | Acest curs |
+|--------|---|------------|
+| Tablou de int | `int a[n]` sau `malloc` | `int nums[]` + `int n` |
+| Buffer pe heap (U necunoscut) | `malloc` + `free` | `int *p = new int[U];` … `delete[] p` |
+| Octeți de text | `char *` + `strlen` | `char str[]`, parcurgi până la `'\0'` |
+| Sortare | `qsort` | `sort(nums, nums + n)` din `<algorithm>` |
+| Min / max | operator ternar | `min` / `max`, sau un `if` |
+| Tabelă hash | o scrii tu | `unordered_map<K,V>` (sau `typedef`) |
+| Numărare pe alfabet | `int hash[26]` | `int hash[26]` |
+| Stivă | tablou + indice `top` | `int stk[100]; int top = -1;` |
+| Limite | `INT_MIN` în `<climits>` | `INT_MIN` / `INT_MAX` |
+| Afișare | `printf` | `cout << x << "\n"` (nu `endl`) |
 
-`endl` flushes the stream. Prefer `"\n"` unless you need a flush.
+`endl` golește stream-ul (flush). Preferă `"\n"` decât dacă ai nevoie de flush.
 
-`sizeof` on a *parameter* that looks like an array is the size of a
-pointer. Always pass `n` separately. Compute `n` in `main` with
-`sizeof(nums) / sizeof(nums[0])` while `nums` is still a real array.
+`sizeof` pe un *parametru* care arată ca un tablou este dimensiunea unui
+pointer. Transmite întotdeauna `n` separat. Calculează `n` în `main` cu
+`sizeof(nums) / sizeof(nums[0])` cât timp `nums` este încă un tablou real.
 
 ---
 
-## 9. How to study each challenge
+## 9. Cum studiezi fiecare provocare
 
-1. Read the header comment (problem + why the algorithm is correct).
-2. Trace the sample on paper with indices. Draw the array in memory.
-3. Compile and run. Change the input. Break it on purpose.
-4. Ask: *where do the bytes live? who frees them? can `int` overflow?*
-5. Re-implement in a blank file without looking.
+1. Citește comentariul din cap (enunț + de ce algoritmul e corect).
+2. Urmărește exemplul pe hârtie, cu indici. Desenează tabloul în memorie.
+3. Compilează și rulează. Schimbă inputul. Strică-l dinadins.
+4. Întreabă-te: *unde stau octeții? cine îi eliberează? poate `int` să dea overflow?*
+5. Rescrie într-un fișier gol, fără să te uiți.
 
-When you can explain **correctness, complexity, and memory** without the
-comments, you are done with that lesson.
+Când poți explica **corectitudinea, complexitatea și memoria** fără
+comentarii, ai terminat lecția.

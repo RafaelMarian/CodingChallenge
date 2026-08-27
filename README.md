@@ -1,43 +1,44 @@
-# Coding Challenges in C++
+# Provocări de programare în C++
 
-A course of algorithm drills written in C++, taught with the C machine model:
-memory layout, pointers, ownership, undefined behavior, and complexity.
+Un curs de algoritmi scris în C++, predat pe modelul mașinii din C:
+așezarea memoriei, pointeri, cine deține resursele, comportament nedefinit
+și complexitate.
 
-1. Read [`Cpp/00_FOUNDATIONS.md`](Cpp/00_FOUNDATIONS.md) once, slowly.
-2. Work through the folders **in the order below**.
-3. Compile and run every file. Do not only read.
-4. After each file, close it and re-implement the function from memory.
+1. Citește [`Cpp/00_FOUNDATIONS.md`](Cpp/00_FOUNDATIONS.md) o dată, încet.
+2. Parcurge folderele **în ordinea de mai jos**.
+3. Compilează și rulează fiecare fișier. Nu te opri la citit.
+4. După fiecare fișier, închide-l și rescrie funcția din memorie.
 
 ```bash
-# one lesson
+# o lecție
 g++ -std=c++17 -Wall -Wextra -Wpedantic -O0 -g Cpp/SinglePointer/LinearSearch.cpp -o /tmp/cc && /tmp/cc
 
-# sanitizers (catch UB: out-of-bounds, signed overflow, use-after-free)
+# sanitizere (prind UB: ieșire din vector, overflow pe signed, use-after-free)
 g++ -std=c++17 -O0 -g -fsanitize=address,undefined Cpp/SinglePointer/LinearSearch.cpp -o /tmp/cc && /tmp/cc
 
-# every lesson, compiled and executed
+# toate lecțiile, compilate și rulate
 make -C Cpp
 ```
 
 ---
 
-## Study order (do not skip)
+## Ordinea de studiu (nu sări peste pași)
 
-| Step | Folder | What you are learning |
-|------|--------|------------------------|
-| 1 | `Cpp/00_FOUNDATIONS.md` | Compilation, process memory, pointers, RAII, UB |
-| 2 | `Cpp/SinglePointer/` | Contiguous arrays, overflow, one-pass scans |
-| 3 | `Cpp/TwoPointer/` | In-place mutation, swaps, C strings `char s[]` |
-| 4 | `Cpp/ThreePointers/` | Partitioning a range in one pass |
-| 5 | `Cpp/PrefixSum/` | Extra memory as a time trade |
-| 6 | `Cpp/SlidingWindow/` | Amortized O(n) windows |
-| 7 | `Cpp/Kadanes/` | Local decisions that keep a global optimum |
-| 8 | `Cpp/Stack/` | Monotonic stacks, LIFO, C array + `top` index |
-| 9 | `Cpp/Hashing/` | Counting arrays vs hash tables, collisions |
-| 10 | `Cpp/BoyerMooreMajority/` | Constant extra memory algorithms |
-| 11 | `Cpp/BinarySearch/` | Search on indices *and* on the answer |
-| 12 | `Cpp/MergeIntervals/` | Sorting + greedy merge |
-| 13 | `Cpp/Gussai/` | Closed-form math vs hardcoding |
+| Pas | Folder | Ce înveți |
+|-----|--------|-----------|
+| 1 | `Cpp/00_FOUNDATIONS.md` | Compilare, memoria procesului, pointeri, RAII, UB |
+| 2 | `Cpp/SinglePointer/` | Tablouri contigue, overflow, o singură parcurgere |
+| 3 | `Cpp/TwoPointer/` | Mutare pe loc, swap, șiruri C `char s[]` |
+| 4 | `Cpp/ThreePointers/` | Partiționarea unui interval într-o singură trecere |
+| 5 | `Cpp/PrefixSum/` | Memorie în plus în schimbul timpului |
+| 6 | `Cpp/SlidingWindow/` | Ferestre amortizate O(n) |
+| 7 | `Cpp/Kadanes/` | Decizii locale care păstrează un optimum global |
+| 8 | `Cpp/Stack/` | Stive monotone, LIFO, tablou C + indice `top` |
+| 9 | `Cpp/Hashing/` | Tablouri de numărare vs tabele hash, coliziuni |
+| 10 | `Cpp/BoyerMooreMajority/` | Algoritmi cu memorie extra constantă |
+| 11 | `Cpp/BinarySearch/` | Căutare pe indici *și* pe răspuns |
+| 12 | `Cpp/MergeIntervals/` | Sortare + unire greedy |
+| 13 | `Cpp/Gussai/` | Formulă închisă vs valori hardcodate |
 
-Each `.cpp` file is a lesson: problem, why the algorithm is correct, complexity,
-memory and C theory, then working code you compile.
+Fiecare fișier `.cpp` este o lecție: enunț, de ce algoritmul e corect,
+complexitate, memorie și teorie C, apoi cod pe care îl compilezi.
