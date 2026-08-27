@@ -1,73 +1,79 @@
 /*
- * LESSON — Maximum product subarray: two directions, zeros as walls
+ * LECȚIE — Produsul maxim de subtablou: două direcții, zerouri ca ziduri
  *
- * Student, return the maximum product of any contiguous subarray.
- * Products grow (and change sign) in a way sums do not, so Kadane's
- * "reset when negative" is the wrong move. A negative prefix can
- * become the best answer the moment you multiply by another negative.
+ * Studentule, întoarce produsul maxim al oricărui subtablou contig. Produsele
+ * cresc (și își schimbă semnul) într-un fel în care sumele nu o
+ * fac, deci „resetează când e negativ” de la Kadane e mutarea
+ * greșită. Un prefix negativ poate deveni cel mai bun răspuns în
+ * clipa în care înmulțești cu un alt negativ.
  *
- * Intuition
- *   Three facts govern every product-subarray:
+ * Intuiție
+ *   Trei fapte guvernează fiecare subtablou-produs:
  *
- *   1. Zeros split the array. A 0 is a wall: the product through a 0
- *      is 0, and the next non-zero starts a fresh segment. We reset
- *      the running product to 1 after a 0 (in this code: if the
- *      running product is 0 at the top of the next iteration, set it
- *      to 1 before multiplying).
+ *   1. Zerourile taie tabloul. Un 0 e un zid: produsul printr-un 0
+ *      e 0, și următorul nenul începe un segment proaspăt. Resetăm
+ *      produsul care rulează la 1 după un 0 (în codul ăsta: dacă
+ *      produsul care rulează e 0 la începutul iterației următoare,
+ *      pune-l pe 1 înainte de a înmulți).
  *
- *   2. An even count of negatives in a segment gives a positive
- *      product. An odd count leaves the overall product negative.
- *      The best slice then drops a prefix or a suffix that contains
- *      the leftover negative — whichever drop hurts less.
+ *   2. Un număr par de negative într-un segment dă un produs
+ *      pozitiv. Un număr impar lasă produsul total negativ.
+ *      Cea mai bună felie atunci aruncă un prefix sau un sufix
+ *      care conține negativul rămas — oricare aruncare doare mai
+ *      puțin.
  *
- *   3. One left-to-right running product sees "drop a suffix." One
- *      right-to-left running product sees "drop a prefix." Together
- *      they cover both ends without an O(n) extra table. We also
- *      consider 0 itself as a candidate (a subarray [0] has product 0).
+ *   3. Un produs care rulează stânga-dreapta vede „aruncă un
+ *      sufix”. Unul dreapta-stânga vede „aruncă un prefix”.
+ *      Împreună acoperă ambele capete fără un tabel extra O(n).
+ *      Considerăm și 0 însuși ca și candidat (un subtablou [0] are
+ *      produs 0).
  *
- *   Sample {-2, 6, -3, -10, 0, 2}:
- *     Left-to-right running products:  -2, -12, 36, -360, 0, 2.
- *     Right-to-left:                    2, 0, -10, 30, 180, -360.
- *     The champion is 180 = 6 * (-3) * (-10). A single left-to-right
- *     pass never reports 180, because that slice does not start at
- *     index 0 of its segment. The reverse pass finds it. That is why
- *     two directions are not optional.
+ *   Exemplul {-2, 6, -3, -10, 0, 2}:
+ *     Produse care rulează stânga-dreapta:  -2, -12, 36, -360, 0, 2.
+ *     Dreapta-stânga:                        2, 0, -10, 30, 180, -360.
+ *     Campionul e 180 = 6 * (-3) * (-10). O singură trecere
+ *     stânga-dreapta nu raportează niciodată 180, pentru că felia
+ *     aia nu începe la indicele 0 al segmentului ei. Trecerea
+ *     inversă o găsește. De-asta două direcții nu sunt opționale.
  *
- * Complexity
- *   Time O(n): one combined pass (or two sequential passes). Extra
- *   memory O(1): a handful of long long scalars. No extra array.
+ * Complexitate
+ *   Timp O(n): o trecere combinată (sau două treceri secvențiale).
+ *   Memorie extra O(1): o mână de scalari long long. Fără tablou extra.
  *
- * Memory
- *   int arr[], int n: no copy of the input. leftToRight, rightToLeft,
- *   and maxProd are automatic storage. The two running products are
- *   just integers; we do not store the product arrays. Collapsing
- *   those arrays to scalars is the same lesson as Kadane. arr decayed
- *   to a pointer; n is the length.
+ * Memorie
+ *   int arr[], int n: fără copie a inputului. leftToRight, rightToLeft
+ *   și maxProd sunt stocare automată. Cele două produse care rulează
+ *   sunt doar întregi; nu stocăm tablourile de produse. Prăbușirea
+ *   acelor tablouri la scalari e aceeași lecție ca Kadane. arr a
+ *   decăzut la un pointer; n e lungimea.
  *
- * C theory — long long, overflow, zeros, and cache
- *   Products overflow int almost immediately. 10 modest factors can
- *   leave 32-bit range. We accumulate in long long (at least 64-bit).
- *   Signed overflow of long long is still UB; the sample fits. If
- *   products may hit 2^63, you need a bigger strategy (big integers,
- *   or a problem constraint that forbids it).
+ * Teorie C — long long, overflow, zerouri și cache
+ *   Produsele ies din int aproape imediat. 10 factori modești pot
+ *   părăsi domeniul pe 32 de biți. Acumulăm în long long (cel puțin
+ *   64 de biți). Overflow-ul pe signed al lui long long tot e UB;
+ *   exemplul încape. Dacă produsele pot lovi 2^63, ai nevoie de o
+ *   strategie mai mare (întregi mari, sau o constrângere a problemei
+ *   care o interzice).
  *
- *   Reset on 0 is a control-flow decision, not a memory one. After
- *   multiplying by 0 the running product is 0; we record it (0 can
- *   be the answer if everything else is negative), then restore 1
- *   so the next factor starts a new segment rather than staying 0
- *   forever (0 * x == 0, which would hide every later slice).
+ *   Resetul pe 0 e o decizie de control-flow, nu una de memorie.
+ *   După ce înmulțești cu 0, produsul care rulează e 0; îl
+ *   înregistrăm (0 poate fi răspunsul dacă tot restul e negativ),
+ *   apoi restaurăm 1 ca următorul factor să înceapă un segment nou
+ *   în loc să rămână 0 pentru totdeauna (0 * x == 0, care ar
+ *   ascunde fiecare felie ulterioară).
  *
- *   Indexing from both ends in one loop: arr[i] and arr[n-1-i]. Both
- *   are valid as long as i is in [0, n). The two streams walk toward
- *   each other. Cache: two sequential scans of a contiguous buffer.
- *   Fine. Do not allocate two product arrays of length n unless you
- *   need them for a proof; the scalars suffice.
+ *   Indexare de la ambele capete într-o buclă: arr[i] și arr[n-1-i].
+ *   Ambele sunt valide cât timp i e în [0, n). Cele două fluxuri
+ *   merg unul spre altul. Cache: două parcurgeri secvențiale ale
+ *   unui buffer contig. E în regulă. Nu aloca două tablouri de
+ *   produse de lungime n decât dacă ai nevoie de ele pentru o
+ *   dovadă; scalarul ajunge.
  *
- *   INT_MIN as a factor: negating INT_MIN in 32-bit is UB, but we
- *   multiply into long long, so promote first. arr[i] converts to
- *   long long on *= with a long long left operand.
+ *   INT_MIN ca factor: a nega INT_MIN pe 32 de biți e UB, dar noi
+ *   înmulțim în long long, deci promovează întâi. arr[i] se
+ *   convertește la long long pe *= cu un operand stâng long long.
  *
- * Sample prints 180.
+ * Exemplul afișează 180.
  */
 
 #include <climits>

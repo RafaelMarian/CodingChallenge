@@ -1,55 +1,54 @@
 /*
- * LESSON — A peak element: climb the slope with binary search
+ * LECȚIE — Un element vârf: urci panta cu căutare binară
  *
- * Student, a peak is an index i where nums[i] is strictly greater than
- * its neighbors (and greater than the one neighbor it has, if i is an
- * end). Return any peak index. Sample {2,3,4,7,9,10,11,12,5,4,3,1}:
- * index 7 holds 12, the unique peak of this unimodal climb-and-drop.
+ * Studentule, un vârf e un indice i unde nums[i] e strict mai mare decât vecinii
+ * (și mai mare decât singurul vecin pe care îl are, dacă i e un capăt).
+ * Întoarce orice indice de vârf. Exemplul {2,3,4,7,9,10,11,12,5,4,3,1}:
+ * indicele 7 ține 12, vârful unic al acestei urcări-și-căderi unimodale.
  *
- * Intuition
- *   Look at nums[m] versus nums[m+1].
- *     If nums[m] < nums[m+1], you are on an upslope. A peak exists
- *     to the right (the array cannot rise forever; even if it does
- *     until the end, the last index is a peak by definition). Set
- *     l = m + 1.
- *     If nums[m] >= nums[m+1], you are on a downslope or a peak.
- *     A peak exists at m or to its left. Set r = m.
- *   Loop while l < r. When they meet, that index is a peak.
+ * Intuiție
+ *   Uită-te la nums[m] versus nums[m+1].
+ *     Dacă nums[m] < nums[m+1], ești pe o pantă în sus. Există un
+ *     vârf la dreapta (tabloul nu poate urca la nesfârșit; chiar dacă
+ *     o face până la capăt, ultimul indice e vârf prin definiție).
+ *     Pune l = m + 1.
+ *     Dacă nums[m] >= nums[m+1], ești pe o pantă în jos sau pe un
+ *     vârf. Există un vârf la m sau la stânga lui. Pune r = m.
+ *   Bucla e while (l < r). Când se întâlnesc, indicele ăla e un vârf.
  *
- *   You are not searching for a value. You are searching for a local
- *   maximum of a sequence by following the discrete derivative. On a
- *   unimodal array there is one peak; on a general array there is at
- *   least one (the global max is a peak) and this walk finds some
- *   local peak, not necessarily the global max.
+ *   Nu cauți o valoare. Cauți un maxim local al unui șir urmând
+ *   derivata discretă. Pe un tablou unimodal e un singur vârf; pe
+ *   unul oarecare e cel puțin unul (maximul global e un vârf) și
+ *   plimbarea asta găsește un vârf local, nu neapărat maximul global.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory. A linear scan also finds a
- *   peak (the global max, even) in O(n). Binary search is the point
- *   of the exercise: the predicate "the slope here goes right"
- *   bisects the index range.
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1). O parcurgere liniară găsește
+ *   și ea un vârf (chiar maximul global) în O(n). Căutarea binară e
+ *   punctul exercițiului: predicatul „panta de aici merge la dreapta”
+ *   taie intervalul de indici în două.
  *
- * Memory
- *   int nums[], int n. Two indices. No extra buffer. We return an
- *   index into the caller's array; the caller already owns it.
- *   nums decayed to int*. n came from sizeof in main.
+ * Memorie
+ *   int nums[], int n. Doi indici. Fără buffer extra. Întorci un
+ *   indice în tabloul apelantului; apelantul îl deține deja.
+ *   nums a decăzut la int*. n a venit din sizeof în main.
  *
- * C theory — neighbors at the end, overflow, unimodal climb
- *   Loop is l < r, so m = l + (r - l) / 2 satisfies m < r, hence
- *   m + 1 <= r < n. nums[m+1] is in range. If you used l <= r you
- *   would eventually have m == n-1 and nums[m+1] would be UB.
- *   The loop shape is the bounds check.
+ * Teorie C — vecini la capăt, overflow, urcare unimodală
+ *   Bucla e l < r, deci m = l + (r - l) / 2 satisface m < r, deci
+ *   m + 1 <= r < n. nums[m+1] e în interval. Dacă ai folosi l <= r
+ *   ai ajunge la m == n-1 și nums[m+1] ar fi UB. Forma buclei e
+ *   verificarea de limite.
  *
- *   Ends are peaks by definition if they beat their single neighbor.
- *   We never special-case index 0 or n-1; the slope rule plus a
- *   shrinking range lands on them when they are peaks.
+ *   Capetele sunt vârfuri prin definiție dacă bat singurul vecin.
+ *   Nu tratăm special indicele 0 sau n-1; regula pantei plus un
+ *   interval care se strânge aterizează pe ele când sunt vârfuri.
  *
- *   mid overflow: l + (r - l) / 2, never (l + r) / 2.
+ *   Overflow la mid: l + (r - l) / 2, niciodată (l + r) / 2.
  *
- *   Cache: logarithmic adjacent-pair loads. nums[m] and nums[m+1]
- *   are neighbors: one line. Then you jump to a different m. Same
- *   random-access pattern as binary search.
+ *   Cache: load-uri logaritmice pe perechi vecine. nums[m] și
+ *   nums[m+1] sunt vecini: o linie. Apoi sari la un alt m. Același
+ *   tipar de acces aleator ca la căutarea binară.
  *
- * Sample prints 7. We do not print l and r along the way.
+ * Exemplul afișează 7. Nu afișăm l și r pe parcurs.
  */
 
 #include <iostream>

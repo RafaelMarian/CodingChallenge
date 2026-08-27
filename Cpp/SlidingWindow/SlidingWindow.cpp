@@ -1,62 +1,63 @@
 /*
- * LESSON — Fixed-length sliding window: amortized O(n), two indices
+ * LECȚIE — Fereastră glisantă de lungime fixă: O(n) amortizat, doi indici
  *
- * Student, the problem is: given an array and a length k, return the
- * maximum sum of any contiguous subarray of exactly k elements.
+ * Studentule, problema e: dat un tablou și o lungime k, întoarce suma maximă a
+ * oricărui subtablou contig de exact k elemente.
  *
- * Intuition
- *   The window of length k that starts at index i is nums[i .. i+k-1].
- *   The next window, starting at i+1, is almost the same array: it has
- *   lost nums[i] on the left and gained nums[i+k] on the right.
+ * Intuiție
+ *   Fereastra de lungime k care începe la indicele i e nums[i .. i+k-1].
+ *   Fereastra următoare, care începe la i+1, e aproape același tablou:
+ *   a pierdut nums[i] pe stânga și a câștigat nums[i+k] pe dreapta.
  *
  *       sum(i+1) = sum(i) - nums[i] + nums[i+k]
  *
- *   Seed the first window with a O(k) scan. Then slide: one subtract,
- *   one add, one compare, until the right edge hits the end. You never
- *   rescan the k-1 shared elements.
+ *   Semănează prima fereastră cu o parcurgere O(k). Apoi glisează:
+ *   o scădere, o adunare, o comparație, până muchia dreaptă lovește
+ *   capătul. Nu re-parcurgi niciodată cele k-1 elemente comune.
  *
- *   The window is two indices. Call the left edge i (the element about
- *   to leave) and the right edge j (the element about to enter). The
- *   invariant is j - i + 1 == k after the seed, and every slide does
- *   i++, j++ together. Two pointers, one lockstep.
+ *   Fereastra e doi indici. Numim muchia stângă i (elementul care
+ *   urmează să iasă) și muchia dreaptă j (elementul care urmează
+ *   să intre). Invariantul e j - i + 1 == k după sămânță, și fiecare
+ *   glisare face i++, j++ împreună. Doi pointeri, un pas în pas.
  *
- * Complexity
- *   Seed: O(k). Slide: O(n - k) steps, O(1) work each. Total O(n).
- *   That is amortized O(1) per element: each index enters the window
- *   once and leaves the window once. Naive "for each start, sum k
- *   elements" is O(n k). Same answer, wasted arithmetic.
- *   Extra memory: O(1). The window is indices, not a copy of the slice.
+ * Complexitate
+ *   Sămânță: O(k). Glisare: O(n - k) pași, O(1) lucru fiecare. Total O(n).
+ *   Ăsta e O(1) amortizat pe element: fiecare indice intră în fereastră
+ *   o dată și iese o dată. Naivul „pentru fiecare start, sumează k
+ *   elemente” e O(n k). Același răspuns, aritmetică irosită.
+ *   Memorie extra: O(1). Fereastra e indici, nu o copie a feliilor.
  *
- * Memory
- *   int nums[], int n, int k: we do not copy the buffer. sum and max
- *   live in registers or the stack frame. No heap allocation in the
- *   function. The CPU sees a single contiguous stream of ints. nums
- *   decayed to a pointer; n is required because sizeof(nums) inside
- *   the function is a pointer's size.
+ * Memorie
+ *   int nums[], int n, int k: nu copiem buffer-ul. sum și max
+ *   trăiesc în registre sau în cadrul de stivă. Fără alocare pe heap
+ *   în funcție. CPU-ul vede un singur flux contig de int. nums a
+ *   decăzut la un pointer; n e necesar pentru că sizeof(nums) în
+ *   interiorul funcției e dimensiunea unui pointer.
  *
- * C theory — why the slide is cache-friendly, and where overflow hides
- *   nums is a contiguous buffer (stack in this main). The seed pass
- *   reads nums[0..k). Each slide reads two ints that are k apart:
- *   nums[i] and nums[j]. Sequential i and j walk forward, so both
- *   streams prefetch. The distance k means they may sit in different
- *   cache lines; that is still two sequential streams, not random
- *   pointer chasing.
+ * Teorie C — de ce glisarea e prietenoasă cu cache, și unde se ascunde overflow
+ *   nums e un buffer contig (stivă în main-ul ăsta). Trecerea de
+ *   sămânță citește nums[0..k). Fiecare glisare citește doi int
+ *   distanțați cu k: nums[i] și nums[j]. i și j merg înainte
+ *   secvențial, deci ambele fluxuri fac prefetch. Distanța k
+ *   înseamnă că pot sta pe linii de cache diferite; tot două fluxuri
+ *   secvențiale sunt, nu urmărire aleatoare de pointeri.
  *
- *   sum += nums[j] is a signed add. A window of large ints can overflow
- *   int. Signed overflow is undefined behavior. If the true window sums
- *   may leave 32-bit range, accumulate in long long. The sample does
- *   not, so int matches the original arithmetic.
+ *   sum += nums[j] e o adunare pe signed. O fereastră de int mari
+ *   poate da overflow pe int. Overflow-ul pe signed e UB. Dacă
+ *   sumele adevărate de fereastră pot ieși din 32 de biți,
+ *   acumulează în long long. Exemplul n-o face, deci int se
+ *   potrivește cu aritmetica originală.
  *
- *   Bounds: the seed loop must not run past n. If k > n the problem is
- *   ill-posed; if k == 0 you must not index nums[0] from an empty
- *   window. Out-of-bounds is UB — C will not throw. The sample has
- *   n = 10, k = 3.
+ *   Limite: bucla de sămânță nu trebuie să treacă de n. Dacă k > n
+ *   problema e prost pusă; dacă k == 0 nu trebuie să indexezi
+ *   nums[0] dintr-o fereastră goală. În afara limitelor e UB — C
+ *   nu aruncă. Exemplul are n = 10, k = 3.
  *
- *   Two pointers into one array. nums[i] is *(nums + i). No container:
- *   just indices and a length.
+ *   Doi pointeri într-un tablou. nums[i] e *(nums + i). Fără
+ *   container: doar indici și o lungime.
  *
- * Sample: {1,2,0,4,3,6,2,1,9,-1}, k = 3. Windows 3,6,7,13,11,9,12,9.
- * The maximum is 13.
+ * Exemplu: {1,2,0,4,3,6,2,1,9,-1}, k = 3. Ferestre 3,6,7,13,11,9,12,9.
+ * Maximul e 13.
  */
 
 #include <iostream>

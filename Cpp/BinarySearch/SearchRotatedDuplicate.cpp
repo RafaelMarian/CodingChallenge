@@ -1,16 +1,16 @@
 /*
- * LESSON — Rotated search when duplicates are allowed (boolean)
+ * LECȚIE — Căutare rotită când duplicatele sunt permise (boolean)
  *
- * Student, same rotated-sorted setting as ModifiedBinarySearch, but
- * values may repeat. Return whether target appears, not its index.
- * Sample {6,6,6,6,7,3,3,3,4,4,5,5,6,6,6} contains 6: print true.
+ * Studentule, același cadru sortat-rotit ca ModifiedBinarySearch, dar valorile
+ * se pot repeta. Întoarce dacă target apare, nu indicele lui.
+ * Exemplul {6,6,6,6,7,3,3,3,4,4,5,5,6,6,6} conține 6: afișează true.
  *
- * Intuition
- *   The "one half is sorted" test used nums[l] <= nums[mid]. When
- *   nums[l] == nums[mid] == nums[h], that test tells you nothing:
- *   both halves can look "sorted" and still hide the seam, or hide
- *   the target, anywhere. The repair is to shrink the range from
- *   both ends:
+ * Intuiție
+ *   Testul „o jumătate e sortată” folosea nums[l] <= nums[mid]. Când
+ *   nums[l] == nums[mid] == nums[h], testul ăla nu-ți spune nimic:
+ *   ambele jumătăți pot părea „sortate” și tot să ascundă cusătura,
+ *   sau target, oriunde. Reparația e să strângi intervalul de la
+ *   ambele capete:
  *
  *       if (nums[low] == nums[mid] && nums[mid] == nums[high]) {
  *           low++;
@@ -18,44 +18,44 @@
  *           continue;
  *       }
  *
- *   You discard two copies you have already compared to target
- *   (mid was tested; low and high equal mid so they are not target
- *   either). Then resume. When the three are not equal, fall back
- *   to the distinct-elements logic.
+ *   Arunci două copii pe care le-ai comparat deja cu target
+ *   (mid a fost testat; low și high egale cu mid, deci nici ele nu
+ *   sunt target). Apoi reiei. Când cele trei nu sunt egale, cazi
+ *   înapoi pe logica cu elemente distincte.
  *
- * Complexity
- *   Average still logarithmic on well-behaved data. Worst case O(n):
- *   an array of all equal values that are not the target, or a long
- *   run of equals around both ends, forces you to shrink by one
- *   each step. Duplicates destroy the half-invariant. You cannot
- *   honestly quote O(log n) as a worst-case bound once equals are
- *   allowed. Extra memory still O(1).
+ * Complexitate
+ *   Media tot logaritmică pe date cuminți. Cazul cel mai rău O(n):
+ *   un tablou de valori egale care nu sunt target, sau o serie
+ *   lungă de egale la ambele capete, te forțează să strângi cu unu
+ *   la fiecare pas. Duplicatele distrug invariantul pe jumătăți.
+ *   Nu poți cita cinstit O(log n) ca bound de cel mai rău caz odată
+ *   ce egalele sunt permise. Memoria extra tot O(1).
  *
- * Memory
- *   int nums[], int n, three indices. No extra buffer. The worst-case
- *   linear scan is still sequential-ish (the ends creep inward) plus
- *   occasional mids. No allocation. The pointer does not know n;
- *   we pass both.
+ * Memorie
+ *   int nums[], int n, trei indici. Fără buffer extra. Parcurgerea
+ *   liniară din cazul cel mai rău e tot cam secvențială (capetele
+ *   se apropie) plus mid-uri ocazionale. Fără alocare. Pointerul
+ *   nu știe n; transmiți ambele.
  *
- * C theory — why equals break binary search, overflow, UB
- *   Binary search's power is an invariant: a predicate true on a
- *   prefix and false on a suffix (or the sorted-half analogue).
- *   Duplicates at the three probe points make the predicate
- *   unreadable. Shrinking both ends is the honest admission that
- *   you lost the invariant and must spend linear work until it
- *   returns. There is no clever O(log n) worst-case for this
- *   problem in the comparison model with duplicates — the lower
- *   bound becomes linear.
+ * Teorie C — de ce egalele strică căutarea binară, overflow, UB
+ *   Puterea căutării binare e un invariant: un predicat adevărat
+ *   pe un prefix și fals pe un sufix (sau analogul cu jumătatea
+ *   sortată). Duplicatele la cele trei puncte de sondă fac
+ *   predicatul ilizibil. Strângerea de la ambele capete e
+ *   recunoașterea cinstită că ai pierdut invariantul și trebuie
+ *   să cheltui lucru liniar până se întoarce. Nu există un cel
+ *   mai rău caz șmecher O(log n) pentru problema asta în modelul
+ *   de comparații cu duplicate — bound-ul inferior devine liniar.
  *
- *   mid = low + (high - low) / 2. Same overflow lesson as always.
- *   After low++ and high--, the range can go empty (low > high);
- *   the while(low <= high) stops. Do not read nums[high] after
- *   that. That would be UB.
+ *   mid = low + (high - low) / 2. Aceeași lecție de overflow ca
+ *   întotdeauna. După low++ și high--, intervalul poate deveni gol
+ *   (low > high); while(low <= high) se oprește. Nu citi nums[high]
+ *   după aia. Ar fi UB.
  *
- *   Returning bool, not an index: with duplicates, "the" index is
- *   not unique. Existence is the well-posed question.
+ *   Întorci bool, nu un indice: cu duplicate, „indicele” nu e
+ *   unic. Existența e întrebarea bine pusă.
  *
- * Sample prints true.
+ * Exemplul afișează true.
  */
 
 #include <iostream>

@@ -1,67 +1,68 @@
 /*
- * LESSON — Binary search on the answer: smallest divisor
+ * LECȚIE — Căutare binară pe răspuns: cel mai mic divisor
  *
- * Student, given positive nums and a threshold, find the smallest
- * positive integer d such that the sum of ceil(nums[i] / d) over i
- * is <= threshold. Sample {1,3,6,11}, threshold 7. The answer is 4:
+ * Studentule, ai nums pozitive și un threshold; găsește cel mai mic întreg
+ * pozitiv d astfel încât suma lui ceil(nums[i] / d) peste i
+ * e <= threshold. Exemplul {1,3,6,11}, threshold 7. Răspunsul e 4:
  *   d=3 -> ceil(1/3)+ceil(3/3)+ceil(6/3)+ceil(11/3) = 1+1+2+4 = 8 > 7
  *   d=4 -> 1+1+2+3 = 7 <= 7
  *
- * Intuition
- *   The feasible region is monotone in d. Larger d makes every
- *   ceil(nums[i]/d) smaller or equal, so the sum never increases.
- *   There is a smallest d that works, and every d above it also
- *   works. Binary search that cut on the number line of possible
- *   divisors: 1 .. max(nums) (because d >= max(nums) gives a sum of
- *   n, and if even that exceeds threshold the problem is impossible;
- *   the sample is possible).
+ * Intuiție
+ *   Regiunea fezabilă e monotonă în d. Un d mai mare face fiecare
+ *   ceil(nums[i]/d) mai mic sau egal, deci suma nu crește niciodată.
+ *   Există un cel mai mic d care merge, și fiecare d deasupra lui
+ *   merge și el. Căutare binară pe tăietura aia pe linia numerelor
+ *   de divisori posibili: 1 .. max(nums) (pentru că d >= max(nums)
+ *   dă o sumă de n, și dacă nici aia nu trece de threshold problema
+ *   e imposibilă; exemplul e posibil).
  *
- *   You are not searching inside nums. You are searching the answer
- *   itself. The array is only used to evaluate the predicate
- *   "does this candidate d meet the threshold?"
+ *   Nu cauți în nums. Cauți răspunsul însuși. Tabloul e folosit doar
+ *   ca să evaluezi predicatul „candidatul ăsta d trece threshold?”
  *
- * Integer ceil without floating point
- *   ceil(a / d) for positive a, d is (a + d - 1) / d in integer
- *   division. Alternatively (a - 1) / d + 1, which avoids adding
- *   a + d - 1 (that add can overflow int). We use the (a + d - 1) / d
- *   form on this small sample and mention the overflow in the theory.
+ * ceil pe întregi, fără virgulă mobilă
+ *   ceil(a / d) pentru a, d pozitive e (a + d - 1) / d în împărțire
+ *   întreagă. Alternativ (a - 1) / d + 1, care evită să aduni
+ *   a + d - 1 (adunarea aia poate da overflow pe int). Folosim forma
+ *   (a + d - 1) / d pe exemplul ăsta mic și menționăm overflow-ul
+ *   la teorie.
  *
- * Complexity
- *   Search range is 1..U with U = max(nums), O(log U) candidate
- *   tests. Each test is O(n). Total O(n log U). Extra memory O(1).
+ * Complexitate
+ *   Intervalul de căutare e 1..U cu U = max(nums), O(log U) teste
+ *   de candidat. Fiecare test e O(n). Total O(n log U). Memorie
+ *   extra O(1).
  *
- * Memory
- *   int nums[], int n. Locals only. No extra buffer. The "search
- *   space" is integers in registers, not an allocated table of
- *   divisors. We scan the caller's array; we do not copy it.
+ * Memorie
+ *   int nums[], int n. Doar locale. Fără buffer extra. „Spațiul de
+ *   căutare” sunt întregi în registre, nu un tabel alocat de
+ *   divisori. Parcurgem tabloul apelantului; nu-l copiem.
  *
- * C theory — monotone predicates, integer division, overflow, cache
- *   Binary search works on any monotone predicate over a totally
- *   ordered domain, not only on sorted arrays. The domain here is
- *   {1,2,...,U}. Random access is "plug d into the sum," which is
- *   O(n) work, not O(1). The log factor still applies to U.
+ * Teorie C — predicate monotone, împărțire întreagă, overflow, cache
+ *   Căutarea binară merge pe orice predicat monoton peste un domeniu
+ *   total ordonat, nu doar pe tablouri sortate. Domeniul aici e
+ *   {1,2,...,U}. Accesul aleator e „pune d în sumă”, care e lucru
+ *   O(n), nu O(1). Factorul log tot se aplică lui U.
  *
- *   Integer division truncates toward zero. For positives that is
- *   floor. The + (d-1) bump turns it into ceil. Never write
- *   (int)ceil((double)a / d) for this: floating point cannot
- *   represent every integer, and you would import rounding bugs.
+ *   Împărțirea întreagă trunchiază spre zero. Pentru pozitive ăsta
+ *   e floor. Bump-ul + (d-1) îl face ceil. Nu scrie niciodată
+ *   (int)ceil((double)a / d) pentru asta: virgula mobilă nu poate
+ *   reprezenta orice întreg, și ai importa bug-uri de rotunjire.
  *
- *   (a + d - 1) can overflow int before the divide. Signed overflow
- *   is UB. Safe form for a >= 1, d >= 1: 1 + (a - 1) / d. For this
- *   sample a and d are tiny. Production code uses the safe form or
- *   long long.
+ *   (a + d - 1) poate da overflow pe int înainte de împărțire.
+ *   Overflow-ul pe signed e UB. Forma sigură pentru a >= 1, d >= 1:
+ *   1 + (a - 1) / d. Pe exemplul ăsta a și d sunt mici. Codul de
+ *   producție folosește forma sigură sau long long.
  *
- *   The inner sum += also overflows if n is huge and d is 1. long
- *   long for the accumulator is the habit. Sample fits in int.
+ *   Suma interioară sum += dă și ea overflow dacă n e uriaș și d
+ *   e 1. long long pe acumulator e obiceiul. Exemplul încape în int.
  *
- *   Cache: each predicate evaluation is a sequential scan of nums,
- *   excellent locality, done log U times. Fine.
+ *   Cache: fiecare evaluare de predicat e o parcurgere secvențială
+ *   a lui nums, localitate excelentă, de log U ori. E în regulă.
  *
- *   mid = l + (h - l) / 2. Loop while l < h, set h = m on success
- *   (include m: it might be the smallest), l = m + 1 on failure.
- *   Return l. That is lower_bound on the predicate.
+ *   mid = l + (h - l) / 2. Bucla while (l < h), pune h = m la succes
+ *   (include m: poate fi cel mai mic), l = m + 1 la eșec.
+ *   Întoarce l. Ăsta e lower_bound pe predicat.
  *
- * Sample prints 4.
+ * Exemplul afișează 4.
  */
 
 #include <climits>

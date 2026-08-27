@@ -1,46 +1,48 @@
 /*
- * LESSON — The single element in a sorted array of pairs
+ * LECȚIE — Elementul singur într-un tablou sortat de perechi
  *
- * Student, every value appears twice, adjacent, except one value that
- * appears once. The array is sorted. Return the single. Sample
- * {2,2,3,3,4,4,5,6,6,7,7} returns 5.
+ * Studentule, fiecare valoare apare de două ori, alăturată, în afară de una
+ * care apare o dată. Tabloul e sortat. Întoarce pe cel singur.
+ * Exemplul {2,2,3,3,4,4,5,6,6,7,7} dă 5.
  *
- * Intuition
- *   Before the single, pairs start at even indices: (0,1), (2,3), ...
- *   After the single, the pattern shifts by one: pairs start at odd
- *   indices. Binary search on that pairing invariant.
+ * Intuiție
+ *   Înainte de cel singur, perechile încep la indici pari: (0,1),
+ *   (2,3), ... După cel singur, tiparul se mută cu unu: perechile
+ *   încep la indici impari. Căutare binară pe invariantul ăla de
+ *   împerechere.
  *
- *   Force mid onto an even index: if mid is odd, mid--. Then
- *   nums[mid] and nums[mid+1] should be a pair if we are still to
- *   the left of the single.
- *     If they differ, the single is at mid or to its left: h = mid.
- *     If they match, the single is to the right: l = mid + 2.
- *   When l == h, that index is the single. Return nums[h] (same cell).
+ *   Forțează mid pe un indice par: dacă mid e impar, mid--. Apoi
+ *   nums[mid] și nums[mid+1] ar trebui să fie o pereche dacă ești
+ *   încă la stânga celui singur.
+ *     Dacă diferă, cel singur e la mid sau la stânga: h = mid.
+ *     Dacă se potrivesc, cel singur e la dreapta: l = mid + 2.
+ *   Când l == h, indicele ăla e cel singur. Întoarce nums[h]
+ *   (aceeași celulă).
  *
- * Complexity
- *   O(log n) time, O(1) extra memory. n is odd (2k + 1).
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1). n e impar (2k + 1).
  *
- * Memory
- *   int nums[], int n. No extra buffer. We never write. The pairing
- *   is an observation about indices, not a second array of flags.
- *   The parameter nums is a pointer; n is the odd length.
+ * Memorie
+ *   int nums[], int n. Fără buffer extra. Nu scriem. Împerecherea
+ *   e o observație despre indici, nu un al doilea tablou de flag-uri.
+ *   Parametrul nums e un pointer; n e lungimea impară.
  *
- * C theory — even indices, mid+1 bounds, overflow
- *   If mid is odd we decrement so we land on the start of a would-be
- *   pair. That keeps the invariant aligned with even starts. It also
- *   guarantees mid + 1 is in range while l < h: the last index is
- *   even (n odd => n-1 even), and when mid == h we would not enter
- *   the body because l < h failed... while l < h, mid = l+(h-l)/2
- *   is less than h, so mid+1 <= h. Safe. If you loop l <= h you
- *   must guard mid+1 < n.
+ * Teorie C — indici pari, limite la mid+1, overflow
+ *   Dacă mid e impar, decrementăm ca să aterizăm pe începutul unei
+ *   perechi-ar-fi. Asta ține invariantul aliniat cu începuturi pare.
+ *   Garantează și că mid + 1 e în interval cât timp l < h: ultimul
+ *   indice e par (n impar => n-1 par), și când mid == h n-am intra
+ *   în corp pentru că l < h a eșuat... while l < h, mid = l+(h-l)/2
+ *   e mai mic decât h, deci mid+1 <= h. Sigur. Dacă buclezi l <= h
+ *   trebuie să păzești mid+1 < n.
  *
- *   Reading nums[mid+1] without that reasoning is how you walk off
- *   the end: UB. Draw the indices on paper once. nums[mid] is
- *   *(nums + mid). Adjacent words are a pair in memory.
+ *   Să citești nums[mid+1] fără raționamentul ăla e cum ieși din
+ *   capăt: UB. Desenează indicii pe hârtie o dată. nums[mid] e
+ *   *(nums + mid). Cuvintele vecine sunt o pereche în memorie.
  *
- *   mid = l + (h - l) / 2. Same overflow rule.
+ *   mid = l + (h - l) / 2. Aceeași regulă de overflow.
  *
- * Sample prints 5.
+ * Exemplul afișează 5.
  */
 
 #include <iostream>

@@ -1,59 +1,59 @@
 /*
- * LESSON — Minimum of a rotated sorted array (unique elements)
+ * LECȚIE — Minimul unui tablou sortat rotit (elemente unice)
  *
- * Student, the array is sorted ascending then rotated. All values
- * distinct. Return the minimum. Sample {10,11,12,13,3,4,5,6,7}:
- * the cut is between 13 and 3, so the min is 3.
+ * Studentule, tabloul e sortat crescător, apoi rotit. Toate valorile distincte.
+ * Întoarce minimul. Exemplul {10,11,12,13,3,4,5,6,7}: tăietura e
+ * între 13 și 3, deci min e 3.
  *
- * Intuition
- *   In an unrotated array nums[h] is the largest of the remaining
- *   range and nums[0] is the min. After a rotation, the minimum is
- *   the first element of the right sorted piece — the value that is
- *   smaller than its left neighbor, if it has one.
+ * Intuiție
+ *   Într-un tablou nerotit, nums[h] e cel mai mare din intervalul
+ *   rămas, iar nums[0] e min. După o rotație, minimul e primul
+ *   element al bucății sortate din dreapta — valoarea mai mică
+ *   decât vecinul din stânga, dacă are unul.
  *
- *   Probe mid.
- *     If mid != 0 and nums[mid] < nums[mid-1], mid is the rotation
- *     point: return nums[mid]. That is the min.
- *     If mid == 0, there is no left neighbor. Do not read nums[-1].
- *     That load is undefined behavior. Fall through to the half test.
+ *   Sondează mid.
+ *     Dacă mid != 0 și nums[mid] < nums[mid-1], mid e punctul de
+ *     rotație: întoarce nums[mid]. Ăsta e min.
+ *     Dacă mid == 0, n-ai vecin stânga. Nu citi nums[-1]. Load-ul
+ *     ăla e UB. Cazi în testul pe jumătăți.
  *
- *   Half test: if nums[h] > nums[mid], the right side from mid to h
- *   is increasing, so the min is in the left piece *including* mid
- *   (mid might still be the min if we skipped the neighbor test).
- *   Set h = mid. Otherwise the seam is to the right of mid (nums[mid]
- *   sits in the large left piece): set l = mid + 1.
+ *   Testul pe jumătăți: dacă nums[h] > nums[mid], dreapta de la mid
+ *   la h e crescătoare, deci min e în bucata stângă *inclusiv* mid
+ *   (mid încă poate fi min dacă ai sărit testul pe vecin). Pune
+ *   h = mid. Altfel cusătura e la dreapta lui mid (nums[mid] stă
+ *   în bucata mare din stânga): pune l = mid + 1.
  *
- *   Loop while l < h so the range keeps shrinking. When l == h you
- *   hold the min.
+ *   Bucla e while (l < h) ca intervalul să se strângă. Când l == h
+ *   ții min.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory. Distinctness keeps the half
- *   test honest. Duplicates would force linear worst case, as in
- *   the rotated-search-with-duplicates lesson.
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1). Distincția ține testul pe
+ *   jumătăți cinstit. Duplicatele ar forța cazul cel mai rău liniar,
+ *   ca în lecția de căutare rotită cu duplicate.
  *
- * Memory
- *   int nums[], int n. Two or three ints. No extra array. We return
- *   a value, not an index, so the caller never indexes with our
- *   internals. nums decayed to a pointer; n is the length.
+ * Memorie
+ *   int nums[], int n. Doi sau trei int. Fără tablou extra. Întorci
+ *   o valoare, nu un indice, deci apelantul nu indexează niciodată
+ *   cu internalele tale. nums a decăzut la un pointer; n e lungimea.
  *
- * C theory — neighbor access, overflow, rotation
- *   The guard mid != 0 is a bounds check. C will not do it for you.
- *   nums[mid - 1] with mid == 0 reads before the buffer: UB, a
- *   possible segfault or a silent load of a saved register in the
- *   frame. Write the guard every time you look left.
+ * Teorie C — acces la vecin, overflow, rotație
+ *   Garda mid != 0 e o verificare de limite. C n-o face pentru tine.
+ *   nums[mid - 1] cu mid == 0 citește înainte de buffer: UB, un
+ *   segfault posibil sau un load tăcut dintr-un registru salvat în
+ *   cadru. Scrie garda de fiecare dată când te uiți la stânga.
  *
- *   mid = l + (h - l) / 2. Including mid on the left (h = mid) is
- *   safe with while (l < h): if you wrote h = mid - 1 you could
- *   drop the min unless the neighbor test already returned it.
+ *   mid = l + (h - l) / 2. Includerea lui mid la stânga (h = mid) e
+ *   sigură cu while (l < h): dacă ai scrie h = mid - 1 ai putea
+ *   pierde min, decât dacă testul pe vecin l-a întors deja.
  *
- *   Unrotated input: nums[h] > nums[mid] always in a strictly
- *   increasing range, h shrinks toward 0, answer nums[0]. Good.
+ *   Input nerotit: nums[h] > nums[mid] mereu pe un interval strict
+ *   crescător, h se strânge spre 0, răspuns nums[0]. Bine.
  *
- *   Cache: logarithmic random loads in a contiguous buffer. Same
- *   as binary search. For n = 9 this is academic; for n = 10^7 it
- *   is why you do not scan.
+ *   Cache: load-uri aleatoare logaritmice într-un buffer contig.
+ *   La fel ca la căutarea binară. Pentru n = 9 e academic; pentru
+ *   n = 10^7 de-asta nu parcurgi liniar.
  *
- * Sample prints 3.
+ * Exemplul afișează 3.
  */
 
 #include <iostream>

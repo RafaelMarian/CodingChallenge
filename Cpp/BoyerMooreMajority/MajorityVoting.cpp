@@ -1,75 +1,77 @@
 /*
- * LESSON — Boyer–Moore majority vote, and the variant you are about to run
+ * LECȚIE — Votul majoritar Boyer–Moore, și varianta pe care urmează s-o rulezi
  *
- * Student, a majority element (when it exists) is a value that appears
- * strictly more than n/2 times. Boyer–Moore finds a candidate in one
- * pass with two machine words of extra memory.
+ * Studentule, un element majoritar (când există) e o valoare care apare strict
+ * de mai mult de n/2 ori. Boyer–Moore găsește un candidat într-o
+ * trecere cu două cuvinte de mașină de memorie extra.
  *
- * This file keeps a slightly nonstandard loop so the sample
- * {9,13,9,16,9,11,9,20,9,9} still prints 9, matching the original:
+ * Fișierul ăsta păstrează o buclă ușor nestandard ca exemplul
+ * {9,13,9,16,9,11,9,20,9,9} tot să afișeze 9, potrivit originalului:
  *
- *     count starts at 1, lastElement starts at INT_MIN
+ *     count începe la 1, lastElement începe la INT_MIN
  *     if nums[i] == lastElement: count++
  *     else if count > 1:         count--
  *     else:                      lastElement = nums[i]
  *
- * Trace the sample: count stays 1 on every mismatch, so lastElement
- * simply tracks the current value, until the final pair of 9s raises
- * count to 2 and locks 9 in. It works here. It is not the algorithm
- * you should ship.
+ * Urmărește exemplul: count rămâne 1 la fiecare mismatch, deci
+ * lastElement pur și simplu urmărește valoarea curentă, până perechea
+ * finală de 9 ridică count la 2 și blochează 9. Merge aici. Nu e
+ * algoritmul pe care trebuie să-l trimiți în producție.
  *
- * Production Boyer–Moore (the one you must remember)
- *     candidate undefined, count = 0
+ * Boyer–Moore de producție (cel pe care trebuie să-l ții minte)
+ *     candidate nedefinit, count = 0
  *     for i in 0 .. n-1:
  *         if count == 0: candidate = nums[i]
  *         count += (nums[i] == candidate) ? 1 : -1
- *     then a second pass: count how many times candidate actually
- *     occurs. If that is <= n/2, there is no majority. Return it
- *     only after verification.
+ *     apoi o a doua trecere: numără de câte ori apare de fapt
+ *     candidate. Dacă ăsta e <= n/2, n-ai majoritate. Întoarce-l
+ *     doar după verificare.
  *
- *   The first pass cancels one copy of the candidate against every
- *   mismatch. If a true majority exists, it cannot be cancelled
- *   completely: more than n/2 copies survive. If no majority exists,
- *   the candidate is meaningless — hence the second pass. The
- *   original loop above does not always decrement on mismatch (it
- *   only decrements when count > 1, otherwise it switches), and it
- *   never verifies. Treat it as a museum piece that happens to print
- *   9 on this input.
+ *   Prima trecere anulează o copie a candidatului împotriva
+ *   fiecărui mismatch. Dacă există o majoritate adevărată, nu
+ *   poate fi anulată complet: mai mult de n/2 copii supraviețuiesc.
+ *   Dacă n-ai majoritate, candidatul n-are sens — de-asta a doua
+ *   trecere. Bucla originală de mai sus nu decrementează mereu la
+ *   mismatch (decrementează doar când count > 1, altfel schimbă),
+ *   și nu verifică niciodată. Trateaz-o ca pe o piesă de muzeu care
+ *   se întâmplă să afișeze 9 pe inputul ăsta.
  *
- * Complexity
- *   Time O(n) one pass (plus O(n) to verify in the classic version).
- *   Extra memory O(1): two ints. That is the point. You do not need
- *   a hash table of counts, which would be O(U) or O(distinct).
+ * Complexitate
+ *   Timp O(n) o trecere (plus O(n) de verificat în varianta clasică).
+ *   Memorie extra O(1): doi int. Ăsta e punctul. N-ai nevoie de o
+ *   tabelă hash de count-uri, care ar fi O(U) sau O(distinct).
  *
- * Memory
- *   int nums[], int n. Two automatic ints. No heap. The input is a
- *   contiguous buffer; we load it once sequentially. nums decayed
- *   to a pointer; n is the length from sizeof in main.
+ * Memorie
+ *   int nums[], int n. Doi int automat. Fără heap. Inputul e un
+ *   buffer contig; îl încărcăm o dată, secvențial. nums a decăzut
+ *   la un pointer; n e lungimea din sizeof în main.
  *
- * C theory — constant extra memory, INT_MIN as a sentinel, cache
- *   O(1) extra memory means the auxiliary state is a few registers.
- *   The array stays where the caller put it. This is what you want
- *   in a tight inner loop or on a microcontroller: no allocator in
- *   the hot path.
+ * Teorie C — memorie extra constantă, INT_MIN ca sentinel, cache
+ *   Memorie extra O(1) înseamnă că starea auxiliară e câteva
+ *   registre. Tabloul rămâne unde l-a pus apelantul. Asta vrei
+ *   într-o buclă interioară strânsă sau pe un microcontroller:
+ *   fără allocator pe calea fierbinte.
  *
- *   lastElement = INT_MIN is a sentinel meaning "no candidate yet."
- *   INT_MIN is also a legal array value. If the array's majority
- *   really were INT_MIN, the first mismatch handling still works
- *   because equality with INT_MIN would increment count. If the
- *   array is empty, we would return INT_MIN as a lie. Require n > 0.
+ *   lastElement = INT_MIN e un sentinel care înseamnă „niciun
+ *   candidat încă”. INT_MIN e și o valoare legală de tablou. Dacă
+ *   majoritatea tabloului chiar ar fi INT_MIN, tratarea primului
+ *   mismatch tot merge pentru că egalitatea cu INT_MIN ar
+ *   incrementa count. Dacă tabloul e gol, am întoarce INT_MIN ca
+ *   o minciună. Cere n > 0.
  *
- *   The classic count += ±1 cannot overflow for n that fit in
- *   memory: count stays in [-n, n]. The variant's count stays
- *   positive and small.
+ *   Varianta clasică count += ±1 nu poate da overflow pentru n
+ *   care încap în memorie: count stă în [-n, n]. Count-ul variantei
+ *   rămâne pozitiv și mic.
  *
- *   Cache: one sequential scan, one compare, one increment or
- *   decrement. Almost no extra traffic. A hash table of frequencies
- *   would allocate, hash, and chase nodes to solve the same job.
+ *   Cache: o parcurgere secvențială, o comparație, un increment sau
+ *   decrement. Aproape fără trafic extra. O tabelă hash de
+ *   frecvențe ar aloca, ar face hash și ar urmări noduri ca să
+ *   rezolve aceeași treabă.
  *
- *   Majority is strict: more than n/2, not >=, unless the problem
- *   says so.
+ *   Majoritatea e strictă: mai mult de n/2, nu >=, decât dacă
+ *   problema zice altfel.
  *
- * Sample prints 9.
+ * Exemplul afișează 9.
  */
 
 #include <climits>

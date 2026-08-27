@@ -1,74 +1,76 @@
 /*
- * LESSON — The pivot integer: triangular numbers, not a lookup table
+ * LECȚIE — Pivot integer: numere triunghiulare, nu un tabel de căutare
  *
- * Student, find x in 1..n such that the sum 1+...+x equals the sum
- * x+...+n. If no such x exists, return -1.
+ * Studentule, găsește x în 1..n astfel încât suma 1+...+x să fie egală cu suma
+ * x+...+n. Dacă nu există un astfel de x, întoarce -1.
  *
- * Algebra, first, so you see what you are searching for
+ * Algebră, întâi, ca să vezi ce cauți
  *   1 + ... + x  =  x (x + 1) / 2                 (Gauss)
  *   x + ... + n  =  (1+...+n) - (1+...+(x-1))
  *                =  n(n+1)/2 - (x-1)x/2
- *   Set them equal:
+ *   Pune-le egale:
  *       x(x+1)/2  =  n(n+1)/2 - x(x-1)/2
  *       x^2       =  n(n+1)/2
- *   So x is a pivot integer iff x^2 equals the n-th triangular
- *   number. x is the integer square root of T_n, when that root is
- *   exact.
+ *   Deci x e un pivot integer iff x^2 egalează al n-lea număr
+ *   triunghiular. x e rădăcina pătrată întreagă a lui T_n, când
+ *   rădăcina aia e exactă.
  *
- * The function you must not write
- *   A lookup of n==1 -> 1, n==8 -> 6, n==49 -> 35, n==288 -> 204,
- *   else -1. That is four textbook examples, not an algorithm. It
- *   returns -1 for n==50, which happens to be correct, and -1 for
- *   n==1000000, which you have not checked. Hardcoding is not
- *   engineering.
+ * Funcția pe care nu trebuie s-o scrii
+ *   Un lookup n==1 -> 1, n==8 -> 6, n==49 -> 35, n==288 -> 204,
+ *   altfel -1. Ăstea sunt patru exemple din manual, nu un algoritm.
+ *   Întoarce -1 pentru n==50, care se întâmplă să fie corect, și -1
+ *   pentru n==1000000, pe care nu l-ai verificat. Hardcodarea nu e
+ *   inginerie.
  *
- * The real solution — integer square test, 64-bit multiply
- *   Let total = n * (n + 1) / 2, computed in long long so the
- *   multiply does not overflow int (and so n+1 is promoted before
- *   adding: write 1LL * n * (n + 1LL) / 2). Then search x in 1..n
- *   for x * x == total, with x * x also in long long. Binary search
- *   the number line; you do not need an array. If the search falls
- *   out, total is not a perfect square: return -1.
+ * Soluția reală — test de pătrat întreg, înmulțire pe 64 de biți
+ *   Fie total = n * (n + 1) / 2, calculat în long long ca
+ *   înmulțirea să nu dea overflow pe int (și ca n+1 să fie
+ *   promovat înainte de adunare: scrie 1LL * n * (n + 1LL) / 2).
+ *   Apoi caută x în 1..n pentru x * x == total, cu x * x tot în
+ *   long long. Căutare binară pe linia numerelor; n-ai nevoie de
+ *   un tablou. Dacă căutarea iese, total nu e un pătrat perfect:
+ *   întoarce -1.
  *
- *   Do not use floating-point sqrt and "check nearby integers"
- *   unless you have a proof about rounding. 64-bit multiply plus
- *   comparison is exact.
+ *   Nu folosi sqrt pe virgulă mobilă și „verifică întregii din
+ *   jur” decât dacă ai o dovadă despre rotunjire. Înmulțire pe
+ *   64 de biți plus comparație e exactă.
  *
- * Checks
+ * Verificări
  *   n = 8:  T_8  = 36  = 6^2.  Pivot 6.
  *   n = 49: T_49 = 1225 = 35^2. Pivot 35.
- *   n = 50: T_50 = 1275, not a square. -1.
+ *   n = 50: T_50 = 1275, nu e pătrat. -1.
  *
- * Complexity
- *   Hardcoded: O(1) and wrong as a function of n.
- *   Gauss + binary search: O(log n) multiplies. Extra memory O(1).
+ * Complexitate
+ *   Hardcodat: O(1) și greșit ca funcție de n.
+ *   Gauss + căutare binară: O(log n) înmulțiri. Memorie extra O(1).
  *
- * Memory
- *   No arrays. A handful of integers on the stack. This problem is
- *   pure arithmetic. There is nothing to allocate and nothing to
- *   free. That is the correct amount of memory. No decay, no n from
- *   sizeof: the only n is the integer argument.
+ * Memorie
+ *   Fără tablouri. O mână de întregi pe stivă. Problema asta e
+ *   aritmetică pură. Nimic de alocat și nimic de eliberat. Ăsta
+ *   e cantitatea corectă de memorie. Fără decay, fără n din
+ *   sizeof: singurul n e argumentul întreg.
  *
- * C theory — triangular numbers, overflow, integer division
- *   Gauss's formula n(n+1)/2 is exact for integers because n(n+1) is
- *   always even. In integer arithmetic you must still multiply before
- *   you divide, in a wide enough type. n*(n+1)/2 in int, for n near
- *   2^16, already overflows: signed overflow is UB, and the compiler
- *   may delete later checks. 1LL * n * (n + 1LL) / 2 is the habit.
+ * Teorie C — numere triunghiulare, overflow, împărțire întreagă
+ *   Formula lui Gauss n(n+1)/2 e exactă pe întregi pentru că
+ *   n(n+1) e mereu par. În aritmetică întreagă tot trebuie să
+ *   înmulțești înainte să împarți, pe un tip destul de larg.
+ *   n*(n+1)/2 în int, pentru n aproape de 2^16, deja dă overflow:
+ *   overflow-ul pe signed e UB, și compilatorul poate șterge
+ *   verificări ulterioare. 1LL * n * (n + 1LL) / 2 e obiceiul.
  *
- *   mid * mid in int overflows for mid > 46340 (since 46341^2 >
- *   2^31-1). Compare 1LL * mid * mid against total.
+ *   mid * mid în int dă overflow pentru mid > 46340 (pentru că
+ *   46341^2 > 2^31-1). Compară 1LL * mid * mid cu total.
  *
- *   Integer division truncates toward zero. We only divide even
- *   products by 2, so there is no rounding. We never divide in the
- *   search loop: we compare squares.
+ *   Împărțirea întreagă trunchiază spre zero. Împărțim doar
+ *   produse pare la 2, deci n-ai rotunjire. Nu împărțim niciodată
+ *   în bucla de căutare: comparăm pătrate.
  *
- *   Binary search here is on the integer range [1, n], not on an
- *   array. Random access is a register-width multiply, not a load.
- *   There is no cache story because there is no buffer. The lesson
- *   is overflow, not locality.
+ *   Căutarea binară aici e pe intervalul de întregi [1, n], nu pe
+ *   un tablou. Accesul aleator e o înmulțire de lățimea
+ *   registrului, nu un load. N-ai poveste de cache pentru că n-ai
+ *   buffer. Lecția e overflow, nu localitate.
  *
- * main prints gauss(50), gauss(8), gauss(49) so you see -1, 6, 35.
+ * main afișează gauss(50), gauss(8), gauss(49) ca să vezi -1, 6, 35.
  */
 
 #include <iostream>

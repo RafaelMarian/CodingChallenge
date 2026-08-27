@@ -1,67 +1,64 @@
 /*
- * LESSON — Kth missing positive, by binary search on the gap count
+ * LECȚIE — Al k-lea pozitiv lipsă, prin căutare binară pe numărul de goluri
  *
- * Student, arr is a strictly increasing sequence of positive ints,
- * conceptually starting from 1 as the first natural number that
- * might be missing. Return the k-th positive integer that does not
- * appear in arr. Sample {2,3,4,7,11}, k = 1: the missing positives
- * are 1, 5, 6, 8, 9, 10, ... so the 1st is 1.
+ * Studentule, arr e un șir strict crescător de int pozitivi, conceptual începând
+ * de la 1 ca primul natural care ar putea lipsi. Întoarce al k-lea
+ * întreg pozitiv care nu apare în arr. Exemplul {2,3,4,7,11}, k = 1:
+ * pozitivele lipsă sunt 1, 5, 6, 8, 9, 10, ... deci primul e 1.
  *
- * Intuition
- *   At index mid, the value arr[mid] "should" have been mid+1 if the
- *   array had been 1,2,3,... with nothing missing. The number of
- *   missing positives strictly before this slot (among 1..arr[mid])
- *   is
+ * Intuiție
+ *   La indicele mid, valoarea arr[mid] „ar fi trebuit” să fie mid+1
+ *   dacă tabloul era 1,2,3,... fără nimic lipsă. Numărul de pozitive
+ *   lipsă strict înainte de acest loc (printre 1..arr[mid]) e
  *
  *       totMissing = arr[mid] - (mid + 1)
  *
- *   Example: arr[0] = 2, totMissing = 2 - 1 = 1 (the missing 1).
- *   arr[3] = 7, totMissing = 7 - 4 = 3 (missing 1,5,6).
+ *   Exemplu: arr[0] = 2, totMissing = 2 - 1 = 1 (lipsește 1).
+ *   arr[3] = 7, totMissing = 7 - 4 = 3 (lipsesc 1,5,6).
  *
- *   If totMissing < k, the k-th missing is to the right of mid:
- *   low = mid + 1. Otherwise it is at mid or to the left:
+ *   Dacă totMissing < k, al k-lea lipsă e la dreapta lui mid:
+ *   low = mid + 1. Altfel e la mid sau la stânga:
  *   high = mid - 1.
  *
- *   After the loop, high is the last index with totMissing < k
- *   (or -1 if even index 0 has enough missing). How many numbers
- *   have we "consumed" from the 1..infinity line? We have high+1
- *   array elements before the answer, so the k-th missing is
+ *   După buclă, high e ultimul indice cu totMissing < k
+ *   (sau -1 dacă și indicele 0 are destule lipsă). Câte numere am
+ *   „consumat” de pe linia 1..infinit? Avem high+1 elemente din
+ *   tablou înainte de răspuns, deci al k-lea lipsă e
  *
  *       k + high + 1
  *
- *   For the sample, high becomes -1, return 1 + (-1) + 1 = 1.
+ *   Pe exemplu, high devine -1, întorci 1 + (-1) + 1 = 1.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory. A linear scan that increments
- *   k whenever arr[i] <= k is O(n) and also correct; binary search
- *   is the lesson.
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1). O parcurgere liniară care
+ *   incrementează k ori de câte ori arr[i] <= k e O(n) și tot
+ *   corectă; lecția e căutarea binară.
  *
- * Memory
- *   int arr[], int n. A few ints. No extra buffer. We never
- *   materialize the missing numbers. arr decayed to a pointer.
+ * Memorie
+ *   int arr[], int n. Câțiva int. Fără buffer extra. Nu materializezi
+ *   niciodată numerele lipsă. arr a decăzut la un pointer.
  *
- * C theory — searching a count, not a value; overflow
- *   This is binary search on an implicit monotone predicate:
- *   "are there fewer than k missing before index mid?" The array
- *   is the random-access structure that lets us evaluate the
- *   predicate in O(1). We are not looking up k inside arr; k may
- *   not appear at all.
+ * Teorie C — cauți un numărător, nu o valoare; overflow
+ *   E căutare binară pe un predicat monoton implicit: „sunt mai
+ *   puține de k lipsă înainte de indicele mid?” Tabloul e structura
+ *   cu acces aleator care îți lasă să evaluezi predicatul în O(1).
+ *   Nu cauți k în arr; k poate să nu apară deloc.
  *
- *   arr[mid] - (mid + 1) can theoretically underflow if arr were
- *   not strictly increasing positives. The precondition keeps it
- *   non-negative. Signed underflow of a negative result is just a
- *   negative int here (well-defined if it does not overflow past
- *   INT_MIN); a broken input would simply give a wrong answer.
+ *   arr[mid] - (mid + 1) poate, teoretic, da underflow dacă arr n-ar
+ *   fi strict crescător de pozitive. Precondiția îl ține nenegativ.
+ *   Underflow pe signed al unui rezultat negativ e doar un int
+ *   negativ aici (bine definit dacă nu trece de INT_MIN); un input
+ *   stricat ți-ar da pur și simplu un răspuns greșit.
  *
- *   Return k + high + 1: high can be -1, so this is k. high can be
- *   n-1, so the answer may lie past the end of the array (more
- *   missing after the last element). That addition is ordinary int
- *   arithmetic; for huge k use long long.
+ *   Întorci k + high + 1: high poate fi -1, deci asta e k. high poate
+ *   fi n-1, deci răspunsul poate sta după capătul tabloului (mai
+ *   multe lipsă după ultimul element). Adunarea e aritmetică obișnuită
+ *   pe int; pentru k uriaș folosește long long.
  *
- *   mid = (low + high) / 2 is the overflow hazard. We write
+ *   mid = (low + high) / 2 e pericolul de overflow. Scriem
  *   low + (high - low) / 2.
  *
- * Sample prints 1.
+ * Exemplul afișează 1.
  */
 
 #include <iostream>

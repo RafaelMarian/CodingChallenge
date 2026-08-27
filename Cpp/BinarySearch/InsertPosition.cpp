@@ -1,53 +1,53 @@
 /*
- * LESSON — Search insert position (lower_bound)
+ * LECȚIE — Poziția de inserare (lower_bound)
  *
- * Student, return the index of target if it is present. If not, return
- * the index where it would be inserted to keep the array sorted.
- * Sample {3,4,6,7,10,11,13,15}, target 16: 16 belongs at the end,
- * index 8.
+ * Studentule, întoarce indicele lui target dacă e prezent. Dacă nu, întoarce
+ * indicele unde l-ai insera ca tabloul să rămână sortat.
+ * Exemplul {3,4,6,7,10,11,13,15}, target 16: 16 stă la capăt,
+ * indicele 8.
  *
- * Intuition
- *   This is lower_bound: the first position where the element is
- *   not less than target, i.e. the first i with nums[i] >= target.
- *   Binary search as usual. On nums[mid] == target return mid (any
- *   equal index is a legal "found"; lower_bound would return the
- *   leftmost, which this version does not guarantee if duplicates
- *   exist — the sample has none).
+ * Intuiție
+ *   Asta e lower_bound: prima poziție unde elementul nu e mai mic
+ *   decât target, adică primul i cu nums[i] >= target. Căutare
+ *   binară ca de obicei. Pe nums[mid] == target întorci mid (orice
+ *   indice egal e un „găsit” legal; lower_bound ar întoarce cel mai
+ *   din stânga, pe care varianta asta nu-l garantează dacă există
+ *   duplicate — exemplul n-are).
  *
- *   When the loop ends, l > h. The invariant is: everything left of
- *   l is < target, everything right of h is > target. So l is the
- *   insertion index. Return l. Do not inspect mid after the loop.
- *   mid is stale: it is whatever the last iteration computed, and a
- *   test like (target < nums[mid] ? mid : mid+1) is a fragile way to
- *   reconstruct what l already is. For target 16, l finishes at 8.
+ *   Când bucla se termină, l > h. Invariantul e: tot ce e la stânga
+ *   lui l e < target, tot ce e la dreapta lui h e > target. Deci l
+ *   e indicele de inserare. Întoarce l. Nu inspecta mid după buclă.
+ *   mid e vechi: e ce-a calculat ultima iterație, iar un test de
+ *   forma (target < nums[mid] ? mid : mid+1) e un mod fragil de a
+ *   reconstrui ce e deja l. Pentru target 16, l se oprește la 8.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory.
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1).
  *
- * Memory
- *   int nums[], int n. No extra buffer. We do not insert; we only
- *   report the index. Insertion itself would be O(n) to shift a
- *   contiguous array. That is a different function. nums decayed
- *   to int*; n is the live length.
+ * Memorie
+ *   int nums[], int n. Fără buffer extra. Nu inserăm; doar raportăm
+ *   indicele. Inserarea în sine ar fi O(n) ca să muți un tablou
+ *   contig. Aia e o altă funcție. nums a decăzut la int*; n e
+ *   lungimea vie.
  *
- * C theory — lower_bound, one-past-the-end, overflow
- *   If target is larger than every element, l becomes n. That is a
- *   valid insertion index and not a valid access index. Do not
- *   return nums[l] without a bounds check. Returning l as an integer
- *   is fine: the caller decides whether to insert.
+ * Teorie C — lower_bound, one-past-the-end, overflow
+ *   Dacă target e mai mare decât orice element, l devine n. Ăsta e
+ *   un indice valid de inserare și nu un indice valid de acces. Nu
+ *   întoarce nums[l] fără o verificare de limite. Să întorci l ca
+ *   întreg e în regulă: apelantul decide dacă inserează.
  *
- *   If target is smaller than every element, l stays 0.
+ *   Dacă target e mai mic decât orice element, l rămâne 0.
  *
- *   C's analogue is the insertion point into a sorted buffer:
+ *   Analogul C e punctul de inserare într-un buffer sortat:
  *       int i = 0;
  *       while (i < n && a[i] < target) i++;
- *   that is linear. Binary search is the logarithmic version of the
- *   same predicate "is this slot still < target?"
+ *   ăsta e liniar. Căutarea binară e varianta logaritmică a
+ *   aceluiași predicat „slotul ăsta e încă < target?”
  *
- *   mid = l + (h - l) / 2. (l + h) / 2 can overflow. You have heard
- *   this before because it is the bug that keeps shipping.
+ *   mid = l + (h - l) / 2. (l + h) / 2 poate da overflow. Ai mai
+ *   auzit asta pentru că e bug-ul care tot ajunge în producție.
  *
- * Sample prints 8.
+ * Exemplul afișează 8.
  */
 
 #include <iostream>

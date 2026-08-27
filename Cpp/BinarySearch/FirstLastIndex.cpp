@@ -1,54 +1,54 @@
 /*
- * LESSON — First and last index of a target in a sorted array
+ * LECȚIE — Primul și ultimul indice al unui target într-un tablou sortat
  *
- * Student, the array is sorted. Target may appear zero or more times.
- * Print the first and last indices where it occurs, or -1 -1 if it
- * is absent. Sample {3,3,3,4,6,6,6,6,7}, target 6: first 4, last 7.
+ * Studentule, tabloul e sortat. target poate apărea de zero sau mai multe ori.
+ * Afișează primul și ultimul indice unde apare, sau -1 -1 dacă
+ * lipsește. Exemplul {3,3,3,4,6,6,6,6,7}, target 6: primul 4, ultimul 7.
  *
- * Intuition — the version we implement (faithful, O(n) worst)
- *   Binary search until nums[mid] == target. Then walk left while
- *   the previous element is still target, and walk right while the
- *   next is still target. Write those two bounds into out[0] and
- *   out[1]. Two ints, not a pair type.
+ * Intuiție — varianta pe care o implementăm (fidelă, O(n) cel mai rău)
+ *   Căutare binară până nums[mid] == target. Apoi mergi la stânga
+ *   cât timp elementul anterior e tot target, și la dreapta cât timp
+ *   următorul e tot target. Scrie cele două capete în out[0] și
+ *   out[1]. Doi int, nu un tip pair.
  *
- *   That expand is simple and matches the original. It is O(n) in
- *   the worst case: an array of all target, the walks run to both
- *   ends. You paid for a binary search and then threw the log n
- *   away on the plateau.
+ *   Extinderea aia e simplă și se potrivește cu originalul. E O(n)
+ *   în cazul cel mai rău: un tablou plin de target, plimbările
+ *   ajung la ambele capete. Ai plătit o căutare binară și apoi ai
+ *   aruncat log n pe platou.
  *
- * The O(log n) way you should know
- *   Two binary searches. lower_bound: first index with nums[i] >=
- *   target. upper_bound: first index with nums[i] > target. Then
- *   first = lower, last = upper - 1, after checking that lower
- *   is in range and nums[lower] == target. Each search is O(log n),
- *   even if the whole array is target, because you never scan the
- *   plateau: you keep bisecting with a different predicate.
+ * Varianta O(log n) pe care trebuie s-o știi
+ *   Două căutări binare. lower_bound: primul indice cu nums[i] >=
+ *   target. upper_bound: primul indice cu nums[i] > target. Apoi
+ *   first = lower, last = upper - 1, după ce verifici că lower e
+ *   în interval și nums[lower] == target. Fiecare căutare e O(log n),
+ *   chiar dacă tot tabloul e target, pentru că nu parcurgi platoul:
+ *   tot tai în două cu un predicat diferit.
  *
- * Complexity
- *   This file: O(log n) typical, O(n) worst. Extra memory O(1).
- *   Two-bound binary search: O(log n) always, O(1) extra.
+ * Complexitate
+ *   Fișierul ăsta: O(log n) tipic, O(n) cel mai rău. Memorie extra O(1).
+ *   Căutare binară pe două capete: O(log n) mereu, O(1) extra.
  *
- * Memory
- *   int nums[], int n: the array decayed to a pointer plus a length.
- *   We write two ints into out[] (length 2). No extra array. The
- *   walks only read. Expanding does not allocate.
+ * Memorie
+ *   int nums[], int n: tabloul a decăzut la un pointer plus o lungime.
+ *   Scriem doi int în out[] (lungime 2). Fără tablou extra. Plimbările
+ *   doar citesc. Extinderea nu alocă.
  *
- * C theory — plateaus, overflow, bounds on the walks
- *   Sorted arrays turn a run of equals into a contiguous plateau.
- *   Binary search lands somewhere on that plateau, not necessarily
- *   the left edge. That is why a single hit is not enough for
- *   "first" and "last."
+ * Teorie C — platouri, overflow, limite pe plimbări
+ *   Tablourile sortate transformă o serie de egale într-un platou
+ *   contig. Căutarea binară aterizează undeva pe platoul ăla, nu
+ *   neapărat pe muchia stângă. De-asta o singură lovitură nu ajunge
+ *   pentru „primul” și „ultimul”.
  *
- *   Left walk: while (l > 0 && nums[l] == nums[l-1]) l--.
- *   The l > 0 is the guard against nums[-1], which is UB.
- *   Right walk: while (h + 1 < n && nums[h] == nums[h+1]) h++.
- *   The h+1 < n is the guard against one-past-the-end.
+ *   Plimbare stânga: while (l > 0 && nums[l] == nums[l-1]) l--.
+ *   l > 0 e garda împotriva lui nums[-1], care e UB.
+ *   Plimbare dreapta: while (h + 1 < n && nums[h] == nums[h+1]) h++.
+ *   h+1 < n e garda împotriva one-past-the-end.
  *
- *   mid = l + (h - l) / 2 during the search. Same overflow rule.
+ *   mid = l + (h - l) / 2 în timpul căutării. Aceeași regulă de overflow.
  *
- *   C: fill two ints *first, *last. Or an out[2] buffer, as here.
+ *   C: umpli doi int *first, *last. Sau un buffer out[2], ca aici.
  *
- * Sample prints 4 7.
+ * Exemplul afișează 4 7.
  */
 
 #include <iostream>

@@ -1,58 +1,62 @@
 /*
- * LESSON — Classic binary search on a sorted array
+ * LECȚIE — Căutare binară clasică pe un tablou sortat
  *
- * Student, the array is sorted in non-decreasing order. Return the
- * index of key, or -1 if it is absent. Sample {2,3,5,6,7,8,9,11,13,14}
- * with key 10 returns -1: 10 is not present, and the search proves it
- * after discarding half of the remaining range at every step.
+ * Studentule, tabloul e sortat nedescrescător. Întoarce indicele lui key, sau -1
+ * dacă lipsește. Exemplul {2,3,5,6,7,8,9,11,13,14} cu key 10 dă -1:
+ * 10 nu e acolo, și căutarea o dovedește aruncând jumătate din
+ * intervalul rămas la fiecare pas.
  *
- * Intuition
- *   Keep a closed range [l, h] that must contain key if key is
- *   anywhere. Compare key to the middle element. If equal, return mid.
- *   If key is smaller, the right half cannot contain it: h = mid - 1.
- *   If key is larger, the left half cannot: l = mid + 1. The range
- *   shrinks until it is empty (l > h) or you hit.
+ * Intuiție
+ *   Ține un interval închis [l, h] care trebuie să conțină key dacă
+ *   key e undeva. Compară key cu elementul din mijloc. Dacă e egal,
+ *   întoarce mid. Dacă key e mai mic, jumătatea dreaptă nu-l poate
+ *   conține: h = mid - 1. Dacă key e mai mare, jumătatea stângă nu
+ *   poate: l = mid + 1. Intervalul se strânge până e gol (l > h) sau
+ *   dai de el.
  *
- *   This requires random access: you must load nums[mid] in O(1).
- *   A linked list has no useful binary search; you would spend O(n)
- *   walking to mid. A C array gives pointer arithmetic: nums[mid] is
- *   *(nums + mid).
+ *   Ai nevoie de acces aleator: trebuie să încarci nums[mid] în O(1).
+ *   O listă înlănțuită n-are căutare binară utilă; ai petrece O(n)
+ *   mergând până la mid. Un tablou C îți dă aritmetică pe pointeri:
+ *   nums[mid] e *(nums + mid).
  *
- * Complexity
- *   Time O(log n): the range halves each iteration. Extra memory O(1).
- *   Recursion would use O(log n) stack frames; the loop does not.
+ * Complexitate
+ *   Timp O(log n): intervalul se înjumătățește la fiecare iterație.
+ *   Memorie extra O(1). Recursivitatea ar folosi O(log n) cadre pe
+ *   stivă; bucla nu.
  *
- * Memory
- *   int nums[] in a parameter is a lie: it decays to int*. The function
- *   cannot recover the length from the pointer, so we pass int n.
- *   In main, nums is a real array on the stack; sizeof(nums) /
- *   sizeof(nums[0]) is legal only there. l, h, mid are automatic ints.
- *   Binary search jumps around that buffer: first the middle, then a
- *   quarter, and so on. For large n those loads miss cache. Sequential
- *   linear search over a small array that already sits in L1 can beat
- *   binary search on wall-clock time, despite worse big-O, because it
- *   prefetches and has a tight predictable loop.
+ * Memorie
+ *   int nums[] într-un parametru e o minciună: decade la int*. Funcția
+ *   nu poate recupera lungimea din pointer, deci transmiți int n.
+ *   În main, nums e un tablou real pe stivă; sizeof(nums) /
+ *   sizeof(nums[0]) e legal doar acolo. l, h, mid sunt int-uri
+ *   automate. Căutarea binară sare prin buffer: întâi mijlocul, apoi
+ *   un sfert, și tot așa. Pentru n mare, acele load-uri ratează cache.
+ *   Căutarea liniară secvențială pe un tablou mic care stă deja în L1
+ *   poate bate căutarea binară la cronometru, deși big-O e mai prost,
+ *   pentru că face prefetch și are o buclă strânsă, previzibilă.
  *
- * C theory — midpoint overflow, half-invariants, UB
- *   The naive mid = (l + h) / 2 adds two ints. If l and h are large,
- *   l + h overflows. Signed overflow is undefined behavior. The
- *   compiler may assume it never happens. The safe form is
+ * Teorie C — overflow la mijloc, invarianți pe jumătăți, UB
+ *   Forma naivă mid = (l + h) / 2 adună doi int. Dacă l și h sunt
+ *   mari, l + h dă overflow. Overflow-ul pe signed e UB. Compilatorul
+ *   poate presupune că nu se întâmplă niciodată. Forma sigură e
  *
  *       mid = l + (h - l) / 2
  *
- *   h - l is non-negative and fits in int if h and l do. Then add l.
+ *   h - l e nenegativ și încape în int dacă încap și h și l. Apoi
+ *   aduni l.
  *
- *   Loop condition is l <= h because the range is closed. Using l < h
- *   without care drops the last element. When you set h = mid - 1 you
- *   exclude mid (you already tested it). Off-by-one here is the
- *   classic binary-search bug: infinite loop or skipped cell.
+ *   Condiția buclei e l <= h pentru că intervalul e închis. Dacă
+ *   folosești l < h fără grijă, cazi ultimul element. Când pui
+ *   h = mid - 1, excluzi mid (l-ai testat deja). Off-by-one aici e
+ *   bug-ul clasic al căutării binare: buclă infinită sau celulă
+ *   sărită.
  *
- *   Out-of-bounds mid is UB. The loop invariant keeps 0 <= l <= h < n
- *   or l > h (empty). Sortedness is a precondition. If the array is
- *   not sorted the algorithm still "runs" and returns a number that
- *   means nothing. That is not UB; it is a wrong answer.
+ *   Un mid în afara limitelor e UB. Invariantul buclei păstrează
+ *   0 <= l <= h < n sau l > h (gol). Sortarea e o precondiție. Dacă
+ *   tabloul nu e sortat, algoritmul tot „rulează” și întoarce un
+ *   număr care nu înseamnă nimic. Asta nu e UB; e un răspuns greșit.
  *
- * Sample prints -1.
+ * Exemplul afișează -1.
  */
 
 #include <iostream>

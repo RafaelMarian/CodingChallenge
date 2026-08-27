@@ -1,71 +1,76 @@
 /*
- * LESSON — Merge overlapping intervals, in place, after a sort
+ * LECȚIE — Unește intervalele care se suprapun, pe loc, după o sortare
  *
- * Student, you are given a list of closed intervals [start, end]
- * stored as a two-column C array: int nums[][2]. Overlapping or
- * touching intervals merge into one. Return the new length of the
- * compacted list. The surviving intervals sit at the front of the
- * same array.
+ * Studentule, primești o listă de intervale închise [start, end] stocate ca un
+ * tablou C cu două coloane: int nums[][2]. Intervalele care se
+ * suprapun sau se ating se unesc într-unul. Întoarce noua lungime
+ * a listei compactate. Intervalele care supraviețuiesc stau în
+ * față, în același tablou.
  *
- * Intuition
- *   After you sort by start, overlaps become a local question: does
- *   the current interval start before or at the end of the interval
- *   we are currently extending? If prev.end >= cur.start, they
- *   overlap (or touch). Stretch prev.end to max(prev.end, cur.end).
- *   If they do not overlap, advance a write index and copy cur into
- *   that slot. The write index is the in-place compact: we overwrite
- *   slots that held intervals already absorbed.
+ * Intuiție
+ *   După ce sortezi după start, suprapunerile devin o întrebare
+ *   locală: intervalul curent începe înainte sau la capătul
+ *   intervalului pe care-l întindem acum? Dacă prev.end >=
+ *   cur.start, se suprapun (sau se ating). Întinde prev.end la
+ *   max(prev.end, cur.end). Dacă nu se suprapun, avansează un
+ *   indice de scriere și copiază cur în slotul ăla. Indicele de
+ *   scriere e compactarea pe loc: suprascriem sloturi care țineau
+ *   intervale deja absorbite.
  *
- *   Sample {{6,8},{1,9},{2,4},{4,7}}:
- *     sorted by start: {1,9}, {2,4}, {4,7}, {6,8}
- *     {1,9} swallows all three later ones because 9 >= each start.
- *     One interval remains: [1, 9].
+ *   Exemplul {{6,8},{1,9},{2,4},{4,7}}:
+ *     sortat după start: {1,9}, {2,4}, {4,7}, {6,8}
+ *     {1,9} înghite toate cele trei de mai târziu pentru că 9 >=
+ *     fiecare start. Rămâne un interval: [1, 9].
  *
- * Complexity
- *   Sort O(n log n) in general; this file uses a simple O(n^2) row
- *   swap on n = 4. Merge pass O(n). Extra memory O(1). Output is
- *   written over the input. Return value is the new logical length.
- *   Callers must use the returned length, not the original n.
+ * Complexitate
+ *   Sortare O(n log n) în general; fișierul ăsta folosește un
+ *   swap simplu O(n^2) pe rânduri la n = 4. Trecerea de unire O(n).
+ *   Memorie extra O(1). Output-ul e scris peste input. Valoarea
+ *   întoarsă e noua lungime logică. Apelanții trebuie să folosească
+ *   lungimea întoarsă, nu n original.
  *
- * Memory
- *   int nums[][2]: a contiguous block of n pairs of ints. nums[i][0]
- *   is start, nums[i][1] is end. In a parameter the first dimension
- *   decays: the type is pointer-to-array-of-2-ints, int (*p)[2].
- *   sizeof(nums) inside mergeOverlap is the size of that pointer,
- *   not n * 2 * sizeof(int). We pass n. The second dimension [2]
- *   stays in the type so the compiler can scale row i by 8 bytes.
+ * Memorie
+ *   int nums[][2]: un bloc contig de n perechi de int. nums[i][0]
+ *   e start, nums[i][1] e end. Într-un parametru prima dimensiune
+ *   decade: tipul e pointer-la-tablou-de-2-int, int (*p)[2].
+ *   sizeof(nums) în mergeOverlap e dimensiunea pointerului ăla,
+ *   nu n * 2 * sizeof(int). Transmiți n. A doua dimensiune [2]
+ *   rămâne în tip ca compilatorul să poată scala rândul i cu 8
+ *   octeți.
  *
- *   Why not sort(nums, nums + n)? sort needs an assignable element
- *   type. A row int[2] is an array; arrays cannot be assigned. We
- *   swap the two columns ourselves. That is honest C.
+ *   De ce nu sort(nums, nums + n)? sort are nevoie de un tip de
+ *   element asignabil. Un rând int[2] e un tablou; tablourile nu
+ *   se pot asigna. Swap-uim noi cele două coloane. Ăsta e C cinstit.
  *
- *   The write-index compact does not allocate. It copies two ints
- *   into an earlier row. No new rows.
+ *   Compactarea cu indice de scriere nu alocă. Copiază doi int
+ *   într-un rând anterior. Fără rânduri noi.
  *
- * C theory — overlap, in-place compact, cache
- *   Layout: four intervals are eight ints in a row in memory:
+ * Teorie C — suprapunere, compactare pe loc, cache
+ *   Așezare: patru intervale sunt opt int la rând în memorie:
  *       6, 8, 1, 9, 2, 4, 4, 7
- *   nums[i][j] is *(*(nums + i) + j), which the compiler turns into
- *   a single scaled offset from the base. Contiguous structs
- *   {int s, e;} are the same bytes with names.
+ *   nums[i][j] e *(*(nums + i) + j), pe care compilatorul îl
+ *   transformă într-un singur offset scalat de la bază. Struct-uri
+ *   contigue {int s, e;} sunt aceiași octeți cu nume.
  *
- *   Overlap for closed intervals: prev.end >= cur.start. If the
- *   problem used half-open [s, e), touching ends would not overlap
- *   and the test would be prev.end > cur.start. Know which topology
- *   you are in. The sample treats [2,4] and [4,7] as overlapping.
+ *   Suprapunere pentru intervale închise: prev.end >= cur.start.
+ *   Dacă problema folosea semi-deschise [s, e), capetele care se
+ *   ating n-ar suprapune și testul ar fi prev.end > cur.start.
+ *   Știi în ce topologie ești. Exemplul tratează [2,4] și [4,7]
+ *   ca suprapuse.
  *
- *   In-place compact is the same pattern as removing duplicates with
- *   a slow writer: a read index i and a write index prevIdx. Slots
- *   behind prevIdx are finished. We do not shrink the array; we
- *   return how many slots are live. Reading past that length is a
- *   logic error (you would see leftover unmerged rows). Out-of-bounds
- *   of the array itself is UB; leftover rows are still in-bounds.
+ *   Compactarea pe loc e același tipar ca scoaterea duplicatelor
+ *   cu un scriitor lent: un indice de citire i și un indice de
+ *   scriere prevIdx. Sloturile din spatele lui prevIdx sunt
+ *   terminate. Nu micșorăm tabloul; întoarcem câte sloturi sunt
+ *   vii. Să citești peste lungimea aia e o eroare de logică (ai
+ *   vedea rânduri rămase neunite). În afara limitelor tabloului
+ *   însuși e UB; rândurile rămase tot sunt în limite.
  *
- *   Cache: the merge pass is sequential on a contiguous 2-column
- *   buffer. start and end of one interval sit in the same line.
+ *   Cache: trecerea de unire e secvențială pe un buffer contig cu
+ *   2 coloane. start și end ale unui interval stau pe aceeași linie.
  *
- * Print: "The Merged Intervals are: " then [start, end] pairs.
- * Sample prints: The Merged Intervals are: [1, 9]
+ * Afișare: "The Merged Intervals are: " apoi perechi [start, end].
+ * Exemplul afișează: The Merged Intervals are: [1, 9]
  */
 
 #include <iostream>

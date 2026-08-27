@@ -1,58 +1,58 @@
 /*
- * LESSON — Search in a rotated sorted array (distinct elements)
+ * LECȚIE — Căutare într-un tablou sortat rotit (elemente distincte)
  *
- * Student, the array was sorted ascending, then rotated at some
- * unknown pivot: a suffix moved to the front. Example
- * {6,7,8,9,11,13,14,2,3,5} is {2,3,5,6,7,8,9,11,13,14} rotated.
- * Find the index of key, or -1. Sample key 3 is at index 8.
+ * Studentule, tabloul a fost sortat crescător, apoi rotit la un pivot necunoscut:
+ * un sufix a fost mutat în față. Exemplul
+ * {6,7,8,9,11,13,14,2,3,5} e {2,3,5,6,7,8,9,11,13,14} rotit.
+ * Găsește indicele lui key, sau -1. Exemplul cu key 3 e la indicele 8.
  *
- * Intuition
- *   In a rotated array with distinct values, one of the two halves
- *   around mid is always sorted (the other contains the rotation
- *   seam). Test which half is sorted, then ask whether key lies
- *   inside that sorted half. If yes, discard the other half. If no,
- *   discard the sorted half. You still throw away about half the
- *   range per step, so the search is binary.
+ * Intuiție
+ *   Într-un tablou rotit cu valori distincte, una dintre cele două
+ *   jumătăți din jurul lui mid e mereu sortată (cealaltă conține
+ *   cusătura de rotație). Testează care jumătate e sortată, apoi
+ *   întreabă dacă key stă în jumătatea sortată. Dacă da, arunci
+ *   cealaltă. Dacă nu, arunci jumătatea sortată. Tot arunci cam
+ *   jumătate din interval la fiecare pas, deci căutarea e binară.
  *
- *   How to tell a half is sorted: nums[l] <= nums[mid] means [l, mid]
- *   is sorted (no seam in there). Otherwise the seam is on the left
- *   and [mid, h] is sorted.
+ *   Cum recunoști o jumătate sortată: nums[l] <= nums[mid] înseamnă
+ *   că [l, mid] e sortat (n-are cusătură acolo). Altfel cusătura e
+ *   pe stânga și [mid, h] e sortat.
  *
- *   Then, for a sorted left half, key is in it when
- *   nums[l] <= key < nums[mid]. Symmetric on the right:
- *   nums[mid] < key <= nums[h]. The equalities on the ends are
- *   because the range is closed; mid itself was already tested.
+ *   Apoi, pentru o jumătate stângă sortată, key e în ea când
+ *   nums[l] <= key < nums[mid]. Simetric pe dreapta:
+ *   nums[mid] < key <= nums[h]. Egalitățile de la capete sunt
+ *   pentru că intervalul e închis; mid însuși a fost deja testat.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory. Same as ordinary binary search.
- *   Distinctness is required for the "one half is sorted" test to be
- *   decisive. Duplicates need a different lesson (SearchRotatedDuplicate.cpp).
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1). Ca la căutarea binară obișnuită.
+ *   Distincția e necesară ca testul „o jumătate e sortată” să fie
+ *   decisiv. Duplicatele cer o altă lecție (SearchRotatedDuplicate.cpp).
  *
- * Memory
- *   int nums[], int n, three ints. No allocation. Random access into
- *   a contiguous buffer, same cache story as classic binary search:
- *   logarithmic loads, not a linear scan. Array-to-pointer decay
- *   means n is required.
+ * Memorie
+ *   int nums[], int n, trei int. Fără alocare. Acces aleator într-un
+ *   buffer contig, aceeași poveste de cache ca la căutarea binară
+ *   clasică: load-uri logaritmice, nu o parcurgere liniară. Decay-ul
+ *   tablou→pointer înseamnă că n e obligatoriu.
  *
- * C theory — rotation, invariants, overflow, distinctness
- *   Rotation does not shuffle. It is a cut: concatenate nums[k..n)
- *   with nums[0..k). Both pieces are sorted. That is why a half
- *   without the cut is sorted. If you needed to unrotate, you would
- *   search for the minimum (FindMinRotatedArray.cpp) and then binary
- *   search one of the two sorted pieces. The one-loop version below
- *   does both jobs at once.
+ * Teorie C — rotație, invarianți, overflow, distincție
+ *   Rotația nu amestecă. E o tăietură: concatenezi nums[k..n) cu
+ *   nums[0..k). Ambele bucăți sunt sortate. De-asta o jumătate fără
+ *   tăietură e sortată. Dacă ai vrea să derotezi, ai căuta minimul
+ *   (FindMinRotatedArray.cpp) și apoi ai căuta binar într-una din
+ *   cele două bucăți sortate. Varianta cu o singură buclă de mai jos
+ *   face ambele treburile deodată.
  *
- *   mid = l + (h - l) / 2, never (l + h) / 2. Signed overflow of
- *   l + h is UB. Review BinarySearch.cpp if that sentence is not
- *   automatic yet.
+ *   mid = l + (h - l) / 2, niciodată (l + h) / 2. Overflow-ul pe
+ *   signed al lui l + h e UB. Recitește BinarySearch.cpp dacă
+ *   propoziția asta nu e încă automată.
  *
- *   Distinct values: if nums[l] == nums[mid] you cannot tell which
- *   half is sorted. The sample has no duplicates, so <= is enough.
+ *   Valori distincte: dacă nums[l] == nums[mid] nu poți spune care
+ *   jumătate e sortată. Exemplul n-are duplicate, deci <= ajunge.
  *
- *   nums[mid] is *(nums + mid). The rotation is a property of the
- *   sequence, not of the pointer.
+ *   nums[mid] e *(nums + mid). Rotația e o proprietate a șirului,
+ *   nu a pointerului.
  *
- * Sample prints 8.
+ * Exemplul afișează 8.
  */
 
 #include <iostream>

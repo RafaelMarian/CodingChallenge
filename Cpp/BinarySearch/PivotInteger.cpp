@@ -1,54 +1,57 @@
 /*
- * LESSON — Pivot integer by binary search on 1..n
+ * LECȚIE — Pivot integer prin căutare binară pe 1..n
  *
- * Student, find x in 1..n such that 1+...+x equals x+...+n, or -1.
- * Algebra (see also Cpp/Gussai/PivotInteger.cpp): this is equivalent
- * to x * x == n * (n + 1) / 2. The right-hand side is the n-th
- * triangular number. Sample n = 50: T_50 = 1275 is not a square, so
+ * Studentule, găsește x în 1..n astfel încât 1+...+x să fie egal cu x+...+n, sau -1.
+ * Algebră (vezi și Cpp/Gussai/PivotInteger.cpp): e echivalent cu
+ * x * x == n * (n + 1) / 2. Partea dreaptă e al n-lea număr
+ * triunghiular. Exemplul n = 50: T_50 = 1275 nu e pătrat, deci
  * -1.
  *
- * Intuition
- *   You are searching the number line [1, n], not an array. The
- *   predicate "mid * mid compared to total" is monotone: squares
- *   grow. Binary search for an exact hit. If the search exits
- *   without equality, there is no integer x.
+ * Intuiție
+ *   Cauți pe linia numerelor [1, n], nu într-un tablou. Predicatul
+ *   „mid * mid comparat cu total” e monoton: pătratele cresc.
+ *   Căutare binară după o lovitură exactă. Dacă căutarea iese fără
+ *   egalitate, nu există x întreg.
  *
- *   This is the same Gauss identity as the Gussai lesson, with the
- *   search written as the algorithm rather than as a comment next
- *   to a hardcoded table. There is no array because every "index"
- *   is the candidate x itself. Random access is a multiply.
+ *   E aceeași identitate Gauss ca în lecția Gussai, cu căutarea
+ *   scrisă ca algoritm, nu ca un comentariu lângă un tabel
+ *   hardcodat. N-ai tablou pentru că fiecare „indice” e chiar
+ *   candidatul x. Accesul aleator e o înmulțire.
  *
- * Complexity
- *   O(log n) multiplies. Extra memory O(1). No heap.
+ * Complexitate
+ *   O(log n) înmulțiri. Memorie extra O(1). Fără heap.
  *
- * Memory
- *   A handful of integers on the stack. Nothing to allocate. The
- *   "data structure" is the integers 1..n, which you do not store.
- *   No buffer, no decay, no length to pass.
+ * Memorie
+ *   O mână de întregi pe stivă. Nimic de alocat. „Structura de date”
+ *   sunt întregii 1..n, pe care nu-i stochezi. Fără buffer, fără
+ *   decay, fără lungime de transmis.
  *
- * C theory — overflow of m*m, triangular overflow, no float
- *   total = n*(n+1)/2 in int overflows for n around 2^16. Compute
- *   1LL * n * (n + 1LL) / 2 in long long. n + 1LL promotes before
- *   the add, so n == INT_MAX does not overflow the add.
+ * Teorie C — overflow la m*m, overflow triunghiular, fără float
+ *   total = n*(n+1)/2 în int dă overflow pentru n în jur de 2^16.
+ *   Calculează 1LL * n * (n + 1LL) / 2 în long long. n + 1LL
+ *   promovează înainte de adunare, deci n == INT_MAX nu dă overflow
+ *   la adunare.
  *
- *   m * m in int overflows for m > 46340. Always 1LL * m * m.
- *   Signed overflow is UB: the program would be meaningless, not
- *   "wrap and get a lucky wrong answer." The compiler may delete
- *   your comparison. long long multiply is the fix, not a cast
- *   after the fact: (long long)(m * m) multiplies in int first.
+ *   m * m în int dă overflow pentru m > 46340. Mereu 1LL * m * m.
+ *   Overflow-ul pe signed e UB: programul n-ar mai avea sens, nu
+ *   „se înfășoară și prinzi un răspuns greșit norocos”. Compilatorul
+ *   îți poate șterge comparația. Înmulțirea pe long long e
+ *   reparația, nu un cast după fapt: (long long)(m * m) înmulțește
+ *   întâi în int.
  *
- *   Do not take sqrt((double)total) and round. Double has 53 bits
- *   of mantissa; large triangular numbers are not exact, and you
- *   would be testing the wrong integer. Exact 64-bit multiply and
- *   compare is the point of this file.
+ *   Nu lua sqrt((double)total) și rotunji. Double are 53 de biți
+ *   de mantisă; numerele triunghiulare mari nu sunt exacte, și ai
+ *   testa întregul greșit. Înmulțire exactă pe 64 de biți și
+ *   comparație e punctul fișierului ăsta.
  *
- *   mid = l + (h - l) / 2 on the value range. l + h can still
- *   overflow if you wrote it that way with l and h near INT_MAX.
+ *   mid = l + (h - l) / 2 pe domeniul de valori. l + h tot poate
+ *   da overflow dacă l-ai scrie așa cu l și h aproape de INT_MAX.
  *
- *   There is no cache lesson beyond "there is no buffer." Arithmetic
- *   lives in registers. That is the cheapest memory you have.
+ *   N-ai lecție de cache dincolo de „n-ai buffer”. Aritmetica
+ *   trăiește în registre. Aia e memoria cea mai ieftină pe care
+ *   o ai.
  *
- * Sample prints -1.
+ * Exemplul afișează -1.
  */
 
 #include <iostream>

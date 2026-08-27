@@ -1,72 +1,77 @@
 /*
- * LESSON — Prefix sums: pay O(n) memory once, answer range sums in O(1)
+ * LECȚIE — Sume prefix: plătești O(n) memorie o dată, răspunzi sume de interval în O(1)
  *
- * Student, here is the contract. Given nums[0..n), write prefix so that
+ * Studentule, iată contractul. Dat nums[0..n), scrie prefix astfel încât
  *
  *     prefix[0] = nums[0]
- *     prefix[i] = prefix[i-1] + nums[i]     for i = 1 .. n-1
+ *     prefix[i] = prefix[i-1] + nums[i]     pentru i = 1 .. n-1
  *
- * After that, the sum of any closed range [L, R] is
+ * După aia, suma oricărui interval închis [L, R] e
  *
- *     prefix[R]                 if L == 0
- *     prefix[R] - prefix[L-1]   if L > 0
+ *     prefix[R]                 dacă L == 0
+ *     prefix[R] - prefix[L-1]   dacă L > 0
  *
- * That subtraction is two loads and an add. No loop. The extra buffer is
- * the price of admission. Print one prefix value per line.
+ * Scăderea aia e două load-uri și o adunare. Fără buclă. Buffer-ul
+ * extra e prețul de intrare. Afișează o valoare prefix pe linie.
  *
- * Intuition
- *   A running total is a cumulative integral of the array. Differences of
- *   a cumulative integral recover interval sums. You have seen this in
- *   discrete math as telescoping: (a0+...+aR) - (a0+...+aL-1) = aL+...+aR.
- *   Draw the array as a row of integers in memory. prefix[i] is the sum of
- *   every cell from the start through i. Once that row exists, a range is
- *   a pair of indices, not a scan.
+ * Intuiție
+ *   Un total care rulează e o integrală cumulativă a tabloului.
+ *   Diferențele unei integrale cumulative recuperează sume de
+ *   interval. Ai văzut asta la matematică discretă ca telescopare:
+ *   (a0+...+aR) - (a0+...+aL-1) = aL+...+aR. Desenează tabloul ca
+ *   un rând de întregi în memorie. prefix[i] e suma fiecărei celule
+ *   de la început până la i. Odată ce rândul ăla există, un interval
+ *   e o pereche de indici, nu o parcurgere.
  *
- * Complexity
- *   Time to build:  O(n). One sequential pass, one add per element.
- *   Time per range: O(1) after the build.
- *   Extra memory:   O(n) integers for the prefix buffer.
- *   Naive range sums without a prefix are O(n) per query. For Q queries
- *   that is O(nQ). The prefix turns it into O(n + Q). That is the trade.
+ * Complexitate
+ *   Timp de construire:  O(n). O trecere secvențială, o adunare pe element.
+ *   Timp pe interval:    O(1) după construire.
+ *   Memorie extra:       O(n) întregi pentru buffer-ul prefix.
+ *   Sume naive de interval fără prefix sunt O(n) pe interogare. Pentru Q
+ *   interogări ăsta e O(nQ). Prefixul o face O(n + Q). Ăsta e schimbul.
  *
- * Memory
- *   int nums[], int n, int prefix[]: two pointers and a length. The
- *   caller owns both buffers. In main, nums and prefix are stack arrays
- *   of the same length. The function writes into prefix; it does not
- *   allocate and it does not return a new array. Because of array-to-
- *   pointer decay, sizeof(prefix) inside prefixSum is the size of a
- *   pointer, not n * sizeof(int). That is why n is an argument.
+ * Memorie
+ *   int nums[], int n, int prefix[]: doi pointeri și o lungime.
+ *   Apelantul deține ambele buffer-e. În main, nums și prefix sunt
+ *   tablouri pe stivă de aceeași lungime. Funcția scrie în prefix;
+ *   nu alocă și nu întoarce un tablou nou. Din cauza decay-ului
+ *   tablou→pointer, sizeof(prefix) în prefixSum e dimensiunea unui
+ *   pointer, nu n * sizeof(int). De-asta n e argument.
  *
- *   Both buffers are contiguous. Walking prefix[i], prefix[i+1], ...
- *   streams through cache lines (typically 64 bytes, 16 ints). A linked
- *   structure of partial sums would be the same big-O and a worse machine.
+ *   Ambele buffer-e sunt contigue. Să parcurgi prefix[i], prefix[i+1],
+ *   ... curge prin linii de cache (de obicei 64 de octeți, 16 int).
+ *   O structură înlănțuită de sume parțiale ar fi același big-O și
+ *   o mașină mai proastă.
  *
- * C theory — overflow, UB, and why the buffer is an array
- *   prefix[i] = prefix[i-1] + nums[i] is a signed add. Signed overflow is
- *   undefined behavior. If the true sums do not fit in 32-bit int, the
- *   program is meaningless: the compiler may assume overflow never happens
- *   and delete "impossible" branches. For real range-sum work store prefix
- *   as long long (at least 64-bit). Then a range still fits unless the
- *   data is adversarial on the order of 2^63.
+ * Teorie C — overflow, UB, și de ce buffer-ul e un tablou
+ *   prefix[i] = prefix[i-1] + nums[i] e o adunare pe signed.
+ *   Overflow-ul pe signed e UB. Dacă sumele adevărate nu încap în
+ *   int pe 32 de biți, programul n-are sens: compilatorul poate
+ *   presupune că overflow-ul nu se întâmplă niciodată și șterge
+ *   ramuri „imposibile”. Pentru lucru real de sume de interval
+ *   stochează prefix ca long long (cel puțin 64 de biți). Atunci
+ *   un interval tot încape, decât dacă datele sunt adverse pe
+ *   ordinul 2^63.
  *
- *   prefix[0] = nums[0] is legal only if n > 0. An empty input has no
- *   nums[0]. Accessing it is out-of-bounds: UB. We do not special-case
- *   empty here because the sample is non-empty; you should, in production.
+ *   prefix[0] = nums[0] e legal doar dacă n > 0. Un input gol n-are
+ *   nums[0]. Accesul ăla e în afara limitelor: UB. Nu tratăm golul
+ *   aici pentru că exemplul e ne-gol; tu ar trebui, în producție.
  *
- *   In C this is the same layout:
+ *   În C e aceeași așezare:
  *       int prefix[N];
  *       prefix[0] = nums[0];
  *       for (int i = 1; i < n; i++) prefix[i] = prefix[i-1] + nums[i];
- *   a[i] is *(a + i). The compiler scales i by sizeof(int). There is no
- *   hidden length on the pointer. Heap version: malloc(n * sizeof *prefix)
- *   and free(prefix) when you are done.
+ *   a[i] e *(a + i). Compilatorul scalează i cu sizeof(int). Pointerul
+ *   n-are lungime ascunsă. Varianta pe heap: malloc(n * sizeof *prefix)
+ *   și free(prefix) când ai terminat.
  *
- *   Cache: both nums and prefix are sequential. The build pass is two
- *   streams, both hot. This is why prefix arrays are the default first
- *   trick in array problems, not some clever tree.
+ *   Cache: și nums și prefix sunt secvențiale. Trecerea de construire
+ *   e două fluxuri, ambele fierbinți. De-asta tablourile prefix sunt
+ *   primul truc implicit în problemele pe tablouri, nu vreun arbore
+ *   șmecher.
  *
- * Compile and run. Then compute prefix[5] - prefix[1] by hand and check
- * that it equals nums[2]+nums[3]+nums[4]+nums[5].
+ * Compilează și rulează. Apoi calculează prefix[5] - prefix[1] de mână
+ * și verifică că e egal cu nums[2]+nums[3]+nums[4]+nums[5].
  */
 
 #include <iostream>

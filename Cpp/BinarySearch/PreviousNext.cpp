@@ -1,52 +1,52 @@
 /*
- * LESSON — Previous and next values around a key in a sorted array
+ * LECȚIE — Valorile anterioară și următoare în jurul unui key, tablou sortat
  *
- * Student, the array is sorted, distinct in this sample. Key may or
- * may not be present. Print two ints: the predecessor and the
- * successor in value, using -1 when that neighbor does not exist.
+ * Studentule, tabloul e sortat, distinct în exemplul ăsta. key poate sau nu să
+ * fie prezent. Afișează doi int: predecesorul și succesorul ca
+ * valoare, cu -1 când vecinul ăla nu există.
  *
- *   If key is present at index i: print nums[i-1] (or -1) and
- *   nums[i+1] (or -1). Those are the neighbors of that index.
- *   If key is absent: print the greatest element < key and the
- *   least element > key, again with -1 at the ends.
+ *   Dacă key e prezent la indicele i: afișează nums[i-1] (sau -1) și
+ *   nums[i+1] (sau -1). Ăia sunt vecinii acelui indice.
+ *   Dacă key lipsește: afișează cel mai mare element < key și cel
+ *   mai mic element > key, iar -1 la capete.
  *
- * Sample {3,4,6,7,10,11,13,15}, key 14: 14 is not present. The
- * greatest below is 13, the least above is 15.
+ * Exemplul {3,4,6,7,10,11,13,15}, key 14: 14 nu e prezent. Cel mai
+ * mare de sub e 13, cel mai mic de deasupra e 15.
  *
- * Intuition
- *   Binary search as lower_bound. If you hit, you have the index.
- *   If you miss, when the loop ends l is the insertion point: the
- *   first index with nums[l] > key (everything left of l is < key).
- *   Then
+ * Intuiție
+ *   Căutare binară ca lower_bound. Dacă lovești, ai indicele.
+ *   Dacă ratezi, când bucla se termină l e punctul de inserare:
+ *   primul indice cu nums[l] > key (tot ce e la stânga lui l e < key).
+ *   Apoi
  *     prev = (l == 0) ? -1 : nums[l - 1]
  *     next = (l == n) ? -1 : nums[l]
- *   That is the whole miss case. Do not reconstruct neighbors from
- *   a stale mid after exit; that is how the original grew a thicket
- *   of end checks. l already is lower_bound.
+ *   Ăsta e tot cazul de miss. Nu reconstrui vecinii dintr-un mid
+ *   vechi după ieșire; așa a crescut originalul o pădure de
+ *   verificări de capăt. l e deja lower_bound.
  *
- * Complexity
- *   O(log n) time, O(1) extra memory.
+ * Complexitate
+ *   Timp O(log n), memorie extra O(1).
  *
- * Memory
- *   int nums[], int n. Write two ints into out[2]. No extra buffer.
- *   We do not insert the missing key; we only name its neighbors.
- *   Two ints, not a pair type. nums decayed to a pointer.
+ * Memorie
+ *   int nums[], int n. Scrie doi int în out[2]. Fără buffer extra.
+ *   Nu inserăm key-ul lipsă; doar îi numim vecinii. Doi int, nu un
+ *   tip pair. nums a decăzut la un pointer.
  *
- * C theory — lower_bound neighbors, ends, overflow
- *   The insertion index l == n means key is larger than every
- *   element: next is -1, prev is nums[n-1]. l == 0 means key is
- *   smaller than every element: prev is -1, next is nums[0]. Those
- *   are the two end sentinels. Using -1 as "no neighbor" collides
- *   with a legal value of -1 in the array; the sample is positive
- *   so it is fine.
+ * Teorie C — vecini de lower_bound, capete, overflow
+ *   Indicele de inserare l == n înseamnă că key e mai mare decât
+ *   orice element: next e -1, prev e nums[n-1]. l == 0 înseamnă că
+ *   key e mai mic decât orice element: prev e -1, next e nums[0].
+ *   Ăia sunt cei doi sentineli de capăt. Folosirea lui -1 ca „fără
+ *   vecin” se ciocnește cu o valoare legală -1 în tablou; exemplul
+ *   e pozitiv, deci e în regulă.
  *
- *   If you read nums[mid-1] when mid == 0, that is UB. The hit
- *   branch guards mid == 0. The miss branch uses l, which may be 0
- *   or n, and guards both.
+ *   Dacă citești nums[mid-1] când mid == 0, ăsta e UB. Ramura de
+ *   hit păzește mid == 0. Ramura de miss folosește l, care poate
+ *   fi 0 sau n, și păzește ambele.
  *
- *   mid = l + (h - l) / 2. Overflow of l+h is still UB.
+ *   mid = l + (h - l) / 2. Overflow-ul lui l+h tot e UB.
  *
- * Sample prints 13 15.
+ * Exemplul afișează 13 15.
  */
 
 #include <iostream>

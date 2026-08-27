@@ -1,77 +1,85 @@
 /*
- * LESSON — The same frequency problem, now with a hash table
+ * LECȚIE — Aceeași problemă de frecvență, acum cu o tabelă hash
  *
- * Student, return the most common lowercase letter in a string. This
- * time the store is unordered_map<char, int>, not int[26]. The
- * answer for "mkbqsqjbyq" is still 'q'. The point is the machine
- * model underneath the map, and when you would actually pay for it.
+ * Studentule, întoarce litera mică cea mai comună dintr-un șir. De data asta
+ * depozitul e unordered_map<char, int>, nu int[26]. Răspunsul pentru
+ * "mkbqsqjbyq" tot e 'q'. Punctul e modelul mașinii de sub mapă,
+ * și când chiar ai plăti pentru el.
  *
  *   using namespace std;
  *   typedef unordered_map<char, int> Freq;
  *
- *   Write Freq, not std::unordered_map. The using-directive puts
- *   unordered_map in the global namespace for this file.
+ *   Scrie Freq, nu std::unordered_map. Directiva using pune
+ *   unordered_map în namespace-ul global pentru fișierul ăsta.
  *
- * Intuition
- *   A hash table maps an arbitrary key to a slot in an array of
- *   buckets via a hash function, then handles collisions (typically
- *   chaining: a linked list or a tree of nodes in that bucket).
- *   Average lookup and insert are O(1). That average hides a worst
- *   case of O(n) when every key collides into one bucket, and it
- *   hides a much larger constant than a dense array.
+ * Intuiție
+ *   O tabelă hash mapează o cheie oarecare pe un slot dintr-un
+ *   tablou de bucket-uri printr-o funcție hash, apoi tratează
+ *   coliziunile (de obicei chaining: o listă înlănțuită sau un
+ *   arbore de noduri în bucket-ul ăla). Lookup-ul și insert-ul
+ *   medii sunt O(1). Media aia ascunde un caz cel mai rău O(n)
+ *   când fiecare cheie cade în același bucket, și ascunde o
+ *   constantă mult mai mare decât un tablou dens.
  *
- *   We still fold A-Z to a-z, then for each character: look up,
- *   increment, and if the new count beats the champion, record the
- *   character. Ties keep the first winner (strict greater), which
- *   matches a left-to-right scan of the string rather than
- *   alphabetical order. For this sample there is no tie.
+ *   Tot pliem A-Z la a-z, apoi pentru fiecare caracter: lookup,
+ *   increment, și dacă noul count bate campionul, înregistrează
+ *   caracterul. La egalitate rămâne primul câștigător (strict
+ *   greater), ceea ce se potrivește cu o parcurgere stânga-dreapta
+ *   a șirului, nu cu ordinea alfabetică. Pe exemplul ăsta n-ai
+ *   egalitate.
  *
- * Complexity
- *   Average time O(n). Worst time O(n^2) if the hash collapses (or
- *   O(n log n) per operation if the implementation tree-ifies long
- *   chains, which some do). Extra memory O(A) heap nodes where A is
- *   the number of distinct keys actually seen, plus the bucket array.
+ * Complexitate
+ *   Timp mediu O(n). Timp cel mai rău O(n^2) dacă hash-ul se
+ *   prăbușește (sau O(n log n) pe operație dacă implementarea
+ *   transformă lanțurile lungi în arbori, ceea ce unele fac).
+ *   Memorie extra O(A) noduri pe heap unde A e numărul de chei
+ *   distincte văzute de fapt, plus tabloul de bucket-uri.
  *
- * Memory
- *   unordered_map nodes live on the heap. Each insertion of a new
- *   key allocates a node: key, value, next-pointer (and more). That
- *   is not a contiguous count array. Walking the table later would
- *   chase pointers. We do not walk it: we keep a running champion,
- *   so we never pay a full-table scan.
+ * Memorie
+ *   Nodurile unordered_map trăiesc pe heap. Fiecare inserare a
+ *   unei chei noi alocă un nod: cheie, valoare, next-pointer (și
+ *   mai mult). Asta nu e un tablou de numărare contig. Să parcurgi
+ *   tabela mai târziu ar urmări pointeri. Noi n-o parcurgem: ținem
+ *   un campion care rulează, deci nu plătim o parcurgere a tabelei
+ *   întregi.
  *
- *   The map object sits on the stack; its buckets and nodes sit on
- *   the heap. Destructor walks and frees them. No manual delete.
+ *   Obiectul mapă stă pe stivă; bucket-urile și nodurile stau pe
+ *   heap. Destructorul le parcurge și le eliberează. Fără delete
+ *   manual.
  *
- *   The text is char str[], a C string. It decays to char*. We walk
- *   until '\0'.
+ *   Textul e char str[], un șir C. Decade la char*. Parcurgem
+ *   până la '\0'.
  *
- * C theory — hash tables vs count arrays, collisions, cache
- *   In C you would roll your own: a bucket array of struct nodes,
- *   malloc per new key, free on teardown. The C++ table is that
- *   design with a well-tested hash and load-factor policy.
+ * Teorie C — tabele hash vs tablouri de numărare, coliziuni, cache
+ *   În C ți-ai scrie tu: un tablou de bucket-uri de struct node,
+ *   malloc pe fiecare cheie nouă, free la teardown. Tabela C++ e
+ *   design-ul ăla cu un hash bine testat și o politică de
+ *   load-factor.
  *
- *   Average O(1) assumes a good hash and a load factor bounded away
- *   from "everything in one bucket." Worst O(n) is real: pathological
- *   keys, a bad hash, or an adversarial input. Never quote O(1) as a
- *   guarantee. Quote it as the expected cost.
+ *   O(1) mediu presupune un hash bun și un load factor ținut departe
+ *   de „totul într-un bucket”. O(n) cel mai rău e real: chei
+ *   patologice, un hash prost, sau un input advers. Nu cita O(1)
+ *   ca o garanție. Citează-l ca costul așteptat.
  *
- *   When the alphabet is huge or unknown — Unicode, 64-bit ids,
- *   strings — you cannot allocate U+1 counters. The table's memory
- *   tracks distinct keys. When the alphabet is 26 lowercase letters,
- *   HashingLetters.cpp is the correct tool: 26 stack ints, no hash,
- *   no collision, no heap, better cache. Use this file when the key
- *   domain does not fit in a small dense index.
+ *   Când alfabetul e uriaș sau necunoscut — Unicode, id-uri pe
+ *   64 de biți, șiruri — nu poți aloca U+1 contoare. Memoria
+ *   tabelei urmărește cheile distincte. Când alfabetul e 26 de
+ *   litere mici, HashingLetters.cpp e uneltele corecte: 26 de int
+ *   pe stivă, fără hash, fără coliziune, fără heap, cache mai bun.
+ *   Folosește fișierul ăsta când domeniul cheilor nu încape într-un
+ *   indice dens mic.
  *
- *   Cache: each map[c]++ may walk a chain of heap nodes. Those nodes
- *   were allocated at different times and are not adjacent. The 26
- *   int array sits in one or two cache lines. Same algorithm, wildly
- *   different constants. Big-O does not see cache lines; the CPU does.
+ *   Cache: fiecare map[c]++ poate parcurge un lanț de noduri pe
+ *   heap. Nodurile astea au fost alocate în momente diferite și nu
+ *   sunt adiacente. Tabloul de 26 de int stă pe una sau două linii
+ *   de cache. Același algoritm, constante sălbatice. Big-O nu vede
+ *   liniile de cache; CPU-ul da.
  *
- *   operator[] on unordered_map default-inserts 0 if the key is
- *   missing, then you increment. That is convenient and it allocates
- *   a node on first sight of a key. Fine here.
+ *   operator[] pe unordered_map inserează implicit 0 dacă cheia
+ *   lipsește, apoi incrementezi. E convenabil și alocă un nod la
+ *   prima vedere a unei chei. E în regulă aici.
  *
- * Sample prints q.
+ * Exemplul afișează q.
  */
 
 #include <iostream>

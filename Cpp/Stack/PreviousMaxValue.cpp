@@ -1,52 +1,58 @@
 /*
- * LESSON — Previous greater to the left: the same stack, opposite scan
+ * LECȚIE — Anteriorul mai mare la stânga: aceeași stivă, parcurgere inversă
  *
- * Student, for each index i, find the nearest value to the *left* of i
- * that is strictly greater than nums[i]. If none exists, write -1.
+ * Studentule, pentru fiecare indice i, găsește cea mai apropiată valoare la
+ * *stânga* lui i care e strict mai mare decât nums[i]. Dacă nu
+ * există, scrie -1.
  *
- * Intuition
- *   This is next-greater with the time axis reversed. Scan left to
- *   right. The stack holds candidates to the left, still monotonic
- *   decreasing toward the top. At i, pop everything smaller than or
- *   equal to nums[i] (they are hidden by nums[i] from anyone further
- *   right). The new top, if any, is the previous greater. Then push.
+ * Intuiție
+ *   E next-greater cu axa timpului inversată. Parcurge de la stânga
+ *   la dreapta. Stiva ține candidați la stânga, tot monoton
+ *   descrescătoare spre vârf. La i, scoate tot ce e mai mic sau
+ *   egal cu nums[i] (sunt ascunși de nums[i] pentru oricine mai
+ *   la dreapta). Noul vârf, dacă există, e anteriorul mai mare.
+ *   Apoi pune.
  *
- *   Same three steps, opposite direction. If you understood
- *   NextMaxValue.cpp, this file is that argument with "right" and
- *   "left" swapped. Keep both in your hands: many problems (histogram
- *   rectangles, trapping rain, span of stock quotes) need one or both.
+ *   Aceiași trei pași, direcție opusă. Dacă ai înțeles
+ *   NextMaxValue.cpp, fișierul ăsta e argumentul ăla cu „dreapta”
+ *   și „stânga” schimbate. Ține-le pe ambele la îndemână: multe
+ *   probleme (dreptunghiuri de histogramă, apă prinsă, span de
+ *   cotații) au nevoie de una sau de ambele.
  *
- * Complexity
- *   Amortized O(n): each value pushed once, popped at most once.
- *   Extra memory O(n) worst case. Strictly increasing: each new value
- *   is greater, so we pop everything and the stack holds one element.
- *   Worst case is strictly decreasing: nothing is greater than what
- *   is already on the stack, nothing pops, stack grows to n.
+ * Complexitate
+ *   O(n) amortizat: fiecare valoare pusă o dată, scoasă cel mult
+ *   o dată. Memorie extra O(n) în cazul cel mai rău. Strict
+ *   crescător: fiecare valoare nouă e mai mare, deci scoatem tot
+ *   și stiva ține un element. Cazul cel mai rău e strict
+ *   descrescător: nimic nu e mai mare decât ce e deja pe stivă,
+ *   nu se scoate nimic, stiva crește la n.
  *
- * Memory
- *   Same C-array stack as NextMaxValue:
+ * Memorie
+ *   Aceeași stivă pe tablou C ca NextMaxValue:
  *
  *       int stk[100];
  *       int top = -1;
  *
- *   One stack buffer, one output array pmv[]. Input arr is a pointer
- *   plus n. Fixed capacity 100: the sample is 10. Overflowing stk is
- *   UB. Heap version: int *stk = new int[n]; ... delete[] stk;
+ *   Un buffer de stivă, un tablou de output pmv[]. Inputul arr e
+ *   un pointer plus n. Capacitate fixă 100: exemplul e 10.
+ *   Overflow pe stk e UB. Varianta pe heap: int *stk = new int[n];
+ *   ... delete[] stk;
  *
- * C theory — symmetry, empty-stack UB, cache
- *   The stack is an index into a contiguous buffer. Push is ++top and
- *   a store. Pop is --top. No hidden length; top is the length minus
- *   one. Reading stk[top] when top < 0 is UB: you would index before
- *   the buffer. The ternary (top < 0) ? -1 : stk[top] is the guard.
+ * Teorie C — simetrie, UB pe stivă goală, cache
+ *   Stiva e un indice într-un buffer contig. Push e ++top și un
+ *   store. Pop e --top. Fără lungime ascunsă; top e lungimea minus
+ *   unu. Să citești stk[top] când top < 0 e UB: ai indexa înainte
+ *   de buffer. Ternarul (top < 0) ? -1 : stk[top] e garda.
  *
- *   Scan is left to right: the textbook sequential load. The stack
- *   tail is the hot cache line. Same locality story as next-greater.
+ *   Parcurgerea e stânga-dreapta: load-ul secvențial din manual.
+ *   Coada stivei e linia de cache fierbinte. Aceeași poveste de
+ *   localitate ca next-greater.
  *
- *   Values are compared, not added. Integer overflow is not in play.
- *   What is in play is the signed index i walking 0 .. n-1, which is
- *   safe as long as n fits in int.
+ *   Valorile sunt comparate, nu adunate. Overflow-ul pe întregi
+ *   nu e în joc. Ce e în joc e indicele signed i care merge
+ *   0 .. n-1, sigur cât timp n încape în int.
  *
- * Sample {7,1,3,2,9,5,6,3,1,2} -> -1 7 7 3 -1 9 9 6 3 3
+ * Exemplul {7,1,3,2,9,5,6,3,1,2} -> -1 7 7 3 -1 9 9 6 3 3
  */
 
 #include <iostream>

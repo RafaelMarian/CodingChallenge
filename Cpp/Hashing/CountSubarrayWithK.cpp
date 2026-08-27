@@ -1,72 +1,77 @@
 /*
- * LESSON — Subarrays with sum k: prefix sums plus a frequency map
+ * LECȚIE — Subtablouri cu suma k: sume prefix plus o mapă de frecvențe
  *
- * Student, count how many contiguous subarrays have sum equal to k.
- * Sample: {10, 2, -2, -20, 10}, k = -10. There are three:
+ * Studentule, numără câte subtablouri contigue au suma egală cu k.
+ * Exemplu: {10, 2, -2, -20, 10}, k = -10. Sunt trei:
  *   [10, 2, -2, -20],  [2, -2, -20, 10],  [-20, 10].
  *
- * Intuition
- *   Let prefix[j] be the sum of nums[0..j]. Then the sum of
- *   nums[i..j] is prefix[j] - prefix[i-1] (and prefix[-1] = 0).
- *   We want prefix[j] - prefix[i-1] == k, i.e.
+ * Intuiție
+ *   Fie prefix[j] suma lui nums[0..j]. Atunci suma lui
+ *   nums[i..j] e prefix[j] - prefix[i-1] (și prefix[-1] = 0).
+ *   Vrem prefix[j] - prefix[i-1] == k, adică
  *
  *       prefix[i-1] == prefix[j] - k
  *
- *   For the current running sum curr, the number of earlier prefixes
- *   equal to curr - k is exactly the number of subarrays ending here
- *   that sum to k. Store prefix frequencies in an unordered_map.
- *   Seed the map with (0, 1): one empty prefix, so a subarray that
- *   starts at index 0 is counted when curr itself equals k.
+ *   Pentru suma curentă care rulează curr, numărul de prefixe
+ *   anterioare egale cu curr - k e exact numărul de subtablouri
+ *   care se termină aici și au suma k. Stochează frecvențele de
+ *   prefix într-un unordered_map. Semănează mapa cu (0, 1): un
+ *   prefix gol, ca un subtablou care începe la indicele 0 să fie
+ *   numărat când curr însuși e egal cu k.
  *
- *   Walk left to right: add nums[i] into curr, add map[curr - k] to
- *   the answer, then increment map[curr]. The increment is after the
- *   lookup so you do not count the empty suffix as a subarray unless
- *   k == 0 and you intend to (and even then the empty prefix is the
- *   seed, not a slice of the array). For k == 0 the seed still means
- *   "subarrays that sum to 0", which is correct; we never count a
- *   zero-length slice as an extra because we only query after adding
- *   a real element.
+ *   Mergi stânga-dreapta: adaugă nums[i] în curr, adaugă
+ *   map[curr - k] la răspuns, apoi incrementează map[curr].
+ *   Incrementul e după lookup ca să nu numeri sufixul gol ca
+ *   subtablou decât dacă k == 0 și chiar vrei (și atunci prefixul
+ *   gol e sămânța, nu o felie din tablou). Pentru k == 0 sămânța
+ *   tot înseamnă „subtablouri care au suma 0”, ceea ce e corect;
+ *   nu numărăm niciodată o felie de lungime zero ca extra pentru
+ *   că interogăm doar după ce am adăugat un element real.
  *
- * Complexity
- *   Time average O(n). Each step is a hash lookup and a hash insert.
- *   Worst O(n^2) if the table degenerates. Extra memory O(n) prefixes
- *   in the map in the worst case (all prefix sums distinct).
+ * Complexitate
+ *   Timp mediu O(n). Fiecare pas e un lookup hash și un insert hash.
+ *   Cel mai rău O(n^2) dacă tabela degenerează. Memorie extra O(n)
+ *   prefixe în mapă în cazul cel mai rău (toate sumele prefix
+ *   distincte).
  *
- * Memory
- *   The map holds up to n+1 keys (the seed plus one per index). Each
- *   is a heap node. The running sum is a scalar. We do not store the
- *   prefix array explicitly: the map *is* the compressed prefix
- *   history. int arr[], int n: the input decayed to a pointer plus
- *   a length. typedef unordered_map<int, int> Freq so the type has
- *   no std:: prefix.
+ * Memorie
+ *   Mapa ține până la n+1 chei (sămânța plus una pe indice). Fiecare
+ *   e un nod pe heap. Suma care rulează e un scalar. Nu stocăm
+ *   tabloul prefix explicit: mapa *este* istoricul prefix comprimat.
+ *   int arr[], int n: inputul a decăzut la un pointer plus o
+ *   lungime. typedef unordered_map<int, int> Freq ca tipul să n-aibă
+ *   prefix std::.
  *
- * C theory — why the map, overflow, and the empty prefix
- *   If you stored prefix in an array you could, for each j, scan all
- *   i <= j and test equality. That is O(n^2). The map turns "how many
- *   earlier prefixes equal this value" into an expected O(1) query.
- *   You are indexing by the *value* of the prefix, not by an index,
- *   so a dense count array would need a slot per possible sum. Sums
- *   can be negative and large: U is not a small alphabet. Hash table.
+ * Teorie C — de ce mapa, overflow, și prefixul gol
+ *   Dacă ai stoca prefix într-un tablou, ai putea, pentru fiecare j,
+ *   să parcurgi toți i <= j și să testezi egalitatea. Ăsta e O(n^2).
+ *   Mapa transformă „câte prefixe anterioare egalează valoarea asta”
+ *   într-o interogare O(1) așteptată. Indexezi după *valoarea*
+ *   prefixului, nu după un indice, deci un tablou dens de numărare
+ *   ar avea nevoie de un slot pe fiecare sumă posibilă. Sumele pot
+ *   fi negative și mari: U nu e un alfabet mic. Tabelă hash.
  *
- *   curr += arr[i] can overflow int. Signed overflow is UB. A
- *   production version accumulates curr as long long and uses
- *   unordered_map<long long, int>. We keep int to match the original
- *   arithmetic on this sample; the idea is identical.
+ *   curr += arr[i] poate da overflow pe int. Overflow-ul pe signed
+ *   e UB. O versiune de producție acumulează curr ca long long și
+ *   folosește unordered_map<long long, int>. Păstrăm int ca să
+ *   potrivim aritmetica originală pe exemplul ăsta; ideea e identică.
  *
- *   Map keys are prefix values, which may be negative. That is fine
- *   for a hash table and illegal for a counting array of size max+1.
- *   This is the example HashingIntro warned you about.
+ *   Cheile mapei sunt valori prefix, care pot fi negative. Asta e
+ *   în regulă pentru o tabelă hash și ilegal pentru un tablou de
+ *   numărare de dimensiune max+1. Ăsta e exemplul despre care te-a
+ *   avertizat HashingIntro.
  *
- *   Cache: unordered_map lookups are pointer chasing in heap nodes.
- *   For competitive n (10^5) it is the right trade. For tiny n a
- *   nested loop over a prefix array can be faster because the prefix
- *   array is contiguous. Reason about n, then measure if it matters.
+ *   Cache: lookup-urile pe unordered_map urmăresc pointeri prin
+ *   noduri pe heap. Pentru n competitiv (10^5) e schimbul corect.
+ *   Pentru n mic, o buclă imbricată peste un tablou prefix poate
+ *   fi mai rapidă pentru că tabloul prefix e contig. Raționează
+ *   despre n, apoi măsoară dacă contează.
  *
- *   The seed (0, 1) is not a hack. It is the prefix of the empty
- *   head. Forgetting it undercounts every subarray that starts at 0.
+ *   Sămânța (0, 1) nu e un hack. E prefixul capului gol. S-o uiți
+ *   sub-numără fiecare subtablou care începe la 0.
  *
- * Print only the count. No debug dump of the map.
- * Sample prints 3.
+ * Afișează doar numărul. Fără dump de debug al mapei.
+ * Exemplul afișează 3.
  */
 
 #include <iostream>
