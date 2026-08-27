@@ -1,31 +1,32 @@
 /*
- * LESSON — Leaders from the right, and why insert-at-front is a trap
+ * LECȚIE — Lideri de la dreapta, și de ce inserția în față e o capcană
  *
- * Problem
- *   A right-leader is greater than everything to its *right*. Scan from
- *   the end, keep a running max, collect leaders.
+ * Problemă
+ *   Un lider-dreapta e mai mare decât tot ce are la *dreapta*. Scanează de
+ *   la capăt, ține un max curent, adună liderii.
  *
- * Naive approach: insert each new leader at the front of a growing array
- * so the result comes out left-to-right. That is O(k) per insert (shift
- * every element), O(k^2) total.
+ * Abordarea naivă: inserează fiecare lider nou în fața unui tablou care crește,
+ * ca rezultatul să iasă stânga-dreapta. Asta e O(k) per inserție (deplasezi
+ * fiecare element), O(k^2) în total.
  *
- * The engineer version:
- *   Append while scanning right-to-left (O(1) per write into `out[]`),
- *   then reverse the first `count` cells (O(k)). Same order, O(n) time.
+ * Varianta de inginer:
+ *   Adaugă la capăt în timp ce scanezi dreapta-stânga (O(1) per scriere în
+ *   `out[]`), apoi inversează primele `count` celule (O(k)). Aceeași ordine,
+ *   O(n) timp.
  *
- * Memory
- *   Caller provides `int out[]` sized to n. We return how many leaders
- *   we wrote. reverse is a swap loop in place; no second buffer.
- *   We are not using vector here; this is a C array.
+ * Memorie
+ *   Apelantul dă `int out[]` dimensionat la n. Întoarcem câți lideri
+ *   am scris. reverse e o buclă de swap pe loc; fără al doilea buffer.
+ *   Nu folosim vector aici; ăsta e un tablou C.
  *
- * C theory — why add(0, x) hurts
- *   Contiguous arrays make append cheap and front-insert expensive.
- *   Linked lists make front-insert cheap and sequential scan expensive
- *   (no cache). Pick the structure that matches the hot operation.
- *   Here the hot operation is "append, then reverse once."
- *   `int nums[]` decays to a pointer, so you MUST pass n.
+ * Teorie C — de ce add(0, x) doare
+ *   Tablourile contigue fac append-ul ieftin și inserția în față scumpă.
+ *   Listele înlănțuite fac inserția în față ieftină și scanarea secvențială
+ *   scumpă (fără cache). Alege structura care se potrivește cu operația
+ *   fierbinte. Aici operația fierbinte e „append, apoi reverse o dată.”
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * Complexity: O(n) time, O(k) extra space.
+ * Complexitate: O(n) timp, O(k) spațiu extra.
  */
 
 #include <climits>

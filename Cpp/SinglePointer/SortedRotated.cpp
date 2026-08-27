@@ -1,27 +1,27 @@
 /*
- * LESSON — Sorted and rotated: at most one "drop"
+ * LECȚIE — Sortat și rotit: cel mult o „cădere”
  *
- * Problem
- *   A rotated sorted array looks like [5,6,7,8,9,12,15,2,3,5]: two
- *   increasing runs, and the join is a single descent. Duplicates at the
- *   wrap (last <= first) are allowed by this implementation.
+ * Problemă
+ *   Un tablou sortat și rotit arată ca [5,6,7,8,9,12,15,2,3,5]: două
+ *   serii crescătoare, iar îmbinarea e o singură coborâre. Duplicatele la
+ *   înfășurare (last <= first) sunt permise de implementarea asta.
  *
- * Intuition
- *   Count how many times nums[i] > nums[i+1]. More than one drop means it
- *   is not a single rotation of a sorted array. Zero drops: already
- *   sorted. One drop: the wrap must satisfy last <= first.
+ * Intuiție
+ *   Numără de câte ori nums[i] > nums[i+1]. Mai mult de o cădere înseamnă că
+ *   nu e o singură rotație a unui tablou sortat. Zero căderi: deja
+ *   sortat. O cădere: înfășurarea trebuie să satisfacă last <= first.
  *
- * Memory
- *   One counter. You do not copy or rotate the array to test it.
- *   `int nums[]` decays to a pointer, so you MUST pass n.
+ * Memorie
+ *   Un contor. Nu copiezi și nu rotești tabloul ca să-l testezi.
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * C theory
- *   This is a finite-state scan: you are verifying a *shape*, not
- *   searching for a value. Engineers do this for invariants
- *   ("is this buffer a valid ring?"). Early-exit when count > 1 so you
- *   do not pay for the rest of a clearly-invalid input.
+ * Teorie C
+ *   Asta e o scanare cu stări finite: verifici o *formă*, nu
+ *   cauți o valoare. Inginerii fac asta pentru invariante
+ *   („e buffer-ul ăsta un inel valid?”). Ieși devreme când count > 1, ca să
+ *   nu plătești restul unui input evident invalid.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

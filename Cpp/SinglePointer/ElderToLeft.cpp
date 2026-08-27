@@ -1,28 +1,28 @@
 /*
- * LESSON — Leaders from the left ("elder to the left")
+ * LECȚIE — Lideri de la stânga („bătrânul din stânga”)
  *
- * Problem
- *   Walk left to right. Emit a value if it is strictly greater than every
- *   value seen so far (a left-to-right maximum). Sample:
+ * Problemă
+ *   Parcurge de la stânga la dreapta. Emite o valoare dacă e strict mai mare
+ *   decât orice valoare văzută până acum (un maxim stânga-dreapta). Exemplu:
  *   [7,5,4,11,3,8,13,2,16,9] -> 7 11 13 16
  *
- * Intuition
- *   One running max. If nums[i] > maxSoFar, it is a leader; update maxSoFar.
+ * Intuiție
+ *   Un max curent. Dacă nums[i] > maxSoFar, e un lider; actualizează maxSoFar.
  *
- * Memory
- *   The answer size is between 1 and n (strictly increasing unique
- *   prefixes). We write leaders into a caller-provided output array
- *   `int out[]` and return how many we wrote. The caller sizes `out` to
- *   n (worst case: a strictly increasing array). We are not using vector
- *   here; this is a C array.
+ * Memorie
+ *   Dimensiunea răspunsului e între 1 și n (prefixe unice strict crescătoare).
+ *   Scriem liderii într-un tablou de ieșire furnizat de apelant
+ *   `int out[]` și întoarcem câți am scris. Apelantul dimensionează `out` la
+ *   n (cazul cel mai rău: un tablou strict crescător). Nu folosim vector
+ *   aici; ăsta e un tablou C.
  *
- * C theory
- *   `int nums[]` decays to a pointer, so you MUST pass n. The same is
- *   true of `out[]`: it is just a pointer to storage the caller owns.
- *   Returning a count (not a new buffer) is the C way to hand back a
- *   variable-length result without allocating.
+ * Teorie C
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n. La fel
+ *   e și `out[]`: e doar un pointer la stocarea pe care o deține apelantul.
+ *   Să întorci un count (nu un buffer nou) e felul C de a da înapoi un
+ *   rezultat de lungime variabilă, fără alocare.
  *
- * Complexity: O(n) time, O(k) extra space for k leaders (here, out[0..k)).
+ * Complexitate: O(n) timp, O(k) spațiu extra pentru k lideri (aici, out[0..k)).
  */
 
 #include <climits>

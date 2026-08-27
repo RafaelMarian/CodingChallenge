@@ -1,31 +1,31 @@
 /*
- * LESSON — Third maximum: the same idea, one more slot
+ * LECȚIE — Al treilea maxim: aceeași idee, încă un loc
  *
- * Problem
- *   Track the top three values in one left-to-right pass.
+ * Problemă
+ *   Urmărește primele trei valori dintr-o singură parcurgere stânga-dreapta.
  *
- * Intuition
- *   A 3-element sorted window of "best so far." A new value is inserted
- *   into the correct slot, shifting the worse ones down. After n steps
- *   the window holds the answer.
+ * Intuiție
+ *   O fereastră sortată de 3 elemente cu „cei mai buni de până acum.” O valoare
+ *   nouă se inserează în locul potrivit, împingând pe cei mai slabi în jos.
+ *   După n pași, fereastra ține răspunsul.
  *
- * Why not sort?
- *   Sorting is the right tool when you need the full order. For a fixed
- *   k (here k = 3) a k-slot scan is O(n) vs O(n log n), and uses O(1)
- *   extra memory. This is selection, not sorting.
+ * De ce nu sortăm?
+ *   Sortarea e unealta potrivită când îți trebuie ordinea întreagă. Pentru un
+ *   k fix (aici k = 3) o parcurgere cu k locuri e O(n) vs O(n log n), și
+ *   folosește O(1) memorie extra. Asta e selecție, nu sortare.
  *
- * C theory — assignment order is data flow
+ * Teorie C — ordinea atribuirilor e fluxul de date
  *   third = second; second = first; first = x;
- *   Reverse those three lines and you clobber first before you save it.
- *   Compilers will not warn. Draw the registers on paper once.
+ *   Inversează cele trei linii și calci peste first înainte să-l salvezi.
+ *   Compilatoarele nu te avertizează. Desenează registrele pe hârtie o dată.
  *
- *   Same INT_MIN caveat as FindingMaximum: if the array has fewer than
- *   three elements, you will return INT_MIN, which may or may not be what
- *   the caller wanted. Production code would check n >= 3.
+ *   Aceeași capcană cu INT_MIN ca la FindingMaximum: dacă tabloul are mai
+ *   puțin de trei elemente, întorci INT_MIN, ceea ce poate fi sau nu ce
+ *   voia apelantul. Codul de producție ar verifica n >= 3.
  *
- *   `int nums[]` decays to a pointer, so you MUST pass n.
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <climits>

@@ -1,28 +1,28 @@
 /*
- * LESSON — Longest run of 1s
+ * LECȚIE — Cea mai lungă serie de 1
  *
- * Problem
- *   In a binary array, return the length of the longest consecutive
- *   sequence of ones.
+ * Problemă
+ *   Într-un tablou binar, întoarce lungimea celei mai lungi secvențe
+ *   consecutive de unu.
  *
- * Intuition
- *   A run is a streak. On a 1, increment the streak. On a 0, the run is
- *   over: harvest it into `best`, reset the streak to 0. After the loop,
- *   harvest once more — the array may end on a run.
+ * Intuiție
+ *   O serie e o înșiruire neîntreruptă. Pe un 1, incrementează seria. Pe un 0,
+ *   seria s-a încheiat: culege-o în `best`, resetează seria la 0. După buclă,
+ *   culege încă o dată — tabloul poate să se termine pe o serie.
  *
- * Memory
- *   Two ints. You do not store the runs. You only keep the best length
- *   seen so far. That is the sliding-window idea in miniature: the
- *   "window" is the current run, and it only ever grows or resets.
- *   `int nums[]` decays to a pointer, so you MUST pass n.
+ * Memorie
+ *   Doi int. Nu stochezi seriile. Ții doar cea mai bună lungime văzută
+ *   până acum. E ideea de sliding-window în miniatură: „fereastra” e seria
+ *   curentă, și doar crește sau se resetează.
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * C theory
- *   A handwritten `if (count > best) best = count;` is the whole "keep
- *   the larger" idea. Do not forget the final harvest. Forgetting it is
- *   a classic off-by-one in state machines: the accepting state is never
- *   flushed.
+ * Teorie C
+ *   Un `if (count > best) best = count;` scris de mână e toată ideea de
+ *   „păstrează-l pe cel mai mare.” Nu uita culesul final. Să-l uiți e
+ *   un off-by-one clasic în mașini de stări: starea acceptoare nu e
+ *   niciodată golită.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

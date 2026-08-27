@@ -1,26 +1,27 @@
 /*
- * LESSON — Is the array non-decreasing?
+ * LECȚIE — E tabloul nedescrescător?
  *
- * Problem
- *   Return true iff nums[i] <= nums[i+1] for every adjacent pair.
+ * Problemă
+ *   Întoarce true dacă și numai dacă nums[i] <= nums[i+1] pentru fiecare
+ *   pereche adiacentă.
  *
- * Intuition
- *   A single left-to-right pointer is enough. The moment you see a descent,
- *   you can reject. You do not need a second pass.
+ * Intuiție
+ *   Un singur pointer de la stânga la dreapta e destul. În clipa în care
+ *   vezi o coborâre, poți respinge. Nu-ți trebuie o a doua parcurgere.
  *
- * Memory
- *   Pure read. No extra buffer. `int nums[]` decays to a pointer, so you
- *   MUST pass n. The CPU prefetches sequential ints, so this is about as
- *   cache-friendly as a loop gets.
+ * Memorie
+ *   Doar citire. Fără buffer extra. `int nums[]` decade la un pointer, deci
+ *   TREBUIE să transmiți n. CPU-ul face prefetch pe int-uri consecutive,
+ *   deci bucla e cam cât de cache-friendly poate fi o buclă.
  *
- * C theory — off-by-one
- *   The last valid index is n-1. The last *pair* starts at n-2.
- *   Writing `i < n` and then reading nums[i+1] is an out-of-bounds
- *   access: undefined behavior. The compiler owes you nothing: crash,
- *   silent wrong answer, or "works on this machine." Loop while
- *   `i < n - 1` so that `i + 1` is always in range.
+ * Teorie C — off-by-one
+ *   Ultimul indice valid e n-1. Ultima *pereche* începe la n-2.
+ *   Dacă scrii `i < n` și apoi citești nums[i+1], ieși din limite:
+ *   comportament nedefinit. Compilatorul nu-ți datorează nimic: crash,
+ *   răspuns greșit în tăcere, sau „merge pe mașina asta.” Parcurge cât
+ *   `i < n - 1`, ca `i + 1` să fie mereu în interval.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

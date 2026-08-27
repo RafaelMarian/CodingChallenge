@@ -1,29 +1,30 @@
 /*
- * LESSON — Linear search (the baseline every other search is measured against)
+ * LECȚIE — Căutare liniară (baza cu care se măsoară orice altă căutare)
  *
- * Problem
- *   Given an unordered array, return the index of `key`, or -1 if absent.
+ * Problemă
+ *   Dat un tablou neordonat, întoarce indicele lui `key`, sau -1 dacă lipsește.
  *
- * Why this is first
- *   Before binary search, hashing, or two pointers, you must be honest about
- *   the naive scan. It is O(n) time and O(1) extra memory. On a cold cache it
- *   is still the fastest way to search a *tiny* array, because there is no
- *   extra setup. On a large unordered array it is the *only* correct general
- *   method unless you build an index.
+ * De ce e prima
+ *   Înainte de căutare binară, hashing sau doi pointeri, trebuie să fii
+ *   cinstit cu scanarea naivă. E O(n) timp și O(1) memorie extra. Pe un
+ *   cache rece tot e cea mai rapidă cale să cauți într-un tablou *mic*,
+ *   pentru că nu există pregătire extra. Pe un tablou mare neordonat e
+ *   *singura* metodă generală corectă, decât dacă construiești un index.
  *
- * Memory
- *   We are not using vector here; this is a C array. `int nums[]` in a
- *   function parameter is *not* an array. It decays to `int *` — a pointer
- *   to the first element. The pointer does not store the length, so you
- *   MUST pass `n` yourself. In main, `sizeof(nums) / sizeof(nums[0])` works
- *   only while `nums` is still a real array (not yet decayed).
+ * Memorie
+ *   Nu folosim vector aici; ăsta e un tablou C. `int nums[]` într-un
+ *   parametru de funcție *nu* e un tablou. Decade la `int *` — un pointer
+ *   la primul element. Pointerul nu stochează lungimea, deci TREBUIE să
+ *   transmiți `n` tu însuți. În main, `sizeof(nums) / sizeof(nums[0])`
+ *   funcționează doar cât `nums` e încă un tablou adevărat (încă n-a
+ *   făcut decay).
  *
- * C theory
- *   `int search(int nums[], int n, int key)` is the decayed-array interface:
- *   a pointer to the first int, plus a length. `nums[i]` is `*(nums + i)`.
- *   Passing the array does not copy the buffer; it passes one address.
+ * Teorie C
+ *   `int search(int nums[], int n, int key)` e interfața după decay:
+ *   un pointer la primul int, plus o lungime. `nums[i]` e `*(nums + i)`.
+ *   Transmiterea tabloului nu copiază buffer-ul; transmite o singură adresă.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

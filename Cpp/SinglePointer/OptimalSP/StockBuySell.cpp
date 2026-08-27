@@ -1,30 +1,30 @@
 /*
- * LESSON — Best time to buy and sell stock (one transaction)
+ * LECȚIE — Cel mai bun moment să cumperi și să vinzi (o tranzacție)
  *
- * Problem
- *   prices[i] is the price on day i. Buy once, sell once later. Maximize
- *   sell - buy. If no profit is possible, return 0.
+ * Problemă
+ *   prices[i] e prețul în ziua i. Cumperi o dată, vinzi o dată mai târziu.
+ *   Maximizează sell - buy. Dacă nu e posibil profit, întoarce 0.
  *
- * Intuition
- *   The best buy for a sell on day i is the minimum price in [0..i-1].
- *   Track `buy` = min so far, and `profit` = max(prices[i] - buy).
- *   One pass. You never need the day indices unless the API asks for them.
+ * Intuiție
+ *   Cea mai bună cumpărare pentru o vânzare în ziua i e prețul minim din [0..i-1].
+ *   Urmărește `buy` = min de până acum, și `profit` = max(prices[i] - buy).
+ *   O parcurgere. Nu-ți trebuie indicii zilelor decât dacă API-ul îi cere.
  *
- * Memory
- *   Two ints. Contrast: the naive "for each buy, for each later sell"
- *   is O(n^2) and still O(1) space — same memory, terrible time. The
- *   running-min is the algorithm, not a trick.
- *   `int prices[]` decays to a pointer, so you MUST pass n.
+ * Memorie
+ *   Doi int. Contrast: varianta naivă „pentru fiecare buy, pentru fiecare
+ *   sell ulterior” e O(n^2) și tot O(1) spațiu — aceeași memorie, timp
+ *   groaznic. Minimul curent e algoritmul, nu un truc.
+ *   `int prices[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * C theory — greed that is actually optimal
- *   This is a dynamic-programming recurrence in disguise:
+ * Teorie C — greedy care e de fapt optimal
+ *   Asta e o recurență de programare dinamică deghizată:
  *     min_prefix[i] = min(min_prefix[i-1], prices[i])
  *     best[i]       = max(best[i-1], prices[i] - min_prefix[i])
- *   We keep only the last value of each sequence, so extra memory is O(1).
- *   When a DP recurrence only needs the previous cell, *collapse the table*.
- *   That is how an engineer turns O(n) memory into O(1).
+ *   Ținem doar ultima valoare a fiecărui șir, deci memoria extra e O(1).
+ *   Când o recurență DP are nevoie doar de celula anterioară, *comprimă tabelul*.
+ *   Așa transformă un inginer O(n) memorie în O(1).
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>
@@ -47,6 +47,6 @@ int maxProfit(int prices[], int n) {
 int main() {
     int prices[] = {5, 2, 3, 8, 1, 9};
     int n = sizeof(prices) / sizeof(prices[0]);
-    cout << maxProfit(prices, n) << "\n";  // 8  (buy 1, sell 9)
+    cout << maxProfit(prices, n) << "\n";  // 8  (cumpără 1, vinde 9)
     return 0;
 }

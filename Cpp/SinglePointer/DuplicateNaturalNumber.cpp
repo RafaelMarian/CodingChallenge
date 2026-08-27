@@ -1,26 +1,26 @@
 /*
- * LESSON — Duplicate in 1..n via the same Gauss identity
+ * LECȚIE — Duplicatul din 1..n prin aceeași identitate a lui Gauss
  *
- * Problem
- *   Array of length n contains 1..n-1 plus one extra duplicate (the
- *   sample is 1..10 with a second 7, length 11). Sum of unique values is
- *   n*(n-1)/2. The extra copy is `actualSum - expectedSum`.
+ * Problemă
+ *   Un tablou de lungime n conține 1..n-1 plus un duplicat extra (exemplul
+ *   e 1..10 cu un al doilea 7, lungime 11). Suma valorilor unice e
+ *   n*(n-1)/2. Copia extra e `actualSum - expectedSum`.
  *
- * Intuition
- *   Same as missing-number, flipped sign. One accumulator.
+ * Intuiție
+ *   Ca la numărul lipsă, cu semnul inversat. Un acumulator.
  *
- * Memory
- *   O(1). A hash set would be the lazy O(n) extra-space solution. Floyd's
- *   cycle-finding on the "index = value" graph is the O(1) extra-space
- *   solution that also works when you cannot use the sum (overflow, or
- *   multiple duplicates). Learn the sum first; then learn Floyd.
+ * Memorie
+ *   O(1). Un hash set ar fi soluția leneșă cu O(n) spațiu extra. Găsirea
+ *   de ciclu a lui Floyd pe graful „index = value” e soluția cu O(1) spațiu
+ *   extra care merge și când nu poți folosi suma (overflow, sau
+ *   duplicate multiple). Învață mai întâi suma; apoi învață Floyd.
  *
- * C theory
- *   `int nums[]` decays to a pointer, so you MUST pass n. Multiply in
- *   long long (`1LL * n * (n - 1) / 2`) so the product cannot overflow
- *   a 32-bit int. Computing `actual - expected` makes the sign obvious.
+ * Teorie C
+ *   `int nums[]` decade la un pointer, deci TREBUIE să transmiți n. Înmulțește
+ *   în long long (`1LL * n * (n - 1) / 2`) ca produsul să nu poată face
+ *   overflow pe un int de 32 de biți. `actual - expected` face semnul evident.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

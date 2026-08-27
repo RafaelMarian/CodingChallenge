@@ -1,32 +1,32 @@
 /*
- * LESSON — Left rotate by one (the shift that teaches mutation)
+ * LECȚIE — Rotație la stânga cu un loc (deplasarea care te învață mutația)
  *
- * Problem
- *   Move every element one index left. The original head becomes the tail.
+ * Problemă
+ *   Mută fiecare element un indice la stânga. Capul original devine coada.
  *   [1,2,3,4] -> [2,3,4,1]
  *
- * Intuition
- *   Save nums[0]. Slide everything left by assignment. Put the saved
- *   value in the last slot. One temporary int.
+ * Intuiție
+ *   Salvează nums[0]. Glisează totul la stânga prin atribuire. Pune valoarea
+ *   salvată în ultimul loc. Un int temporar.
  *
- * Memory
- *   This is in-place. We overwrite contiguous `int` cells. The buffer
- *   address does not change. `int arr[]` decays to a pointer, so you
- *   MUST pass n.
+ * Memorie
+ *   Asta e in-place. Suprascriem celule `int` contigue. Adresa buffer-ului
+ *   nu se schimbă. `int arr[]` decade la un pointer, deci TREBUIE să
+ *   transmiți n.
  *
- *   Cost: O(n) assignments. There is no cheaper in-place rotate-by-one;
- *   every value must move.
+ *   Cost: O(n) atribuiri. Nu există o rotație-cu-unul in-place mai ieftină;
+ *   fiecare valoare trebuie să se mute.
  *
- * C theory — memmove
- *   The loop is exactly what memmove(dst, src, bytes) does for overlapping
- *   regions. In C you would write:
+ * Teorie C — memmove
+ *   Bucla e exact ce face memmove(dst, src, bytes) pentru regiuni care se
+ *   suprapun. În C ai scrie:
  *     int tmp = a[0];
  *     memmove(a, a+1, (n-1)*sizeof(int));
  *     a[n-1] = tmp;
- *   memmove is allowed to overlap; memcpy is not (UB if they overlap).
- *   Know the difference. We keep the explicit loop so you see every write.
+ *   memmove are voie să se suprapună; memcpy nu (UB dacă se suprapun).
+ *   Știi diferența. Păstrăm bucla explicită ca să vezi fiecare scriere.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <iostream>

@@ -1,30 +1,30 @@
 /*
- * LESSON — Maximum of an array, and why INT_MIN is a loaded constant
+ * LECȚIE — Maximul unui tablou, și de ce INT_MIN e o constantă cu capcană
  *
- * Problem
- *   Return the largest value in the array.
+ * Problemă
+ *   Întoarce cea mai mare valoare din tablou.
  *
- * Intuition
- *   Keep a running champion. Compare each element to it. One pass.
+ * Intuiție
+ *   Ține un campion curent. Compară fiecare element cu el. O singură parcurgere.
  *
- * Memory
- *   Three machine words besides the input: the index, the current value
- *   (often in a register), and the champion. No heap. `int nums[]` decays
- *   to a pointer, so you MUST pass n.
+ * Memorie
+ *   Trei cuvinte de mașină pe lângă input: indicele, valoarea curentă
+ *   (adesea într-un registru) și campionul. Fără heap. `int nums[]` decade
+ *   la un pointer, deci TREBUIE să transmiți n.
  *
- * C theory — sentinels
- *   INT_MIN from <climits> is -2^31 on this machine. Using that as the
- *   initial champion is correct *only if* every element is >= INT_MIN,
- *   which is always true for int. It is *wrong* if you later want
- *   "no element seen yet" as a distinct state (an empty array): INT_MIN
- *   is a valid value, so you cannot tell "empty" from "the max really
- *   is INT_MIN".
+ * Teorie C — sentinele
+ *   INT_MIN din <climits> e -2^31 pe mașina asta. Să-l folosești ca
+ *   prim campion e corect *doar dacă* fiecare element e >= INT_MIN,
+ *   ceea ce e mereu adevărat pentru int. E *greșit* dacă mai târziu vrei
+ *   „încă n-am văzut niciun element” ca stare distinctă (tablou gol):
+ *   INT_MIN e o valoare validă, deci nu poți distinge „gol” de „maximul
+ *   chiar e INT_MIN”.
  *
- *   Professional pattern for a non-empty array: initialize max to nums[0]
- *   and start the loop at 1. Then empty arrays are an explicit error, not a
- *   silent lie.
+ *   Tiparul profesionist pentru un tablou nevid: inițializează max cu nums[0]
+ *   și pornește bucla de la 1. Atunci tablourile goale sunt o eroare explicită,
+ *   nu o minciună tăcută.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <climits>

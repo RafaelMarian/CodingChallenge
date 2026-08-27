@@ -1,29 +1,30 @@
 /*
- * LESSON — Second maximum in one pass
+ * LECȚIE — Al doilea maxim dintr-o singură parcurgere
  *
- * Problem
- *   Return the second-largest value. This implementation does not skip
- *   duplicates of the maximum, so [5, 16, 16] yields 16 as second max.
- *   (Interview variants often want the second *distinct* maximum — decide
- *   which contract you are implementing before you write the loop.)
+ * Problemă
+ *   Întoarce a doua cea mai mare valoare. Implementarea asta nu sare
+ *   duplicatele maximului, deci [5, 16, 16] dă 16 ca al doilea max.
+ *   (La interviu, variantele vor adesea al doilea maxim *distinct* — decide
+ *   ce contract implementezi înainte să scrii bucla.)
  *
- * Intuition
- *   Two champions: firstMax and secondMax. When a new first arrives, the
- *   old first becomes second. When a value sits between them, it becomes
- *   second. Never scan twice.
+ * Intuiție
+ *   Doi campioni: firstMax și secondMax. Când sosește un first nou, vechiul
+ *   first devine second. Când o valoare stă între ei, devine second.
+ *   Niciodată două parcurgeri.
  *
- * Memory
- *   Two ints. That is the whole extra state. Compare this to sorting
- *   (O(n log n) time, maybe O(n) space) just to read the last two cells.
- *   `int nums[]` decays to a pointer, so you MUST pass n.
+ * Memorie
+ *   Doi int. Ăsta e tot starea extra. Compară cu sortarea
+ *   (O(n log n) timp, poate O(n) spațiu) doar ca să citești ultimele două
+ *   celule. `int nums[]` decade la un pointer, deci TREBUIE să transmiți n.
  *
- * C theory
- *   Updating two variables has an *order*. You must shift second <- first
- *   before overwriting first, or you lose information. Registers are cheap;
- *   lost values are not recoverable. Think of it as a tiny insertion into
- *   a sorted 2-slot window. INT_MIN from <climits> seeds both slots.
+ * Teorie C
+ *   Actualizarea a două variabile are o *ordine*. Trebuie să muți
+ *   second <- first înainte să suprascrii first, altfel pierzi informație.
+ *   Registrele sunt ieftine; valorile pierdute nu se recuperează. Gândește-te
+ *   ca la o inserție mică într-o fereastră sortată de 2 locuri. INT_MIN din
+ *   <climits> umple ambele locuri la start.
  *
- * Complexity: O(n) time, O(1) extra space.
+ * Complexitate: O(n) timp, O(1) spațiu extra.
  */
 
 #include <climits>
